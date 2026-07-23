@@ -56,6 +56,19 @@ test "relationship target cannot traverse above package root" {
 }
 
 ///|
+test "leading-slash relationship target cannot traverse above package root" {
+  try @opc.resolve_target("word/document.xml", "/../../evil.xml") catch {
+    InvalidPackage(message) =>
+      assert_eq(
+        message, "relationship target traverses above package root: /../../evil.xml",
+      )
+    _ => fail("unexpected package error")
+  } noraise {
+    _ => fail("expected above-root target to raise")
+  }
+}
+
+///|
 test "duplicate relationship Id is rejected" {
   let bytes = @fzip.zip_sync([
     (
