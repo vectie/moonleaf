@@ -1,0 +1,26 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "vectie/moonleaf/docx"
+
+import {
+  "moonbitlang/core/debug",
+  "vectie/moonleaf/opc",
+  "vectie/moonleaf/scene",
+}
+
+// Values
+pub fn read(@opc.Package) -> @scene.TextDocument raise DocxError
+
+pub fn replace_text(@opc.Package, String, String) -> @opc.Package raise DocxError
+
+// Errors
+pub(all) suberror DocxError {
+  MissingDocument
+  InvalidDocument(String)
+  InvalidReplacement(String)
+} derive(Eq, @debug.Debug)
+
+// Types and methods
+
+// Type aliases
+
+// Traits

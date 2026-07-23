@@ -1,0 +1,11 @@
+import {
+  "vectie/moonleaf/docx",
+  "vectie/moonleaf/opc",
+  "vectie/moonleaf/pptx",
+  "vectie/moonleaf/scene",
+  "vectie/moonleaf/xlsx",
+}
+
+import {
+  "hustcer/fzip",
+} for "test"

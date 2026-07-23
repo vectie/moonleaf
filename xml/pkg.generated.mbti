@@ -1,0 +1,48 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "vectie/moonleaf/xml"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn escape_attribute(String) -> String
+
+pub fn escape_text(String) -> String
+
+pub fn parse(String) -> Element raise XmlError
+
+pub fn serialize(Element) -> String
+
+// Errors
+pub(all) suberror XmlError {
+  InvalidXml(offset~ : Int, message~ : String)
+} derive(Eq, @debug.Debug)
+pub fn XmlError::to_string(Self) -> String
+
+// Types and methods
+pub(all) struct Attribute {
+  name : String
+  value : String
+} derive(Eq, @debug.Debug)
+
+pub(all) struct Element {
+  name : String
+  attributes : Array[Attribute]
+  children : Array[Node]
+} derive(Eq, @debug.Debug)
+pub fn Element::attribute(Self, String) -> String?
+pub fn Element::child_elements(Self) -> Array[Self]
+pub fn Element::children_named(Self, String) -> Array[Self]
+pub fn Element::first_child(Self, String) -> Self?
+pub fn Element::local_name(Self) -> String
+pub fn Element::text_content(Self) -> String
+
+pub(all) enum Node {
+  Element(Element)
+  Text(String)
+} derive(Eq, @debug.Debug)
+
+// Type aliases
+
+// Traits

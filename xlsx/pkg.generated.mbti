@@ -1,0 +1,32 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "vectie/moonleaf/xlsx"
+
+import {
+  "moonbitlang/core/debug",
+  "vectie/moonleaf/opc",
+  "vectie/moonleaf/scene",
+}
+
+// Values
+pub fn read(@opc.Package) -> @scene.Workbook raise XlsxError
+
+pub fn set_cell_text(@opc.Package, String, Int, Int, String) -> @opc.Package raise XlsxError
+
+// Errors
+pub(all) suberror XlsxError {
+  MissingWorkbook
+  PackageFailure(part~ : String, message~ : String)
+  InvalidXml(part~ : String, message~ : String)
+  InvalidWorkbook(String)
+  MissingWorksheet(sheet~ : String, relationship_id~ : String)
+  InvalidCellReference(String)
+  InvalidSharedStringIndex(Int)
+  SheetNotFound(String)
+  InvalidCoordinates(row~ : Int, column~ : Int)
+} derive(Eq, @debug.Debug)
+
+// Types and methods
+
+// Type aliases
+
+// Traits

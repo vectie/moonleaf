@@ -1,0 +1,52 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "vectie/moonleaf/opc"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn normalize_part_name(String) -> String
+
+pub fn open(FixedArray[Byte]) -> Package raise PackageError
+
+pub fn relationships_part_name(String) -> String
+
+pub fn resolve_target(String, String) -> String
+
+pub fn save(Package) -> FixedArray[Byte] raise PackageError
+
+// Errors
+pub(all) suberror PackageError {
+  InvalidPackage(String)
+  MissingPart(String)
+  InvalidTextPart(String)
+} derive(Eq, @debug.Debug)
+pub fn PackageError::to_string(Self) -> String
+
+// Types and methods
+pub(all) struct Package {
+  parts : Array[Part]
+} derive(Eq, @debug.Debug)
+pub fn Package::has_part(Self, String) -> Bool
+pub fn Package::part(Self, String) -> Part?
+pub fn Package::relationships(Self, String) -> Array[Relationship] raise PackageError
+pub fn Package::replace_part(Self, String, FixedArray[Byte]) -> Self
+pub fn Package::replace_text(Self, String, String) -> Self
+pub fn Package::text(Self, String) -> String raise PackageError
+
+pub(all) struct Part {
+  name : String
+  content : FixedArray[Byte]
+} derive(Eq, @debug.Debug)
+
+pub(all) struct Relationship {
+  id : String
+  relationship_type : String
+  target : String
+  external : Bool
+} derive(Eq, @debug.Debug)
+
+// Type aliases
+
+// Traits

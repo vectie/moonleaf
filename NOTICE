@@ -1,0 +1,7 @@
+MoonLeaf
+Copyright 2026 Vectie
+
+MoonLeaf includes or adapts ideas from permissively licensed open-source
+projects. Package-level documentation records relevant provenance as code is
+ported. The project depends on hustcer/fzip, an Apache-2.0 pure MoonBit
+implementation inspired by fflate.

@@ -1,0 +1,118 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "vectie/moonleaf/scene"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+
+// Errors
+
+// Types and methods
+pub(all) struct Cell {
+  row : Int
+  column : Int
+  value : CellValue
+  style_id : Int?
+} derive(Eq, @debug.Debug)
+
+pub(all) struct CellRange {
+  start_row : Int
+  start_column : Int
+  end_row : Int
+  end_column : Int
+} derive(Eq, @debug.Debug)
+
+pub(all) enum CellValue {
+  Empty
+  Text(String)
+  Number(String)
+  Boolean(Bool)
+  Formula(expression~ : String, cached~ : String?)
+  Error(String)
+} derive(Eq, @debug.Debug)
+
+pub(all) enum Document {
+  TextDocument(TextDocument)
+  WorkbookDocument(Workbook)
+  PresentationDocument(Presentation)
+} derive(Eq, @debug.Debug)
+
+pub(all) enum DocumentKind {
+  Text
+  Spreadsheet
+  Presentation
+} derive(Eq, @debug.Debug)
+
+pub(all) struct Presentation {
+  slides : Array[Slide]
+  warnings : Array[Warning]
+} derive(Eq, @debug.Debug)
+
+pub(all) struct Rect {
+  x : Int
+  y : Int
+  width : Int
+  height : Int
+} derive(Eq, @debug.Debug)
+
+pub(all) struct Sheet {
+  name : String
+  cells : Array[Cell]
+  merged_ranges : Array[CellRange]
+} derive(Eq, @debug.Debug)
+
+pub(all) struct Slide {
+  name : String
+  width : Int
+  height : Int
+  elements : Array[SlideElement]
+} derive(Eq, @debug.Debug)
+
+pub(all) enum SlideElement {
+  TextBox(bounds~ : Rect, runs~ : Array[TextRun])
+  Shape(kind~ : String, bounds~ : Rect, text~ : Array[TextRun])
+  Image(bounds~ : Rect, relationship_id~ : String)
+} derive(Eq, @debug.Debug)
+
+pub(all) enum TextBlock {
+  Paragraph(Array[TextRun])
+  Heading(Int, Array[TextRun])
+  ListItem(level~ : Int, ordered~ : Bool, Array[TextRun])
+  Table(Array[Array[String]])
+} derive(Eq, @debug.Debug)
+
+pub(all) struct TextDocument {
+  blocks : Array[TextBlock]
+  warnings : Array[Warning]
+} derive(Eq, @debug.Debug)
+
+pub(all) struct TextRun {
+  text : String
+  style : TextStyle
+} derive(Eq, @debug.Debug)
+
+pub(all) struct TextStyle {
+  bold : Bool
+  italic : Bool
+  underline : Bool
+  font_size_half_points : Int?
+  color : String?
+} derive(Eq, @debug.Debug)
+pub fn TextStyle::plain() -> Self
+
+pub(all) struct Warning {
+  code : String
+  message : String
+  part : String?
+} derive(Eq, @debug.Debug)
+
+pub(all) struct Workbook {
+  sheets : Array[Sheet]
+  warnings : Array[Warning]
+} derive(Eq, @debug.Debug)
+
+// Type aliases
+
+// Traits

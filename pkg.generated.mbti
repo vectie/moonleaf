@@ -1,0 +1,23 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "vectie/moonleaf"
+
+import {
+  "moonbitlang/core/debug",
+  "vectie/moonleaf/scene",
+}
+
+// Values
+pub fn open(String, FixedArray[Byte]) -> @scene.Document raise MoonLeafError
+
+// Errors
+pub(all) suberror MoonLeafError {
+  UnsupportedExtension(String)
+  Package(String)
+  Document(String)
+} derive(Eq, @debug.Debug)
+
+// Types and methods
+
+// Type aliases
+
+// Traits
