@@ -2,6 +2,8 @@
 
 This ledger records reproduced XML/OPC defects, fixes, verification, and remaining risks. It is intentionally evidence-based and should be updated with every hardening slice.
 
+Current verification: 37/37 tests pass on each of wasm, wasm-gc, JavaScript, and native (148 target-test executions). DOCX inspection coverage now includes style cascade/default paragraph styles, structure and numeric fallback, table spans, relationship parse failures, and image-target diagnostics. Detailed DOCX evidence and residual limits are recorded in `docs/engineering/problem-fix-ledger/WP04-docx-viewer.md`.
+
 ## Problem/fix ledger
 
 | Area | Symptom | Reproduction / evidence | Root cause | Fix | Verification | Residual risk |
