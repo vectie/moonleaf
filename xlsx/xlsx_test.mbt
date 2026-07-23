@@ -26,6 +26,12 @@ fn sample_package() -> @opc.Package {
           #|  <Relationship Id="rId1"
           #|   Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet"
           #|   Target="worksheets/sheet1.xml"/>
+          #|  <Relationship Id="rId2"
+          #|   Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings"
+          #|   Target="sharedStrings.xml"/>
+          #|  <Relationship Id="rId3"
+          #|   Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles"
+          #|   Target="styles.xml"/>
           #|</Relationships>
           #|
         ),
@@ -65,6 +71,62 @@ fn sample_package() -> @opc.Package {
       text_part("custom/preserved.txt", "leave me alone"),
     ],
   }
+}
+
+///|
+test "read rejects a sharedStrings relationship type with a malicious suffix" {
+  let source = sample_package().replace_text(
+    "xl/_rels/workbook.xml.rels", "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet1.xml\"/><Relationship Id=\"rId2\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings-malicious\" Target=\"sharedStrings.xml\"/></Relationships>",
+  )
+  let rejected = try @xlsx.read(source) catch {
+    @xlsx.InvalidSharedStringIndex(0) => true
+    _ => false
+  } noraise {
+    _ => false
+  }
+  assert_true(rejected)
+}
+
+///|
+test "read ignores an external sharedStrings relationship" {
+  let source = sample_package().replace_text(
+    "xl/_rels/workbook.xml.rels", "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet1.xml\"/><Relationship Id=\"rId2\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings\" Target=\"sharedStrings.xml\" TargetMode=\"External\"/></Relationships>",
+  )
+  let rejected = try @xlsx.read(source) catch {
+    @xlsx.InvalidSharedStringIndex(0) => true
+    _ => false
+  } noraise {
+    _ => false
+  }
+  assert_true(rejected)
+}
+
+///|
+test "read resolves purl sharedStrings at its relationship target" {
+  let source = sample_package().replace_text(
+    "xl/_rels/workbook.xml.rels", "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet1.xml\"/><Relationship Id=\"rId2\" Type=\"http://purl.oclc.org/ooxml/officeDocument/relationships/sharedStrings\" Target=\"metadata/purl-strings.xml\"/></Relationships>",
+  )
+  source.parts.push(
+    text_part(
+      "xl/metadata/purl-strings.xml", "<sst xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><si><t>relocated purl text</t></si></sst>",
+    ),
+  )
+  let workbook = @xlsx.read(source)
+  assert_true(workbook.sheets[0].cells[0].value == Text("relocated purl text"))
+}
+
+///|
+test "read reports a missing exact internal sharedStrings target" {
+  let source = sample_package().replace_text(
+    "xl/_rels/workbook.xml.rels", "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet1.xml\"/><Relationship Id=\"rId2\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings\" Target=\"missing/sharedStrings.xml\"/></Relationships>",
+  )
+  let rejected = try @xlsx.read(source) catch {
+    @xlsx.PackageFailure(_) => true
+    _ => false
+  } noraise {
+    _ => false
+  }
+  assert_true(rejected)
 }
 
 ///|
@@ -174,4 +236,88 @@ test "set_cell_text rejects invalid coordinates" {
   } noraise {
     _ => fail("expected invalid coordinates")
   }
+}
+
+///|
+test "set_cell_text edits implicit prefixed cell without duplicating it" {
+  let source = sample_package().replace_text(
+    "xl/worksheets/sheet1.xml",
+    (
+      #|<?xml version="1.0" encoding="UTF-8"?>
+      #|<x:worksheet xmlns:x="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+      #|  <x:sheetData><x:row r="1">
+      #|    <x:c s="7" t="inlineStr"><x:is><x:t>first</x:t></x:is></x:c>
+      #|    <x:c s="9" t="inlineStr"><x:is><x:t>old</x:t></x:is></x:c>
+      #|    <x:c r="D1" s="11" t="inlineStr"><x:is><x:t>later</x:t></x:is></x:c>
+      #|  </x:row></x:sheetData>
+      #|</x:worksheet>
+      #|
+    ),
+  )
+  let updated = @xlsx.set_cell_text(source, "Budget & Plan", 1, 2, "new")
+  let xml = updated.text("xl/worksheets/sheet1.xml")
+  assert_true(xml.contains("<x:worksheet"))
+  assert_true(xml.contains("xmlns:x="))
+  assert_true(xml.contains("r=\"B1\""))
+  assert_true(xml.contains("s=\"9\""))
+  let reopened = @xlsx.read(updated)
+  guard reopened.sheets is [sheet] else { fail("expected one sheet") }
+  let logical_b1 = sheet.cells.filter(fn(cell) {
+    cell.row == 1 && cell.column == 2
+  })
+  assert_eq(logical_b1.length(), 1)
+  guard logical_b1 is [cell] else { fail("expected exactly one B1") }
+  assert_true(cell.value == Text("new"))
+  assert_true(cell.style_id == Some(9))
+  assert_true(sheet.cells.map(fn(cell) { cell.column }) == [1, 2, 4])
+}
+
+///|
+test "inspect preserves implicit styled-cell semantics in one row" {
+  let source = sample_package()
+  let parts = source.parts.filter(fn(part) {
+    part.name != "xl/worksheets/sheet1.xml"
+  })
+  parts.push(
+    text_part(
+      "xl/styles.xml",
+      (
+        #|<?xml version="1.0" encoding="UTF-8"?>
+        #|<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+        #|  <cellXfs count="2"><xf numFmtId="0"/><xf numFmtId="14"/></cellXfs>
+        #|</styleSheet>
+        #|
+      ),
+    ),
+  )
+  parts.push(
+    text_part(
+      "xl/worksheets/sheet1.xml",
+      (
+        #|<?xml version="1.0" encoding="UTF-8"?>
+        #|<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+        #|  <sheetData><row r="1">
+        #|    <c s="1" t="s"><v>0</v></c>
+        #|    <c s="1"><f>60+1</f><v>61</v></c>
+        #|    <c r="D1" s="0"><v>42</v></c>
+        #|  </row></sheetData>
+        #|</worksheet>
+        #|
+      ),
+    ),
+  )
+  let opc_package : @opc.Package = { parts, }
+  let cells = @xlsx.inspect(opc_package)
+  assert_true(cells.map(fn(cell) { cell.column }) == [1, 2, 4])
+  guard cells is [a1, b1, d1] else { fail("expected three cells") }
+  assert_true(a1.date_time is None)
+  assert_true(b1.formula is Some("60+1"))
+  assert_true(b1.cached_value is Some("61"))
+  assert_true(b1.date_time is Some(_))
+  assert_true(d1.display_kind == @xlsx.DisplayKind::General)
+  assert_false(
+    d1.warnings.any(fn(warning) {
+      warning is @xlsx.InspectWarning::UnsupportedNumberFormat(_, _)
+    }),
+  )
 }

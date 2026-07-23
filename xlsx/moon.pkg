@@ -1,9 +1,7 @@
 import {
+  "moonbitlang/core/encoding/utf8",
+  "moonbitlang/core/strconv",
   "vectie/moonleaf/opc",
   "vectie/moonleaf/scene",
   "vectie/moonleaf/xml",
 }
-
-import {
-  "moonbitlang/core/encoding/utf8",
-} for "test"
