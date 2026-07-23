@@ -50,9 +50,27 @@ fn ordered_slide_parts(
           None => raise InvalidPresentation(message="slide id is missing r:id")
         }
         match relationship_by_id(relationships, relationship_id) {
-          Some(relationship) if !relationship.external =>
-            parts.push(resolve_target(presentation_part, relationship.target))
-          _ => raise MissingSlide(relationship_id~)
+          Some(relationship) if !relationship.external &&
+            (
+              relationship.relationship_type ==
+              "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" ||
+              relationship.relationship_type ==
+              "http://purl.oclc.org/ooxml/officeDocument/relationships/slide"
+            ) => {
+            let target = relationship.target
+            let part = @opc.resolve_target(presentation_part, target) catch {
+              _ =>
+                raise InvalidPresentation(
+                  message="invalid slide relationship \{relationship_id} target \{target}",
+                )
+            }
+            parts.push(part)
+          }
+          Some(relationship) =>
+            raise InvalidPresentation(
+              message="invalid slide relationship \{relationship_id} target \{relationship.target}",
+            )
+          None => raise MissingSlide(relationship_id~)
         }
       }
       parts
@@ -65,9 +83,8 @@ fn ordered_slide_parts(
 /// preset shapes, image relationship ids, and element transforms from a PPTX
 /// package.
 ///
-/// Parsing and layout behavior were independently adapted from the permissive
-/// MIT-licensed PptxGenJS project and the ECMA-376 PresentationML model. No
-/// PptxGenJS source is included.
+/// Parsing follows the ECMA-376 PresentationML model. See PROVENANCE.md for
+/// implementation provenance.
 pub fn read(container : @opc.Package) -> @scene.Presentation raise PptxError {
   let root = parse_xml_part(container, presentation_part, presentation=true)
   if root.local_name() != "presentation" {
@@ -76,8 +93,9 @@ pub fn read(container : @opc.Package) -> @scene.Presentation raise PptxError {
   let relationships = presentation_relationships(container)
   let (width, height) = slide_dimensions(root)
   let slides = []
+  let warnings = []
   for part in ordered_slide_parts(root, relationships) {
-    slides.push(parse_slide(container, part, width, height))
+    slides.push(parse_slide(container, part, width, height, warnings))
   }
-  { slides, warnings: [] }
+  { slides, warnings }
 }
