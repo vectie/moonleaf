@@ -175,3 +175,37 @@ test "set_cell_text rejects invalid coordinates" {
     _ => fail("expected invalid coordinates")
   }
 }
+
+///|
+test "set_cell_text edits implicit prefixed cell without duplicating it" {
+  let source = sample_package().replace_text(
+    "xl/worksheets/sheet1.xml",
+    (
+      #|<?xml version="1.0" encoding="UTF-8"?>
+      #|<x:worksheet xmlns:x="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+      #|  <x:sheetData><x:row r="1">
+      #|    <x:c s="7" t="inlineStr"><x:is><x:t>first</x:t></x:is></x:c>
+      #|    <x:c s="9" t="inlineStr"><x:is><x:t>old</x:t></x:is></x:c>
+      #|    <x:c r="D1" s="11" t="inlineStr"><x:is><x:t>later</x:t></x:is></x:c>
+      #|  </x:row></x:sheetData>
+      #|</x:worksheet>
+      #|
+    ),
+  )
+  let updated = @xlsx.set_cell_text(source, "Budget & Plan", 1, 2, "new")
+  let xml = updated.text("xl/worksheets/sheet1.xml")
+  assert_true(xml.contains("<x:worksheet"))
+  assert_true(xml.contains("xmlns:x="))
+  assert_true(xml.contains("r=\"B1\""))
+  assert_true(xml.contains("s=\"9\""))
+  let reopened = @xlsx.read(updated)
+  guard reopened.sheets is [sheet] else { fail("expected one sheet") }
+  let logical_b1 = sheet.cells.filter(fn(cell) {
+    cell.row == 1 && cell.column == 2
+  })
+  assert_eq(logical_b1.length(), 1)
+  guard logical_b1 is [cell] else { fail("expected exactly one B1") }
+  assert_true(cell.value == Text("new"))
+  assert_true(cell.style_id == Some(9))
+  assert_true(sheet.cells.map(fn(cell) { cell.column }) == [1, 2, 4])
+}
