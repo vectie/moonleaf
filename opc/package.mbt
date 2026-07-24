@@ -48,7 +48,13 @@ pub fn resolve_target(
   target : String,
 ) -> String raise PackageError {
   if target.has_prefix("/") {
-    return normalize_part_name(target)
+    let resolved = normalize_part_name(target)
+    if resolved == ".." || resolved.has_prefix("../") {
+      raise PackageError::InvalidPackage(
+        "relationship target traverses above package root: " + target,
+      )
+    }
+    return resolved
   }
   let source = normalize_part_name(source_part)
   let directory = match source.rev_find("/") {

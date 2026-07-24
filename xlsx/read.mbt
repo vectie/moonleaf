@@ -193,13 +193,32 @@ fn worksheet_part_name(
 ) -> String raise XlsxError {
   guard find_relationship(relationships, sheet.relationship_id)
     is Some(relationship) &&
-    !relationship.external else {
+    !relationship.external &&
+    (
+      relationship.relationship_type ==
+      "http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" ||
+      relationship.relationship_type ==
+      "http://purl.oclc.org/ooxml/officeDocument/relationships/worksheet"
+    ) else {
     raise MissingWorksheet(
       sheet=sheet.name,
       relationship_id=sheet.relationship_id,
     )
   }
-  resolve_relationship_target("xl/workbook.xml", relationship.target)
+  @opc.resolve_target("xl/workbook.xml", relationship.target) catch {
+    @opc.PackageError::InvalidPackage(message) =>
+      raise XlsxError::PackageFailure(
+        part="xl/_rels/workbook.xml.rels",
+        message~,
+      )
+    @opc.PackageError::MissingPart(part) =>
+      raise XlsxError::PackageFailure(part~, message="missing package part")
+    @opc.PackageError::InvalidTextPart(part) =>
+      raise XlsxError::PackageFailure(
+        part~,
+        message="package part is not valid UTF-8",
+      )
+  }
 }
 
 ///|
@@ -215,7 +234,9 @@ pub fn read(xlsx_package : @opc.Package) -> @scene.Workbook raise XlsxError {
   let descriptors = workbook_sheets(workbook)
   let relationships = workbook_relationships(xlsx_package)
   let strings = shared_strings(
-    optional_part(xlsx_package, "xl/sharedStrings.xml"),
+    resolved_metadata_part(
+      xlsx_package, relationships, shared_strings_relationship_types,
+    ),
   )
   let sheets : Array[@scene.Sheet] = []
   for descriptor in descriptors {

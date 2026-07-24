@@ -12,18 +12,6 @@ fn parse_part(
 }
 
 ///|
-fn optional_part(
-  xlsx_package : @opc.Package,
-  part_name : String,
-) -> @xml.Element? raise XlsxError {
-  if xlsx_package.has_part(part_name) {
-    Some(parse_part(xlsx_package, part_name))
-  } else {
-    None
-  }
-}
-
-///|
 fn descendant_text(element : @xml.Element) -> String {
   let output = StringBuilder()
   fn append_text_nodes(element : @xml.Element, output : StringBuilder) -> Unit {
