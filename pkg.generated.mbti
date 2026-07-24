@@ -9,7 +9,22 @@ import {
 // Values
 pub fn open(String, FixedArray[Byte]) -> @scene.Document raise MoonLeafError
 
+pub fn open_session(String, FixedArray[Byte]) -> DocumentSession raise DocumentSessionError
+
 // Errors
+pub(all) suberror DocumentSessionError {
+  UnsupportedFormat(String)
+  Package(String)
+  Render(String)
+  OperationNotSupported(operation~ : String, format~ : DocumentFormat)
+  InvalidFind(String)
+  InvalidCoordinates(row~ : Int, column~ : Int)
+  SheetNotFound(String)
+  FormulaCell(sheet~ : String, row~ : Int, column~ : Int)
+  MergedCellNotAnchor(sheet~ : String, row~ : Int, column~ : Int)
+  SaveVerification(String)
+} derive(Eq, @debug.Debug)
+
 pub(all) suberror MoonLeafError {
   UnsupportedExtension(String)
   Package(String)
@@ -17,6 +32,45 @@ pub(all) suberror MoonLeafError {
 } derive(Eq, @debug.Debug)
 
 // Types and methods
+pub(all) struct DocumentCapabilities {
+  render_scene : Bool
+  save_as_copy : Bool
+  replace_text : Bool
+  set_cell_text : Bool
+} derive(Eq, @debug.Debug)
+
+pub(all) struct DocumentDiagnostic {
+  code : String
+  message : String
+  part : String?
+} derive(Eq, @debug.Debug)
+
+pub(all) enum DocumentFormat {
+  Docx
+  Xlsx
+  Pptx
+} derive(Eq, @debug.Debug)
+pub fn DocumentFormat::capabilities(Self) -> DocumentCapabilities
+
+pub struct DocumentSession {
+  // private fields
+}
+pub fn DocumentSession::capabilities(Self) -> DocumentCapabilities
+pub fn DocumentSession::diagnostics(Self) -> Array[DocumentDiagnostic]
+pub fn DocumentSession::filename(Self) -> String
+pub fn DocumentSession::format(Self) -> DocumentFormat
+pub fn DocumentSession::is_dirty(Self) -> Bool
+pub fn DocumentSession::replace_text(Self, String, String) -> Self raise DocumentSessionError
+pub fn DocumentSession::revision(Self) -> Int
+pub fn DocumentSession::save_as_copy(Self) -> VerifiedDocumentCopy raise DocumentSessionError
+pub fn DocumentSession::scene(Self) -> @scene.Document
+pub fn DocumentSession::set_cell_text(Self, String, Int, Int, String) -> Self raise DocumentSessionError
+
+pub struct VerifiedDocumentCopy {
+  // private fields
+}
+pub fn VerifiedDocumentCopy::bytes(Self) -> FixedArray[Byte]
+pub fn VerifiedDocumentCopy::session(Self) -> DocumentSession
 
 // Type aliases
 

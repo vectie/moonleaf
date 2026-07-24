@@ -146,6 +146,17 @@ test "replace exact slide text while preserving unrelated parts" {
 }
 
 ///|
+test "replace rejects empty find" {
+  try ignore(@pptx.replace_text(fixture_package(), "", "x")) catch {
+    InvalidPresentation(message~) =>
+      assert_eq(message, "find text must not be empty")
+    _ => fail("unexpected error")
+  } noraise {
+    _ => fail("expected InvalidPresentation")
+  }
+}
+
+///|
 test "group without grpSpPr xfrm leaves transformed child bounds unchanged" {
   let base = fixture_package()
   let slide =
