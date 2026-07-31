@@ -31,8 +31,42 @@ pub(all) struct Element {
 } derive(Debug, Eq)
 
 ///|
+/// Parser resource ceilings. Values must be non-negative.
+pub(all) struct ParseOptions {
+  max_input_utf16 : Int
+  max_depth : Int
+  max_nodes : Int
+  max_attributes_per_element : Int
+  max_total_decoded_text : Int
+} derive(Debug, Eq)
+
+///|
+/// Conservative defaults suitable for untrusted package parts.
+pub fn ParseOptions::safe_defaults() -> ParseOptions {
+  {
+    max_input_utf16: 16 * 1024 * 1024,
+    max_depth: 256,
+    max_nodes: 1000000,
+    max_attributes_per_element: 1024,
+    max_total_decoded_text: 16 * 1024 * 1024,
+  }
+}
+
+///|
+fn split_lexical_name(name : String) -> (String, String) {
+  match name.find(":") {
+    Some(index) =>
+      (
+        name.unsafe_substring(start=0, end=index),
+        name.unsafe_substring(start=index + 1, end=name.length()),
+      )
+    None => ("", name)
+  }
+}
+
+///|
 pub fn Element::local_name(self : Element) -> String {
-  match self.name.rev_find(":") {
+  match self.name.find(":") {
     Some(index) =>
       self.name.unsafe_substring(start=index + 1, end=self.name.length())
     None => self.name
@@ -40,9 +74,11 @@ pub fn Element::local_name(self : Element) -> String {
 }
 
 ///|
+/// Compatibility lookup by lexical/local name. This does not resolve namespace URIs;
+/// URI-aware attribute lookup is not implemented.
 pub fn Element::attribute(self : Element, name : String) -> String? {
   for attribute in self.attributes {
-    if attribute.name == name || attribute.name.has_suffix(":" + name) {
+    if attribute.name == name || split_lexical_name(attribute.name).1 == name {
       return Some(attribute.value)
     }
   }
@@ -113,7 +149,16 @@ pub fn escape_attribute(text : String) -> String {
 
 ///|
 pub fn parse(source : String) -> Element raise XmlError {
-  parse_document(source)
+  parse_with_options(source, ParseOptions::safe_defaults())
+}
+
+///|
+/// Parse XML with explicit resource ceilings.
+pub fn parse_with_options(
+  source : String,
+  options : ParseOptions,
+) -> Element raise XmlError {
+  parse_document_with_options(source, options)
 }
 
 ///|

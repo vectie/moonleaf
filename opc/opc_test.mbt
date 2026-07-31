@@ -33,3 +33,66 @@ test "resolve relationship targets relative to their source part" {
     "xl/sharedStrings.xml",
   )
 }
+
+///|
+test "relationship target keeps valid leading-parent normalization" {
+  assert_eq(
+    @opc.resolve_target("word/document.xml", "../media/image.png"),
+    "media/image.png",
+  )
+}
+
+///|
+test "relationship target cannot traverse above package root" {
+  try @opc.resolve_target("word/document.xml", "../../secret.xml") catch {
+    InvalidPackage(message) =>
+      assert_eq(
+        message, "relationship target traverses above package root: ../../secret.xml",
+      )
+    _ => fail("unexpected package error")
+  } noraise {
+    _ => fail("expected above-root target to raise")
+  }
+}
+
+///|
+test "leading-slash relationship target cannot traverse above package root" {
+  try @opc.resolve_target("word/document.xml", "/../../evil.xml") catch {
+    InvalidPackage(message) =>
+      assert_eq(
+        message, "relationship target traverses above package root: /../../evil.xml",
+      )
+    _ => fail("unexpected package error")
+  } noraise {
+    _ => fail("expected above-root target to raise")
+  }
+}
+
+///|
+test "duplicate relationship Id is rejected" {
+  let bytes = @fzip.zip_sync([
+    (
+      "[Content_Types].xml",
+      @fzip.str_to_u8("<Types xmlns=\"urn:content-types\"/>"),
+    ),
+    (
+      "_rels/.rels",
+      @fzip.str_to_u8(
+        (
+          #|<Relationships>
+          #|  <Relationship Id="rId1" Type="type-a" Target="a.xml"/>
+          #|  <Relationship Id="rId1" Type="type-b" Target="b.xml"/>
+          #|</Relationships>
+        ),
+      ),
+    ),
+  ])
+  let archive = @opc.open(bytes)
+  try archive.relationships("") catch {
+    InvalidPackage(message) =>
+      assert_eq(message, "duplicate relationship Id: rId1")
+    _ => fail("unexpected package error")
+  } noraise {
+    _ => fail("expected duplicate relationship Id to raise")
+  }
+}

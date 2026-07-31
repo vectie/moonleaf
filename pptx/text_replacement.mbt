@@ -89,6 +89,9 @@ pub fn replace_text(
   find : String,
   replacement : String,
 ) -> @opc.Package raise PptxError {
+  if find.is_empty() {
+    raise InvalidPresentation(message="find text must not be empty")
+  }
   let root = parse_xml_part(container, presentation_part, presentation=true)
   let relationships = presentation_relationships(container)
   let parts = ordered_slide_parts(root, relationships)

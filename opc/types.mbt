@@ -105,7 +105,20 @@ pub fn Package::relationships(
 
 ///|
 pub fn open(content : FixedArray[Byte]) -> Package raise PackageError {
-  open_package(content)
+  open_package_with_policy(content, ArchivePolicy::default())
+}
+
+///|
+/// Open an OPC package using explicit, validated per-open archive limits.
+///
+/// ZIP central-directory metadata is checked before extraction, CRC
+/// verification is mandatory, and declared sizes are compared with extracted
+/// outputs before the package is returned.
+pub fn open_with_policy(
+  content : FixedArray[Byte],
+  policy : ArchivePolicy,
+) -> Package raise PackageError {
+  open_package_with_policy(content, policy)
 }
 
 ///|

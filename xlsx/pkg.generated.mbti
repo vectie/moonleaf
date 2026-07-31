@@ -8,6 +8,8 @@ import {
 }
 
 // Values
+pub fn inspect(@opc.Package) -> Array[InspectedCell] raise XlsxError
+
 pub fn read(@opc.Package) -> @scene.Workbook raise XlsxError
 
 pub fn set_cell_text(@opc.Package, String, Int, Int, String) -> @opc.Package raise XlsxError
@@ -26,7 +28,51 @@ pub(all) suberror XlsxError {
 } derive(Eq, @debug.Debug)
 
 // Types and methods
+pub(all) struct DateTimeMetadata {
+  date1904 : Bool
+  serial : Double
+  serial_60 : Bool
+  year : Int?
+  month : Int?
+  day : Int?
+  hour : Int
+  minute : Int
+  second : Int
+} derive(Eq, @debug.Debug)
+
+pub(all) enum DisplayKind {
+  General
+  Number
+  Date
+  Time
+  DateTime
+  Unsupported
+} derive(Eq, @debug.Debug)
+
+pub(all) enum InspectWarning {
+  MissingStylesPart
+  StyleIdOutOfRange(Int)
+  UnsupportedNumberFormat(Int, String)
+  AmbiguousNumberFormat(Int, String)
+} derive(Eq, @debug.Debug)
+
+pub(all) struct InspectedCell {
+  sheet_name : String
+  row : Int
+  column : Int
+  raw_value : String?
+  resolved_text : String?
+  formula : String?
+  cached_value : String?
+  style_id : Int?
+  number_format_id : Int?
+  number_format : String?
+  display_kind : DisplayKind
+  date_time : DateTimeMetadata?
+  warnings : Array[InspectWarning]
+} derive(Eq, @debug.Debug)
 
 // Type aliases
 
 // Traits
+

@@ -12,6 +12,8 @@ pub fn escape_text(String) -> String
 
 pub fn parse(String) -> Element raise XmlError
 
+pub fn parse_with_options(String, ParseOptions) -> Element raise XmlError
+
 pub fn serialize(Element) -> String
 
 // Errors
@@ -43,6 +45,16 @@ pub(all) enum Node {
   Text(String)
 } derive(Eq, @debug.Debug)
 
+pub(all) struct ParseOptions {
+  max_input_utf16 : Int
+  max_depth : Int
+  max_nodes : Int
+  max_attributes_per_element : Int
+  max_total_decoded_text : Int
+} derive(Eq, @debug.Debug)
+pub fn ParseOptions::safe_defaults() -> Self
+
 // Type aliases
 
 // Traits
+

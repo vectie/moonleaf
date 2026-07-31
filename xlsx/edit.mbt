@@ -41,14 +41,21 @@ fn inline_text_cell(
 }
 
 ///|
-fn cell_column(cell : @xml.Element) -> Int? {
+/// Resolve columns for legal worksheet cells whose `r` attribute is omitted.
+/// OOXML defines their position by document order, so editing must not append a
+/// duplicate cell or reorder subsequent explicit coordinates.
+fn cell_column_or_implicit(
+  cell : @xml.Element,
+  row : Int,
+  previous : Int,
+) -> Int raise XlsxError {
   match cell.attribute("r") {
+    None => previous + 1
     Some(reference) =>
       match parse_cell_reference(reference) {
-        Some((_, column)) => Some(column)
-        None => None
+        Some((reference_row, column)) if reference_row == row => column
+        _ => raise InvalidCellReference(reference)
       }
-    None => None
   }
 }
 
@@ -58,21 +65,25 @@ fn replace_or_insert_cell(
   row : Int,
   column : Int,
   text : String,
-) -> @xml.Element {
+) -> @xml.Element raise XlsxError {
   let reference = cell_reference(row, column)
   let children : Array[@xml.Node] = []
   let inserted = Ref(false)
+  let previous_column = Ref(0)
   for child in row_element.children {
     match child {
       Element(cell) if cell.local_name() == "c" => {
-        let current_column = cell_column(cell)
-        if current_column == Some(column) {
+        let current_column = cell_column_or_implicit(
+          cell,
+          row,
+          previous_column.val,
+        )
+        previous_column.val = current_column
+        if current_column == column {
           children.push(Element(inline_text_cell(reference, text, Some(cell))))
           inserted.val = true
         } else {
-          if !inserted.val &&
-            current_column is Some(current) &&
-            current > column {
+          if !inserted.val && current_column > column {
             children.push(Element(inline_text_cell(reference, text, None)))
             inserted.val = true
           }
@@ -106,7 +117,7 @@ fn replace_or_insert_row(
   row : Int,
   column : Int,
   text : String,
-) -> @xml.Element {
+) -> @xml.Element raise XlsxError {
   let children : Array[@xml.Node] = []
   let inserted = Ref(false)
   for child in sheet_data.children {

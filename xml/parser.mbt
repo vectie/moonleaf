@@ -1,12 +1,16 @@
 ///|
+/// Bounded, prefix-tolerant lexical QName XML parser; namespace bindings are not validated.
 priv struct Parser {
   source : String
+  options : ParseOptions
   mut offset : Int
+  mut nodes : Int
+  mut decoded_text : Int
 }
 
 ///|
-fn Parser::new(source : String) -> Parser {
-  { source, offset: 0 }
+fn Parser::new(source : String, options : ParseOptions) -> Parser {
+  { source, options, offset: 0, nodes: 0, decoded_text: 0 }
 }
 
 ///|
@@ -27,19 +31,6 @@ fn Parser::fail(self : Parser, message : String) -> Unit raise XmlError {
 }
 
 ///|
-fn Parser::skip_ascii_whitespace(self : Parser) -> Unit {
-  while !self.at_end() &&
-        (
-          self.source[self.offset] == ' ' ||
-          self.source[self.offset] == '\t' ||
-          self.source[self.offset] == '\r' ||
-          self.source[self.offset] == '\n'
-        ) {
-    self.offset += 1
-  }
-}
-
-///|
 fn Parser::consume(self : Parser, token : String) -> Bool {
   if self.starts_with(token) {
     self.offset += token.length()
@@ -57,60 +48,50 @@ fn Parser::expect(self : Parser, token : String) -> Unit raise XmlError {
 }
 
 ///|
-fn is_name_code_unit(unit : UInt16) -> Bool {
-  unit == ':' ||
-  unit == '_' ||
-  unit == '-' ||
-  unit == '.' ||
-  (unit >= '0' && unit <= '9') ||
-  (unit >= 'A' && unit <= 'Z') ||
-  (unit >= 'a' && unit <= 'z') ||
-  unit > 0x7f
+fn Parser::skip_ws(self : Parser) -> Unit {
+  while !self.at_end() &&
+        (
+          self.source[self.offset] == ' ' ||
+          self.source[self.offset] == '\t' ||
+          self.source[self.offset] == '\r' ||
+          self.source[self.offset] == '\n'
+        ) {
+    self.offset += 1
+  }
+}
+
+///|
+fn is_name_start(c : UInt16) -> Bool {
+  c == '_' || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c > 0x7f
+}
+
+///|
+fn is_name_char(c : UInt16) -> Bool {
+  is_name_start(c) || c == ':' || c == '-' || c == '.' || (c >= '0' && c <= '9')
 }
 
 ///|
 fn Parser::parse_name(self : Parser) -> String raise XmlError {
   let start = self.offset
-  while !self.at_end() && is_name_code_unit(self.source[self.offset]) {
+  if self.at_end() || !is_name_start(self.source[self.offset]) {
+    self.fail("invalid XML name")
+  }
+  self.offset += 1
+  while !self.at_end() && is_name_char(self.source[self.offset]) {
     self.offset += 1
   }
-  if self.offset == start {
-    self.fail("expected XML name")
+  let name = self.source.unsafe_substring(start~, end=self.offset)
+  match name.find(":") {
+    Some(i) =>
+      if i == 0 ||
+        i == name.length() - 1 ||
+        name.unsafe_substring(start=i + 1, end=name.length()).find(":")
+        is Some(_) {
+        self.fail("invalid qualified name")
+      }
+    None => ()
   }
-  self.source.unsafe_substring(start~, end=self.offset)
-}
-
-///|
-fn decode_numeric_entity(
-  entity : String,
-  offset : Int,
-) -> String raise XmlError {
-  let (digits, base) = if entity.has_prefix("#x") || entity.has_prefix("#X") {
-    (entity.unsafe_substring(start=2, end=entity.length()), 16)
-  } else {
-    (entity.unsafe_substring(start=1, end=entity.length()), 10)
-  }
-  if digits.length() == 0 {
-    raise XmlError::InvalidXml(offset~, message="empty numeric entity")
-  }
-  let mut value = 0
-  for unit in digits {
-    let digit = if unit >= '0' && unit <= '9' {
-      unit.to_int() - ('0' : UInt16).to_int()
-    } else if base == 16 && unit >= 'a' && unit <= 'f' {
-      unit.to_int() - ('a' : UInt16).to_int() + 10
-    } else if base == 16 && unit >= 'A' && unit <= 'F' {
-      unit.to_int() - ('A' : UInt16).to_int() + 10
-    } else {
-      raise XmlError::InvalidXml(offset~, message="invalid numeric entity")
-    }
-    value = value * base + digit
-  }
-  match value.to_char() {
-    Some(character) => character.to_string()
-    None =>
-      raise XmlError::InvalidXml(offset~, message="invalid Unicode entity")
-  }
+  name
 }
 
 ///|
@@ -121,228 +102,274 @@ fn decode_entity(entity : String, offset : Int) -> String raise XmlError {
     "gt" => ">"
     "quot" => "\""
     "apos" => "'"
-    _ =>
-      if entity.has_prefix("#") {
-        decode_numeric_entity(entity, offset)
-      } else {
-        raise XmlError::InvalidXml(
-          offset~,
-          message="unknown XML entity &" + entity + ";",
-        )
+    _ => {
+      if !entity.has_prefix("#") {
+        raise XmlError::InvalidXml(offset~, message="unknown entity")
       }
+      let hex = entity.has_prefix("#x") || entity.has_prefix("#X")
+      let start = if hex { 2 } else { 1 }
+      if start == entity.length() {
+        raise XmlError::InvalidXml(offset~, message="empty numeric entity")
+      }
+      let mut value = 0
+      for i = start; i < entity.length(); i = i + 1 {
+        let c = entity[i]
+        let digit = if c >= '0' && c <= '9' {
+          c.to_int() - ('0' : UInt16).to_int()
+        } else if hex && c >= 'a' && c <= 'f' {
+          c.to_int() - ('a' : UInt16).to_int() + 10
+        } else if hex && c >= 'A' && c <= 'F' {
+          c.to_int() - ('A' : UInt16).to_int() + 10
+        } else {
+          raise XmlError::InvalidXml(offset~, message="invalid numeric entity")
+        }
+        let base = if hex { 16 } else { 10 }
+        if value > (0x10ffff - digit) / base {
+          raise XmlError::InvalidXml(offset~, message="invalid Unicode entity")
+        }
+        value = value * base + digit
+      }
+      if (value >= 0xd800 && value <= 0xdfff) ||
+        value == 0 ||
+        (value < 0x20 && value != 0x09 && value != 0x0a && value != 0x0d) ||
+        value == 0xfffe ||
+        value == 0xffff {
+        raise XmlError::InvalidXml(offset~, message="invalid Unicode entity")
+      }
+      match value.to_char() {
+        Some(c) => c.to_string()
+        None =>
+          raise XmlError::InvalidXml(offset~, message="invalid Unicode entity")
+      }
+    }
   }
 }
 
 ///|
-fn decode_text(text : String, source_offset : Int) -> String raise XmlError {
-  if text.find("&") is None {
-    return text
-  }
-  let output = StringBuilder()
+fn Parser::decode(
+  _self : Parser,
+  raw : String,
+  at : Int,
+) -> String raise XmlError {
+  let out = StringBuilder()
   let mut cursor = 0
-  while cursor < text.length() {
-    match text.unsafe_substring(start=cursor, end=text.length()).find("&") {
+  while cursor < raw.length() {
+    match raw.unsafe_substring(start=cursor, end=raw.length()).find("&") {
       None => {
-        output.write_string(
-          text.unsafe_substring(start=cursor, end=text.length()),
-        )
-        cursor = text.length()
+        out.write_string(raw.unsafe_substring(start=cursor, end=raw.length()))
+        cursor = raw.length()
       }
       Some(relative) => {
         let amp = cursor + relative
-        output.write_string(text.unsafe_substring(start=cursor, end=amp))
-        match
-          text.unsafe_substring(start=amp + 1, end=text.length()).find(";") {
+        out.write_string(raw.unsafe_substring(start=cursor, end=amp))
+        match raw.unsafe_substring(start=amp + 1, end=raw.length()).find(";") {
           None =>
             raise XmlError::InvalidXml(
-              offset=source_offset + amp,
-              message="unterminated XML entity",
+              offset=at + amp,
+              message="unterminated entity",
             )
-          Some(entity_length) => {
-            let semicolon = amp + 1 + entity_length
-            let entity = text.unsafe_substring(start=amp + 1, end=semicolon)
-            output.write_string(decode_entity(entity, source_offset + amp))
-            cursor = semicolon + 1
+          Some(semi_rel) => {
+            let semi = amp + 1 + semi_rel
+            out.write_string(
+              decode_entity(
+                raw.unsafe_substring(start=amp + 1, end=semi),
+                at + amp,
+              ),
+            )
+            cursor = semi + 1
           }
         }
       }
     }
   }
-  output.to_string()
+  out.to_string()
 }
 
 ///|
-fn Parser::parse_quoted_value(self : Parser) -> String raise XmlError {
+fn Parser::quoted(self : Parser) -> String raise XmlError {
   if self.at_end() ||
-    (self.source[self.offset] != '"' && self.source[self.offset] != '\'') {
-    self.fail("expected quoted attribute value")
+    (self.source[self.offset] != '\"' && self.source[self.offset] != '\'') {
+    self.fail("expected quoted value")
   }
   let quote = self.source[self.offset]
   self.offset += 1
   let start = self.offset
   while !self.at_end() && self.source[self.offset] != quote {
+    if self.source[self.offset] == '<' {
+      self.fail("< in attribute")
+    }
     self.offset += 1
   }
   if self.at_end() {
-    self.fail("unterminated attribute value")
+    self.fail("unterminated attribute")
   }
-  let raw = self.source.unsafe_substring(start~, end=self.offset)
+  let value = self.decode(
+    self.source.unsafe_substring(start~, end=self.offset),
+    start,
+  )
   self.offset += 1
-  decode_text(raw, start)
+  value
 }
 
 ///|
-fn Parser::skip_until(
-  self : Parser,
-  terminator : String,
-) -> Unit raise XmlError {
-  match
-    self.source
-    .unsafe_substring(start=self.offset, end=self.source.length())
-    .find(terminator) {
-    Some(relative) => self.offset += relative + terminator.length()
-    None => self.fail("unterminated XML construct")
-  }
-}
-
-///|
-fn Parser::skip_misc(self : Parser) -> Unit raise XmlError {
-  for ;; {
-    self.skip_ascii_whitespace()
-    if self.consume("<?") {
-      self.skip_until("?>")
-    } else if self.consume("<!--") {
-      self.skip_until("-->")
-    } else if self.consume("<!DOCTYPE") {
-      let mut bracket_depth = 0
-      let mut quote : UInt16? = None
-      while !self.at_end() {
-        let unit = self.source[self.offset]
-        self.offset += 1
-        match quote {
-          Some(expected) => if unit == expected { quote = None }
-          None =>
-            if unit == '"' || unit == '\'' {
-              quote = Some(unit)
-            } else if unit == '[' {
-              bracket_depth += 1
-            } else if unit == ']' {
-              bracket_depth -= 1
-            } else if unit == '>' && bracket_depth == 0 {
-              break
-            }
-        }
-      }
-      if self.at_end() &&
-        (
-          self.source.length() == 0 ||
-          self.source[self.source.length() - 1] != '>'
-        ) {
-        self.fail("unterminated doctype")
-      }
-    } else {
-      break
-    }
-  }
-}
-
-///|
-fn Parser::parse_text_node(self : Parser) -> Node raise XmlError {
+fn Parser::until(self : Parser, end : String) -> String raise XmlError {
   let start = self.offset
-  while !self.at_end() && self.source[self.offset] != '<' {
+  while !self.at_end() && !self.starts_with(end) {
     self.offset += 1
   }
-  Node::Text(
-    decode_text(self.source.unsafe_substring(start~, end=self.offset), start),
-  )
+  if self.at_end() {
+    self.fail("truncated XML construct")
+  }
+  let value = self.source.unsafe_substring(start~, end=self.offset)
+  self.offset += end.length()
+  value
 }
 
 ///|
-fn Parser::parse_cdata(self : Parser) -> Node raise XmlError {
-  self.expect("<![CDATA[")
-  let start = self.offset
-  match
-    self.source
-    .unsafe_substring(start=self.offset, end=self.source.length())
-    .find("]]>") {
-    Some(relative) => {
-      self.offset += relative
-      let text = self.source.unsafe_substring(start~, end=self.offset)
-      self.offset += 3
-      Node::Text(text)
-    }
-    None => {
-      self.fail("unterminated CDATA")
-      Node::Text("")
-    }
+fn Parser::add_text(self : Parser, text : String) -> Unit raise XmlError {
+  self.decoded_text += text.length()
+  if self.decoded_text > self.options.max_total_decoded_text {
+    self.fail("decoded text limit exceeded")
   }
 }
 
 ///|
-fn Parser::parse_element(self : Parser) -> Element raise XmlError {
+fn Parser::parse_element(
+  self : Parser,
+  _parent_scope : Array[(String, String)],
+  depth : Int,
+) -> Element raise XmlError {
+  if depth > self.options.max_depth {
+    self.fail("depth limit exceeded")
+  }
+  self.nodes += 1
+  if self.nodes > self.options.max_nodes {
+    self.fail("node limit exceeded")
+  }
   self.expect("<")
-  if self.starts_with("/") || self.starts_with("!") || self.starts_with("?") {
-    self.fail("expected element")
-  }
-  let name = self.parse_name()
-  let attributes = []
-  for ;; {
-    self.skip_ascii_whitespace()
-    if self.consume("/>") {
-      return { name, attributes, children: [] }
+  let qname = self.parse_name()
+  let attrs : Array[Attribute] = []
+  self.skip_ws()
+  while !self.at_end() && !self.starts_with(">") && !self.starts_with("/>") {
+    if attrs.length() >= self.options.max_attributes_per_element {
+      self.fail("attribute limit exceeded")
     }
-    if self.consume(">") {
-      break
-    }
-    let attribute_name = self.parse_name()
-    self.skip_ascii_whitespace()
+    let n = self.parse_name()
+    self.skip_ws()
     self.expect("=")
-    self.skip_ascii_whitespace()
-    let value = self.parse_quoted_value()
-    attributes.push({ name: attribute_name, value })
+    self.skip_ws()
+    let v = self.quoted()
+    for a in attrs {
+      if a.name == n {
+        self.fail("duplicate attribute")
+      }
+    }
+    attrs.push({ name: n, value: v })
+    self.skip_ws()
   }
   let children = []
-  for ;; {
-    if self.at_end() {
-      self.fail("unterminated element " + name)
-    }
-    if self.consume("</") {
-      let end_name = self.parse_name()
-      self.skip_ascii_whitespace()
-      self.expect(">")
-      if end_name != name {
-        self.fail("mismatched closing element " + end_name)
-      }
-      break
-    }
+  if self.consume("/>") {
+    return { name: qname, attributes: attrs, children }
+  }
+  self.expect(">")
+  while !self.at_end() && !self.starts_with("</") {
     if self.starts_with("<!--") {
       self.offset += 4
-      self.skip_until("-->")
+      ignore(self.until("-->"))
+    } else if self.starts_with("<![CDATA[") {
+      self.offset += 9
+      let text = self.until("]]>")
+      self.add_text(text)
+      self.nodes += 1
+      if self.nodes > self.options.max_nodes {
+        self.fail("node limit exceeded")
+      }
+      children.push(Text(text))
+    } else if self.starts_with("<!DOCTYPE") || self.starts_with("<!ENTITY") {
+      self.fail("DTD and entity declarations are forbidden")
     } else if self.starts_with("<?") {
       self.offset += 2
-      self.skip_until("?>")
-    } else if self.starts_with("<![CDATA[") {
-      children.push(self.parse_cdata())
+      ignore(self.until("?>"))
     } else if self.starts_with("<") {
-      children.push(Node::Element(self.parse_element()))
+      children.push(Element(self.parse_element(_parent_scope, depth + 1)))
     } else {
-      children.push(self.parse_text_node())
+      let start = self.offset
+      while !self.at_end() && !self.starts_with("<") {
+        self.offset += 1
+      }
+      let text = self.decode(
+        self.source.unsafe_substring(start~, end=self.offset),
+        start,
+      )
+      self.add_text(text)
+      if text.length() > 0 {
+        self.nodes += 1
+        if self.nodes > self.options.max_nodes {
+          self.fail("node limit exceeded")
+        }
+        children.push(Text(text))
+      }
     }
   }
-  { name, attributes, children }
+  self.expect("</")
+  let close = self.parse_name()
+  if close != qname {
+    self.fail("mismatched closing element " + close)
+  }
+  self.skip_ws()
+  self.expect(">")
+  { name: qname, attributes: attrs, children }
 }
 
 ///|
-fn parse_document(source : String) -> Element raise XmlError {
-  let parser = Parser::new(source)
-  parser.skip_misc()
-  if parser.at_end() {
-    parser.fail("empty XML document")
+fn parse_document_with_options(
+  source : String,
+  options : ParseOptions,
+) -> Element raise XmlError {
+  if options.max_input_utf16 < 0 ||
+    options.max_depth < 0 ||
+    options.max_nodes < 0 ||
+    options.max_attributes_per_element < 0 ||
+    options.max_total_decoded_text < 0 {
+    raise XmlError::InvalidXml(offset=0, message="negative parse limit")
   }
-  let root = parser.parse_element()
-  parser.skip_misc()
-  if !parser.at_end() {
-    parser.fail("unexpected content after root element")
+  if source.length() > options.max_input_utf16 {
+    raise XmlError::InvalidXml(offset=0, message="input limit exceeded")
+  }
+  let p = Parser::new(source, options)
+  p.skip_ws()
+  if p.starts_with("<?xml") {
+    p.offset += 5
+    ignore(p.until("?>"))
+    p.skip_ws()
+  }
+  while p.starts_with("<!--") || p.starts_with("<?") {
+    if p.starts_with("<!--") {
+      p.offset += 4
+      ignore(p.until("-->"))
+    } else {
+      p.offset += 2
+      ignore(p.until("?>"))
+    }
+    p.skip_ws()
+  }
+  if p.starts_with("<!DOCTYPE") || p.starts_with("<!ENTITY") {
+    p.fail("DTD and entity declarations are forbidden")
+  }
+  let root = p.parse_element([], 1)
+  p.skip_ws()
+  while p.starts_with("<!--") || p.starts_with("<?") {
+    if p.starts_with("<!--") {
+      p.offset += 4
+      ignore(p.until("-->"))
+    } else {
+      p.offset += 2
+      ignore(p.until("?>"))
+    }
+    p.skip_ws()
+  }
+  if !p.at_end() {
+    p.fail("content after root element")
   }
   root
 }

@@ -8,7 +8,13 @@ pub fn normalize_part_name(name : String) -> String {
       continue
     }
     if part == ".." {
-      ignore(parts.pop())
+      // Never allow a relative target to climb above the package root. Keeping
+      // the unresolved parent makes the result unusable as a package part,
+      // rather than silently retargeting it to an unrelated root part.
+      match parts.last() {
+        Some(previous) if previous != ".." => ignore(parts.pop())
+        _ => parts.push(part)
+      }
     } else {
       parts.push(part)
     }
@@ -37,16 +43,31 @@ pub fn relationships_part_name(source_part : String) -> String {
 }
 
 ///|
-pub fn resolve_target(source_part : String, target : String) -> String {
+pub fn resolve_target(
+  source_part : String,
+  target : String,
+) -> String raise PackageError {
   if target.has_prefix("/") {
-    return normalize_part_name(target)
+    let resolved = normalize_part_name(target)
+    if resolved == ".." || resolved.has_prefix("../") {
+      raise PackageError::InvalidPackage(
+        "relationship target traverses above package root: " + target,
+      )
+    }
+    return resolved
   }
   let source = normalize_part_name(source_part)
   let directory = match source.rev_find("/") {
     Some(index) => source.unsafe_substring(start=0, end=index + 1)
     None => ""
   }
-  normalize_part_name(directory + target)
+  let resolved = normalize_part_name(directory + target)
+  if resolved == ".." || resolved.has_prefix("../") {
+    raise PackageError::InvalidPackage(
+      "relationship target traverses above package root: " + target,
+    )
+  }
+  resolved
 }
 
 ///|
@@ -54,7 +75,7 @@ fn parse_relationships(text : String) -> Array[Relationship] raise PackageError 
   let root = @xml.parse(text) catch {
     _ => raise PackageError::InvalidPackage("invalid relationships XML")
   }
-  let relationships = []
+  let relationships : Array[Relationship] = []
   for element in root.children_named("Relationship") {
     let id = element.attribute("Id").unwrap_or("")
     let relationship_type = element.attribute("Type").unwrap_or("")
@@ -63,6 +84,11 @@ fn parse_relationships(text : String) -> Array[Relationship] raise PackageError 
       raise PackageError::InvalidPackage(
         "relationship is missing Id, Type, or Target",
       )
+    }
+    for existing in relationships {
+      if existing.id == id {
+        raise PackageError::InvalidPackage("duplicate relationship Id: " + id)
+      }
     }
     relationships.push({
       id,
@@ -88,10 +114,12 @@ fn unsafe_archive_name(name : String) -> Bool {
 }
 
 ///|
-fn open_package(content : FixedArray[Byte]) -> Package raise PackageError {
-  let entries = @fzip.unzip_sync(content) catch {
-    _ => raise PackageError::InvalidPackage("unable to read ZIP container")
-  }
+fn open_package_with_policy(
+  content : FixedArray[Byte],
+  policy : ArchivePolicy,
+) -> Package raise PackageError {
+  let infos = preflight_archive(content, policy)
+  let entries = extract_verified_archive(content, policy, infos)
   let parts : Array[Part] = []
   for entry in entries {
     let (name, part_content) = entry

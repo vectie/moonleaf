@@ -51,14 +51,36 @@ fn parse_decimal(part : String, value : String) -> Int raise PptxError {
   if value is "" {
     raise InvalidNumber(part~, value~)
   }
-  for index = 0, total = 0; index < value.length(); {
-    let digit = value[index]
-    if digit < '0' || digit > '9' {
+  let negative = value[0] == '-'
+  let start = if negative { 1 } else { 0 }
+  if start == value.length() {
+    raise InvalidNumber(part~, value~)
+  }
+  // Accumulate negatively: the negative range has one extra representable value,
+  // and checking before multiplication avoids relying on wrapped arithmetic.
+  // MoonBit Int is a signed 32-bit value on every supported backend.
+  let limit = if negative { -2147483648 } else { -2147483647 }
+  let multiply_limit = -214748364
+  for index = start, total = 0; index < value.length(); {
+    let digit_char = value[index]
+    if digit_char < '0' || digit_char > '9' {
       raise InvalidNumber(part~, value~)
     }
-    continue index + 1, total * 10 + digit.to_int() - '0'.to_int()
+    let digit = digit_char.to_int() - '0'.to_int()
+    if total < multiply_limit {
+      raise InvalidNumber(part~, value~)
+    }
+    let multiplied = total * 10
+    if multiplied < limit + digit {
+      raise InvalidNumber(part~, value~)
+    }
+    continue index + 1, multiplied - digit
   } nobreak {
-    total
+    if negative {
+      total
+    } else {
+      -total
+    }
   }
 }
 
@@ -73,44 +95,6 @@ fn numeric_attribute(
     Some(value) => parse_decimal(part, value)
     None => default
   }
-}
-
-///|
-fn normalized_part_name(name : String) -> String {
-  if name.has_prefix("/") {
-    name[1:].to_owned()
-  } else {
-    name
-  }
-}
-
-///|
-fn resolve_target(source_part : String, target : String) -> String {
-  if target.has_prefix("/") {
-    return normalized_part_name(target)
-  }
-  let base = match source_part.rev_find("/") {
-    Some(index) => source_part[:index].to_owned()
-    None => ""
-  }
-  let segments : Array[String] = []
-  if base != "" {
-    for segment in base.split("/") {
-      segments.push(segment.to_owned())
-    }
-  }
-  for segment_view in target.split("/") {
-    let segment = segment_view.to_owned()
-    match segment {
-      "" | "." => ()
-      ".." =>
-        match segments.pop() {
-          Some(_) | None => ()
-        }
-      _ => segments.push(segment)
-    }
-  }
-  segments.join("/")
 }
 
 ///|
