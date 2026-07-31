@@ -114,10 +114,12 @@ fn unsafe_archive_name(name : String) -> Bool {
 }
 
 ///|
-fn open_package(content : FixedArray[Byte]) -> Package raise PackageError {
-  let entries = @fzip.unzip_sync(content) catch {
-    _ => raise PackageError::InvalidPackage("unable to read ZIP container")
-  }
+fn open_package_with_policy(
+  content : FixedArray[Byte],
+  policy : ArchivePolicy,
+) -> Package raise PackageError {
+  let infos = preflight_archive(content, policy)
+  let entries = extract_verified_archive(content, policy, infos)
   let parts : Array[Part] = []
   for entry in entries {
     let (name, part_content) = entry

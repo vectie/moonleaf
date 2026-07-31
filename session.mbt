@@ -38,6 +38,7 @@ pub(all) suberror DocumentSessionError {
 pub struct DocumentSession {
   priv filename : String
   priv format : DocumentFormat
+  priv archive_policy : ArchivePolicy
   priv source_archive : @opc.Package
   priv scene : @scene.Document
   priv diagnostics : Array[DocumentDiagnostic]
@@ -122,24 +123,33 @@ fn normalized_diagnostics(scene : @scene.Document) -> Array[DocumentDiagnostic] 
   })
 }
 
-///| Opens and renders an OOXML editing session with revision zero and a clean
-
-///| baseline. The input is decoded as a whole ZIP archive before renderer XML
+///| Opens and renders an OOXML editing session with conservative ZIP/OPC
 
 ///|
-/// limits apply; callers must not treat this as safe for hostile archives.
+/// limits, mandatory CRC verification, revision zero, and a clean baseline.
 pub fn open_session(
   filename : String,
   content : FixedArray[Byte],
 ) -> DocumentSession raise DocumentSessionError {
+  open_session_with_policy(filename, content, @opc.ArchivePolicy::default())
+}
+
+///|
+/// Open a document session with explicit, validated ZIP/OPC limits.
+pub fn open_session_with_policy(
+  filename : String,
+  content : FixedArray[Byte],
+  policy : ArchivePolicy,
+) -> DocumentSession raise DocumentSessionError {
   let format = format_from_filename(filename)
-  let archive = @opc.open(content) catch {
+  let archive = @opc.open_with_policy(content, policy) catch {
     error => raise DocumentSessionError::Package(error.to_string())
   }
   let scene = render_archive(archive, format)
   {
     format,
     filename,
+    archive_policy: policy,
     source_archive: archive,
     scene,
     diagnostics: normalized_diagnostics(scene),
@@ -264,6 +274,7 @@ fn DocumentSession::commit_candidate(
   {
     format: self.format,
     filename: self.filename,
+    archive_policy: self.archive_policy,
     source_archive: candidate,
     scene,
     diagnostics: normalized_diagnostics(scene),
@@ -439,7 +450,7 @@ pub fn DocumentSession::save_as_copy(
   let bytes = @opc.save(self.source_archive) catch {
     error => raise DocumentSessionError::Package(error.to_string())
   }
-  let reopened_package = @opc.open(bytes) catch {
+  let reopened_package = @opc.open_with_policy(bytes, self.archive_policy) catch {
     error => raise DocumentSessionError::SaveVerification(error.to_string())
   }
   let reopened_scene = render_archive(reopened_package, self.format)
@@ -458,6 +469,7 @@ pub fn DocumentSession::save_as_copy(
     session: {
       format: self.format,
       filename: self.filename,
+      archive_policy: self.archive_policy,
       source_archive: reopened_package,
       scene: reopened_scene,
       diagnostics: normalized_diagnostics(reopened_scene),

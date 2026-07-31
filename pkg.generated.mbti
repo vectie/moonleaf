@@ -3,6 +3,7 @@ package "vectie/moonleaf"
 
 import {
   "moonbitlang/core/debug",
+  "vectie/moonleaf/opc",
   "vectie/moonleaf/scene",
 }
 
@@ -10,6 +11,10 @@ import {
 pub fn open(String, FixedArray[Byte]) -> @scene.Document raise MoonLeafError
 
 pub fn open_session(String, FixedArray[Byte]) -> DocumentSession raise DocumentSessionError
+
+pub fn open_session_with_policy(String, FixedArray[Byte], @opc.ArchivePolicy) -> DocumentSession raise DocumentSessionError
+
+pub fn open_with_policy(String, FixedArray[Byte], @opc.ArchivePolicy) -> @scene.Document raise MoonLeafError
 
 // Errors
 pub(all) suberror DocumentSessionError {
@@ -73,6 +78,7 @@ pub fn VerifiedDocumentCopy::bytes(Self) -> FixedArray[Byte]
 pub fn VerifiedDocumentCopy::session(Self) -> DocumentSession
 
 // Type aliases
+pub using @opc {type ArchivePolicy}
 
 // Traits
 

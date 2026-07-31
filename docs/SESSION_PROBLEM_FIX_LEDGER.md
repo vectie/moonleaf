@@ -13,11 +13,15 @@ This ledger records the independently verified viewer/simple-editor milestone.
 | Save could silently lose package content. | Serialize, reopen, rerender, and verify exact OPC part-name/payload equality before returning a clean copy. | Synthetic in-memory fixtures preserve root relationships, nested part relationships, custom XML, and binary media sentinels; DOCX additionally verifies exact unknown-part save preservation. This does not claim per-format sentinel save coverage. ZIP metadata and edited-XML lexical identity are not generally promised. |
 | Root behavior needed realistic format parity. | Exercise unified root open/session behavior with synthetic, in-memory, minimally realistic/real-world-shaped DOCX, XLSX, and PPTX OOXML packages. These are not checked-in real Office files. | Root parity covers all three formats. Fixtures include root and nested part relationships, custom XML, and binary media sentinels, without claiming entities/comments/CDATA coverage. Malformed root coverage is DOCX; no cross-format malformed or warning-bearing unified-fixture claim is made. |
 | Spreadsheet and text edits need conservative rejection. | Reject empty searches, operation/format mismatches, formula-cell edits, and non-anchor merged-cell edits; validate sheet and cell coordinates. | Positive, negative, no-op, and capability tests on all targets. |
-| Archive safety needed an accurate dependency baseline. | The vendored `hustcer/fzip` 0.8.5 decoder applies fixed coarse defaults: maximum input 1 GiB, total output 100 MiB, per-entry output 100 MiB, 100,000 entries, and deflate ratio 1000, with filename/extra-field and central-directory validation. `unzip_sync` validates central-directory sizes before entry allocation. CRC verification exists but defaults off. | Local dependency source review. Residual release work is MoonLeaf-owned configurable stricter per-open policy, stress tests, and an enabled/verified CRC/integrity policy—not adding limits from zero. |
+| Archive safety needed a product-owned trust boundary. | Added validated `ArchivePolicy` defaults and explicit policy variants. Every OPC/viewer/session open preflights input, entry, size, ratio and path metadata; extracts with CRC verification; and checks actual names/sizes against metadata. A session retains the policy for verified save/reopen. | Focused hostile fixtures cover CRC corruption, count, per-entry/total size, ratio, depth, length, traversal, aliases and duplicates; an exact-boundary fixture preserves unknown parts through save/reopen. This is not macro/signature/encryption or semantic sandbox coverage. |
 
 ## Verification
 
-The independently run milestone gate passes **93/93 tests on each of wasm, wasm-gc, JavaScript, and native** (372 target-test executions), together with `moon info`, `moon fmt`, `moon check --target all --warn-list +73`, and `git diff --check`.
+The prior broad milestone gate passed **93/93 tests on each of wasm, wasm-gc,
+JavaScript, and native** (372 executions). The current archive-policy slice
+passes all-target check plus 12 focused OPC tests and one root-policy test on
+each target (52 focused executions), together with `moon info`, formatting and
+diff checks. The broad format suite was intentionally not repeated.
 
 ## MoonCode/controller problem and fix record
 

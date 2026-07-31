@@ -1,5 +1,9 @@
 # MoonLeaf
 
+> **Library · conservative OOXML alpha.** Read the
+> [product contract](docs/PRODUCT_CONTRACT.md) for the format matrix, bounded
+> archive boundary, host boundary and release gates.
+
 MoonLeaf is a pure MoonBit, cross-platform core for previewing and making
 deliberately small edits to Office Open XML documents.
 
@@ -23,6 +27,20 @@ The same MoonBit source is tested on native, JavaScript, Wasm, and Wasm-GC.
 
 UI frameworks and platform-specific file pickers remain outside this library.
 MoonDesk or another client can render `scene` values through its own components.
+
+## Safe open boundary
+
+`@moonleaf.open` and `open_session` use a conservative MoonLeaf-owned archive
+policy by default. Explicit `open_with_policy` and `open_session_with_policy`
+variants let a host set stricter per-open limits. ZIP central-directory
+metadata is bounded before extraction; extraction always verifies entry CRCs;
+and extracted names and sizes must agree with the inspected metadata.
+
+This protects the in-memory ZIP/OPC boundary, not all document semantics.
+Macros, signatures, encryption, active content, and unsupported relationship
+behavior are not safety or preservation guarantees. See
+[archive security](docs/ARCHIVE_SECURITY.md) and the
+[preservation matrix](docs/PRESERVATION_MATRIX.md).
 
 ## Scope
 

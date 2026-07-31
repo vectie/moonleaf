@@ -1,5 +1,9 @@
 # MoonLeaf
 
+> **Library · conservative OOXML alpha.** Read the
+> [product contract](docs/PRODUCT_CONTRACT.md) for the format matrix, bounded
+> archive boundary, host boundary and release gates.
+
 MoonLeaf is a pure MoonBit, cross-platform core for previewing and making
 deliberately small edits to Office Open XML documents.
 
@@ -29,15 +33,20 @@ library.
 ## Public entry points
 
 - `@moonleaf.open` detects the viewer from a filename
+- `@moonleaf.open_with_policy(filename, bytes, policy)` applies explicit
+  per-open ZIP/OPC limits; `open` uses conservative defaults
 - `@moonleaf.open_session(filename, bytes)` opens a DOCX, XLSX, or PPTX editing
   session and renders its initial scene
+- `@moonleaf.open_session_with_policy(filename, bytes, policy)` carries the
+  selected policy through verified save/reopen
 - `DocumentSession::capabilities()` reports whether the detected format supports
   scene rendering, save-as-copy, text replacement, or cell editing
 - `DocumentSession::scene()` and `diagnostics()` return defensive copies:
   callers may mutate returned nested arrays without changing the session
 - `VerifiedDocumentCopy::bytes()` likewise returns a defensive byte copy, and
   `session()` returns the verified reopened session
-- `@opc.open` and `@opc.save` decode and encode the OOXML container
+- `@opc.open` and `@opc.open_with_policy` preflight ZIP metadata, require
+  per-entry CRC integrity, and decode the OOXML container; `@opc.save` encodes it
 - `@docx.read`, `@xlsx.read`, and `@pptx.read` return neutral scene values
 - `@docx.replace_text`, `@xlsx.set_cell_text`, and `@pptx.replace_text`
   return new packages and leave the input package unchanged
@@ -68,14 +77,19 @@ made for package parts, and sessions expose no package-part accessor.
 
 ## Security and release limits
 
-Archive policy remains a release blocker, but the ZIP decoder is not unlimited.
-The vendored `hustcer/fzip` 0.8.5 uses fixed coarse defaults: maximum input
-1 GiB, total and per-entry output 100 MiB, 100,000 entries, and deflate ratio
-1000, plus filename/extra-field and central-directory validation. `unzip_sync`
-checks central-directory sizes before entry allocation. CRC verification exists
-but is disabled by default. MoonLeaf still needs configurable, stricter
-per-open limits and an enabled, verified CRC/integrity policy before hostile or
-untrusted archives are supported.
+Every public open now uses a MoonLeaf-owned `ArchivePolicy`. The default bounds
+the compressed input, entry count, per-entry compressed and uncompressed size,
+total uncompressed size, compression ratio, path depth, path length, and
+duplicate/aliased paths. MoonLeaf inspects central-directory metadata before
+extraction, extracts with CRC verification enabled, and compares actual entry
+names and sizes with the inspected metadata before parsing OPC parts.
+
+This closes the ZIP resource/integrity release blocker; it is not a blanket
+claim that every malicious document is safe. Macros, digital signatures,
+encryption, external relationships, embedded active content, and unsupported
+semantic features remain outside the trust guarantee. See
+[archive security](docs/ARCHIVE_SECURITY.md) and the
+[preservation matrix](docs/PRESERVATION_MATRIX.md).
 
 ## Status
 
@@ -99,4 +113,9 @@ Apache-2.0. See package-level provenance notes for behavioral references.
 
 ### Current verification checkpoint
 
-Independent gates pass 93/93 tests on wasm, wasm-gc, JavaScript, and native (372 executions), with 122 warnings, 0 errors, and a clean diff check. A regression covers a DOCX `w:t` edit inside a viewer-ignored top-level `w:sdt`: package-difference commit detection preserves the hidden edit, while XLSX exact existing Text-cell prechecks preserve semantic no-ops. A focused PPTX regression proves that identical replacement of entity-coded `A&#66;` with rendered `AB` is an exact-byte no-op, alongside the DOCX and XLSX no-op coverage.
+The prior broad checkpoint passed 93/93 tests on each target. For the current
+archive-policy slice, `moon check --target all --warn-list +73` reports zero
+errors; 12 focused OPC tests plus one root-policy test pass on wasm, wasm-gc,
+JavaScript, and native (52 focused executions); and `moon info`, formatting, and
+diff checks pass. The broad format suite was intentionally not repeated for
+this bounded change.

@@ -10,6 +10,8 @@ pub fn normalize_part_name(String) -> String
 
 pub fn open(FixedArray[Byte]) -> Package raise PackageError
 
+pub fn open_with_policy(FixedArray[Byte], ArchivePolicy) -> Package raise PackageError
+
 pub fn relationships_part_name(String) -> String
 
 pub fn resolve_target(String, String) -> String raise PackageError
@@ -25,6 +27,19 @@ pub(all) suberror PackageError {
 pub fn PackageError::to_string(Self) -> String
 
 // Types and methods
+pub(all) struct ArchivePolicy {
+  max_compressed_input_bytes : Int
+  max_entries : Int
+  max_entry_compressed_bytes : Int
+  max_entry_uncompressed_bytes : Int
+  max_total_uncompressed_bytes : Int
+  max_compression_ratio : Int
+  max_path_depth : Int
+  max_path_length : Int
+} derive(Eq, @debug.Debug)
+pub fn ArchivePolicy::default() -> Self
+pub fn ArchivePolicy::validate(Self) -> Unit raise PackageError
+
 pub(all) struct Package {
   parts : Array[Part]
 } derive(Eq, @debug.Debug)
