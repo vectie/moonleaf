@@ -2,6 +2,8 @@
 
 - [Product contract](PRODUCT_CONTRACT.md) — format matrix, security boundary and
   MoonDesk host boundary.
+- [Responsibility and testability](RESPONSIBILITY_AND_TESTABILITY.md) — package
+  ownership, parser/save seams, and the deliberate non-application boundary.
 - [Archive security](ARCHIVE_SECURITY.md) — exact per-open policy, integrity
   sequence, defaults and non-claims.
 - [Preservation matrix](PRESERVATION_MATRIX.md) — what survives save/reopen and

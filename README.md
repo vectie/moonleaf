@@ -4,6 +4,9 @@
 > [product contract](docs/PRODUCT_CONTRACT.md) for the format matrix, bounded
 > archive boundary, host boundary and release gates.
 
+The [responsibility and testability map](docs/RESPONSIBILITY_AND_TESTABILITY.md)
+separates archive, format, scene, host, and qualification responsibilities.
+
 MoonLeaf is a pure MoonBit, cross-platform core for previewing and making
 deliberately small edits to Office Open XML documents.
 

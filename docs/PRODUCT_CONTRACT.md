@@ -1,6 +1,6 @@
 # MoonLeaf product contract
 
-Class: library
+Class: library/functionality
 Maturity: conservative OOXML alpha
 Last reviewed: 2026-07-31
 
