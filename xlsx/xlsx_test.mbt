@@ -232,7 +232,7 @@ test "set_cell_text rejects invalid coordinates" {
     @xlsx.set_cell_text(sample_package(), "Budget & Plan", 0, 1, "bad")
   catch {
     InvalidCoordinates(row=0, column=1) => ()
-    error => fail("unexpected error: \{to_repr(error)}")
+    error => fail("unexpected error: \{Repr(error)}")
   } noraise {
     _ => fail("expected invalid coordinates")
   }

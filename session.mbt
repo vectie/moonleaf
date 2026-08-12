@@ -98,15 +98,15 @@ fn render_archive(
   match format {
     Docx =>
       @scene.Document::TextDocument(@docx.read(archive)) catch {
-        error => raise DocumentSessionError::Render("\{to_repr(error)}")
+        error => raise DocumentSessionError::Render("\{Repr(error)}")
       }
     Xlsx =>
       @scene.Document::WorkbookDocument(@xlsx.read(archive)) catch {
-        error => raise DocumentSessionError::Render("\{to_repr(error)}")
+        error => raise DocumentSessionError::Render("\{Repr(error)}")
       }
     Pptx =>
       @scene.Document::PresentationDocument(@pptx.read(archive)) catch {
-        error => raise DocumentSessionError::Render("\{to_repr(error)}")
+        error => raise DocumentSessionError::Render("\{Repr(error)}")
       }
   }
 }
@@ -303,11 +303,11 @@ pub fn DocumentSession::replace_text(
   let candidate = match self.format {
     Docx =>
       @docx.replace_text(self.source_archive, find, replacement) catch {
-        error => raise DocumentSessionError::Render("\{to_repr(error)}")
+        error => raise DocumentSessionError::Render("\{Repr(error)}")
       }
     Pptx =>
       @pptx.replace_text(self.source_archive, find, replacement) catch {
-        error => raise DocumentSessionError::Render("\{to_repr(error)}")
+        error => raise DocumentSessionError::Render("\{Repr(error)}")
       }
     Xlsx =>
       raise DocumentSessionError::OperationNotSupported(
@@ -425,7 +425,7 @@ pub fn DocumentSession::set_cell_text(
     column,
     text,
   ) catch {
-    error => raise DocumentSessionError::Render("\{to_repr(error)}")
+    error => raise DocumentSessionError::Render("\{Repr(error)}")
   }
   self.commit_candidate(candidate)
 }

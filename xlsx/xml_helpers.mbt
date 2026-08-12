@@ -4,10 +4,10 @@ fn parse_part(
   part_name : String,
 ) -> @xml.Element raise XlsxError {
   let source = xlsx_package.text(part_name) catch {
-    error => raise PackageFailure(part=part_name, message="\{to_repr(error)}")
+    error => raise PackageFailure(part=part_name, message="\{Repr(error)}")
   }
   @xml.parse(source) catch {
-    error => raise InvalidXml(part=part_name, message="\{to_repr(error)}")
+    error => raise InvalidXml(part=part_name, message="\{Repr(error)}")
   }
 }
 

@@ -6,7 +6,7 @@ fn scene_has_text(scene : @scene.Document, expected : String) -> Bool {
         match block {
           Paragraph(runs) | Heading(_, runs) =>
             runs.any(run => run.text == expected)
-          ListItem(level~, ordered~, runs) =>
+          ListItem(level=_, ordered=_, runs) =>
             runs.any(run => run.text == expected)
           Table(rows) => rows.any(row => row.any(cell => cell == expected))
         }

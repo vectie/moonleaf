@@ -225,7 +225,7 @@ fn resolve_style(
   defaults : ResolvedStyle,
   warnings : Array[@scene.Warning],
 ) -> ResolvedStyle {
-  let visiting : Map[String, Bool] = {}
+  let visiting : Map[String, Bool] = Map([])
   fn walk(id : String) -> ResolvedStyle {
     if visiting.contains(id) {
       add_style_warning(warnings, "DOCX_STYLE_CYCLE", id)

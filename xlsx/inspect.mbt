@@ -280,7 +280,7 @@ pub fn inspect(
       p.attribute("date1904") == Some("true")
     None => false
   }
-  let custom : Map[Int, String] = {}
+  let custom : Map[Int, String] = Map([])
   let xfs : Array[Int] = []
   let styles_part = resolved_metadata_part(
     xlsx_package, relationships, styles_relationship_types,

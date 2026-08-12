@@ -168,7 +168,7 @@ fn workbook_relationships(
     error =>
       raise PackageFailure(
         part="xl/_rels/workbook.xml.rels",
-        message="\{to_repr(error)}",
+        message="\{Repr(error)}",
       )
   }
 }

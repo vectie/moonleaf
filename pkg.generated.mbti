@@ -81,4 +81,3 @@ pub fn VerifiedDocumentCopy::session(Self) -> DocumentSession
 pub using @opc {type ArchivePolicy}
 
 // Traits
-

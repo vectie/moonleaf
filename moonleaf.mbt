@@ -34,15 +34,15 @@ pub fn open_with_policy(
   }
   if lower.has_suffix(".docx") {
     @scene.Document::TextDocument(@docx.read(archive)) catch {
-      error => raise MoonLeafError::Document("\{to_repr(error)}")
+      error => raise MoonLeafError::Document("\{Repr(error)}")
     }
   } else if lower.has_suffix(".xlsx") {
     @scene.Document::WorkbookDocument(@xlsx.read(archive)) catch {
-      error => raise MoonLeafError::Document("\{to_repr(error)}")
+      error => raise MoonLeafError::Document("\{Repr(error)}")
     }
   } else {
     @scene.Document::PresentationDocument(@pptx.read(archive)) catch {
-      error => raise MoonLeafError::Document("\{to_repr(error)}")
+      error => raise MoonLeafError::Document("\{Repr(error)}")
     }
   }
 }

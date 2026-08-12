@@ -27,7 +27,7 @@ fn Parser::starts_with(self : Parser, token : String) -> Bool {
 
 ///|
 fn Parser::fail(self : Parser, message : String) -> Unit raise XmlError {
-  raise XmlError::InvalidXml(offset=self.offset, message~)
+  raise InvalidXml(offset=self.offset, message~)
 }
 
 ///|
@@ -104,12 +104,12 @@ fn decode_entity(entity : String, offset : Int) -> String raise XmlError {
     "apos" => "'"
     _ => {
       if !entity.has_prefix("#") {
-        raise XmlError::InvalidXml(offset~, message="unknown entity")
+        raise InvalidXml(offset~, message="unknown entity")
       }
       let hex = entity.has_prefix("#x") || entity.has_prefix("#X")
       let start = if hex { 2 } else { 1 }
       if start == entity.length() {
-        raise XmlError::InvalidXml(offset~, message="empty numeric entity")
+        raise InvalidXml(offset~, message="empty numeric entity")
       }
       let mut value = 0
       for i = start; i < entity.length(); i = i + 1 {
@@ -121,11 +121,11 @@ fn decode_entity(entity : String, offset : Int) -> String raise XmlError {
         } else if hex && c >= 'A' && c <= 'F' {
           c.to_int() - ('A' : UInt16).to_int() + 10
         } else {
-          raise XmlError::InvalidXml(offset~, message="invalid numeric entity")
+          raise InvalidXml(offset~, message="invalid numeric entity")
         }
         let base = if hex { 16 } else { 10 }
         if value > (0x10ffff - digit) / base {
-          raise XmlError::InvalidXml(offset~, message="invalid Unicode entity")
+          raise InvalidXml(offset~, message="invalid Unicode entity")
         }
         value = value * base + digit
       }
@@ -134,12 +134,11 @@ fn decode_entity(entity : String, offset : Int) -> String raise XmlError {
         (value < 0x20 && value != 0x09 && value != 0x0a && value != 0x0d) ||
         value == 0xfffe ||
         value == 0xffff {
-        raise XmlError::InvalidXml(offset~, message="invalid Unicode entity")
+        raise InvalidXml(offset~, message="invalid Unicode entity")
       }
       match value.to_char() {
         Some(c) => c.to_string()
-        None =>
-          raise XmlError::InvalidXml(offset~, message="invalid Unicode entity")
+        None => raise InvalidXml(offset~, message="invalid Unicode entity")
       }
     }
   }
@@ -164,10 +163,7 @@ fn Parser::decode(
         out.write_string(raw.unsafe_substring(start=cursor, end=amp))
         match raw.unsafe_substring(start=amp + 1, end=raw.length()).find(";") {
           None =>
-            raise XmlError::InvalidXml(
-              offset=at + amp,
-              message="unterminated entity",
-            )
+            raise InvalidXml(offset=at + amp, message="unterminated entity")
           Some(semi_rel) => {
             let semi = amp + 1 + semi_rel
             out.write_string(
@@ -331,10 +327,10 @@ fn parse_document_with_options(
     options.max_nodes < 0 ||
     options.max_attributes_per_element < 0 ||
     options.max_total_decoded_text < 0 {
-    raise XmlError::InvalidXml(offset=0, message="negative parse limit")
+    raise InvalidXml(offset=0, message="negative parse limit")
   }
   if source.length() > options.max_input_utf16 {
-    raise XmlError::InvalidXml(offset=0, message="input limit exceeded")
+    raise InvalidXml(offset=0, message="input limit exceeded")
   }
   let p = Parser::new(source, options)
   p.skip_ws()

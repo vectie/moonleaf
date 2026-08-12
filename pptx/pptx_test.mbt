@@ -288,7 +288,7 @@ test "read reports a PPTX-specific error for a missing slide relationship" {
   }
   try @pptx.read(container) catch {
     MissingSlide(relationship_id="rIdMissing") => ()
-    error => fail("unexpected error: \{to_repr(error)}")
+    error => fail("unexpected error: \{Repr(error)}")
   } noraise {
     _ => fail("expected missing slide relationship error")
   }
