@@ -15,3 +15,16 @@ test "paginator wraps CJK text, respects explicit breaks and splits tables" {
   assert_eq(paged.content_height_twips, 2600)
   assert_true(paged.pages.all(page => !page.blocks.is_empty()))
 }
+
+///|
+test "paginator ignores a trailing empty Word body sentinel" {
+  let archive : @opc.Package = { parts: [] }
+  let archive = archive
+    .replace_text(
+      "word/document.xml", "<w:document xmlns:w=\"urn:w\"><w:body><w:p><w:r><w:t>正文</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:line=\"560\" w:lineRule=\"exact\"/></w:pPr></w:p><w:sectPr><w:pgSz w:w=\"4000\" w:h=\"1000\"/><w:pgMar w:top=\"200\" w:right=\"200\" w:bottom=\"200\" w:left=\"200\"/></w:sectPr></w:body></w:document>",
+    )
+    .replace_text("word/styles.xml", "<w:styles xmlns:w=\"urn:w\"/>")
+  let paged = @docx.paginate_document(archive)
+  assert_eq(paged.pages.length(), 1)
+  assert_eq(paged.pages[0].blocks.length(), 1)
+}

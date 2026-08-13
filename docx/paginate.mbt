@@ -165,6 +165,30 @@ fn add_page(
 }
 
 ///|
+fn paragraph_has_visible_content(paragraph : ParagraphInfo) -> Bool {
+  paragraph.runs.any(run => !run.text.trim().is_empty())
+}
+
+///| Ignore Word's terminal body paragraph when it carries no visible content.
+
+///| WordprocessingML producers commonly emit this paragraph after the final
+
+///|
+/// table; it is a document sentinel, not an additional rendered page.
+fn pagination_block_count(blocks : Array[DocxFlowBlock]) -> Int {
+  let count = Ref(blocks.length())
+  while count.val > 0 {
+    match blocks[count.val - 1] {
+      FlowSection(_) => count.val = count.val - 1
+      FlowParagraph(paragraph) if !paragraph_has_visible_content(paragraph) =>
+        count.val = count.val - 1
+      _ => break
+    }
+  }
+  count.val
+}
+
+///|
 /// Paginate rich DOCX flow with deterministic OOXML-derived metrics.
 pub fn paginate_document(
   document_package : @opc.Package,
@@ -238,7 +262,9 @@ pub fn paginate_document(
     add_page(pages, current, used.val)
     used.val = 0
   }
-  for block in preview.blocks {
+  let block_count = pagination_block_count(preview.blocks)
+  for index = 0; index < block_count; index = index + 1 {
+    let block = preview.blocks[index]
     match block {
       FlowPageBreak => {
         next_page(pages, current, used)
