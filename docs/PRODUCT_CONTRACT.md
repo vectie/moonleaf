@@ -26,6 +26,8 @@ macros, signatures or document collaboration.
 | XLSX common cell/formula/style preview and inline-text cell edit | available |
 | PPTX slide/text/shape/picture preview and exact text replacement | available |
 | Save-as-copy, reopen and re-render verification | available |
+| Typed MoonLeaf PDF/page render evidence contract | available |
+| Deterministic DOCX pagination, font shaping, PDF and page-image bytes | planned; fail closed |
 | Strict per-open ZIP/OPC policy and mandatory CRC verification | available |
 | Advanced charts, layout, animations and recalculation | excluded/planned |
 
@@ -52,9 +54,13 @@ products.
 
 ## Host contract
 
-MoonDesk owns file access, user confirmation, rendering, conflict handling and
-save destination. MoonLeaf returns neutral scenes, diagnostics, capabilities
-and verified copies.
+MoonDesk owns file access, user confirmation, conflict handling and save
+destination. MoonLeaf returns neutral scenes, diagnostics, capabilities and
+verified copies. A host that requires print-ready DOCX pagination must accept
+only a typed `moonleaf.render-evidence.v1` receipt from the MoonLeaf renderer;
+another office engine is not an interchangeable implementation. Until
+MoonLeaf's deterministic layout/font/PDF implementation is complete, this
+capability is fail-closed rather than delegated.
 
 ## Verification
 

@@ -1,0 +1,32 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "vectie/moonleaf/render"
+
+import {
+  "moonbitlang/core/debug",
+  "moonbitlang/core/json",
+}
+
+// Values
+pub fn contract_version() -> String
+
+pub fn engine_id() -> String
+
+// Errors
+
+// Types and methods
+pub(all) struct Evidence {
+  contract_version : String
+  engine : String
+  engine_version : String
+  source_sha256 : String
+  artifact_sha256 : String
+  font_bundle_sha256 : String
+  layout_profile_sha256 : String
+  page_count : Int
+  rendered_unix_ms : Int64
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
+pub fn Evidence::valid(Self) -> Bool
+
+// Type aliases
+
+// Traits

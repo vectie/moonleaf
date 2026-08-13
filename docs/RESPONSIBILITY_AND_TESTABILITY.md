@@ -3,7 +3,9 @@
 MoonLeaf is conservative OOXML functionality consumed by a host. It owns file
 interpretation, neutral scenes, bounded edits, and verified save-as-copy. It
 does not own a standalone Office clone, file picker, desktop permissions, or
-rendering application; MoonDesk owns those user-facing concerns.
+rendering application. It does own the evidence contract for any print-ready
+render represented as a MoonLeaf result. Host applications must not substitute
+LibreOffice, Word, or another office engine and label the result MoonLeaf.
 
 ## Package ownership
 
