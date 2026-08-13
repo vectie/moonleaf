@@ -105,8 +105,6 @@ fn paragraph_height(
   width_twips : Int,
   profile : PaginationProfile,
 ) -> Int {
-  let before = paragraph.metadata.spacing_before_twips.unwrap_or(0).max(0)
-  let after = paragraph.metadata.spacing_after_twips.unwrap_or(0).max(0)
   let font_line = paragraph.runs.fold(
     init=profile.default_font_size_half_points * 12,
     fn(current, run) { current.max(run_font_size(run, profile) * 12) },
@@ -115,8 +113,6 @@ fn paragraph_height(
     paragraph.metadata.line_twips,
     font_line.max(profile.default_line_twips),
   )
-  before +
-  after +
   paragraph_line_count(paragraph, width_twips, profile) * line_height
 }
 
@@ -233,6 +229,7 @@ pub fn paginate_document(
   let pages : Array[DocxPage] = []
   let current : Array[DocxFlowBlock] = []
   let used = Ref(0)
+  let pending_paragraph_after = Ref(0)
   fn next_page(
     pages : Array[DocxPage],
     current : Array[DocxFlowBlock],
@@ -243,17 +240,37 @@ pub fn paginate_document(
   }
   for block in preview.blocks {
     match block {
-      FlowPageBreak => next_page(pages, current, used)
+      FlowPageBreak => {
+        next_page(pages, current, used)
+        pending_paragraph_after.val = 0
+      }
       FlowSection(_) => ()
       FlowParagraph(paragraph) => {
-        let height = paragraph_height(paragraph, content_width_twips, profile)
+        let before = paragraph.metadata.spacing_before_twips.unwrap_or(0).max(0)
+        let after = paragraph.metadata.spacing_after_twips.unwrap_or(0).max(0)
+        let content_height = paragraph_height(
+          paragraph, content_width_twips, profile,
+        )
+        let mut height = pending_paragraph_after.val.max(before) +
+          content_height
         if used.val > 0 && used.val + height > content_height_twips {
           next_page(pages, current, used)
+          height = before + content_height
         }
         current.push(FlowParagraph(paragraph))
         used.val = used.val + height
+        pending_paragraph_after.val = after
       }
       FlowTable(table) => {
+        if pending_paragraph_after.val > 0 {
+          if used.val > 0 &&
+            used.val + pending_paragraph_after.val > content_height_twips {
+            next_page(pages, current, used)
+          } else {
+            used.val = used.val + pending_paragraph_after.val
+          }
+          pending_paragraph_after.val = 0
+        }
         let fragment : Array[Array[TableCellInfo]] = []
         let fragment_height = Ref(0)
         for row in table.rows {
