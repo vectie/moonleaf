@@ -8,7 +8,11 @@ import {
 }
 
 // Values
+pub fn audit_layout_equivalence(@opc.Package, @opc.Package) -> LayoutAudit raise DocxError
+
 pub fn inspect_document(@opc.Package) -> DocxDocument raise DocxError
+
+pub fn layout_audit_contract_version() -> String
 
 pub fn preview_document(@opc.Package) -> DocxPreviewDocument raise DocxError
 
@@ -49,6 +53,28 @@ pub(all) struct DocxPreviewDocument {
   resources : Array[ResourceInfo]
   warnings : Array[@scene.Warning]
 } derive(Eq, @debug.Debug)
+
+pub(all) struct LayoutAudit {
+  contract_version : String
+  equivalent : Bool
+  non_document_parts_equal : Bool
+  main_structure_equal : Bool
+  paragraph_layout_equal : Bool
+  run_style_layout_equal : Bool
+  table_layout_equal : Bool
+  section_layout_equal : Bool
+  explicit_page_breaks_equal : Bool
+  reference_cached_page_count : Int?
+  candidate_cached_page_count : Int?
+  reference_paragraph_count : Int
+  candidate_paragraph_count : Int
+  reference_table_count : Int
+  candidate_table_count : Int
+  reference_explicit_page_break_count : Int
+  candidate_explicit_page_break_count : Int
+  inserted_text_slot_paragraphs : Int
+  diagnostics : Array[String]
+} derive(Eq)
 
 pub(all) struct ParagraphInfo {
   metadata : ParagraphMetadata
