@@ -9,7 +9,7 @@ pub fn PaginationProfile::default() -> PaginationProfile {
     default_font_size_half_points: 32,
     default_line_twips: 560,
     table_cell_vertical_padding_twips: 90,
-    page_safety_twips: 120,
+    page_safety_twips: 0,
   }
 }
 
