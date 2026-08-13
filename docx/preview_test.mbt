@@ -7,7 +7,7 @@ test "preview_document preserves flow order and resolved DOCX layout metadata" {
       (
         #|<w:document xmlns:w="urn:w"><w:body>
         #|<w:p><w:pPr><w:pStyle w:val="Centered"/><w:ind w:left="240" w:firstLine="480"/></w:pPr><w:r><w:rPr><w:b/><w:sz w:val="32"/><w:rFonts w:eastAsia="方正小标宋简体"/></w:rPr><w:t>中文合同标题</w:t><w:br w:type="page"/></w:r></w:p>
-        #|<w:tbl><w:tblGrid><w:gridCol w:w="1800"/><w:gridCol w:w="3600"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:w="1800"/></w:tcPr><w:p><w:r><w:t>甲方</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w="3600"/></w:tcPr><w:p><w:r><w:t>青年政策运营方</w:t></w:r></w:p></w:tc></w:tr></w:tbl>
+        #|<w:tbl><w:tblGrid><w:gridCol w:w="1800"/><w:gridCol w:w="3600"/></w:tblGrid><w:tr><w:trPr><w:trHeight w:val="781" w:hRule="atLeast"/></w:trPr><w:tc><w:tcPr><w:tcW w:w="1800"/><w:tcMar><w:top w:w="60"/><w:left w:w="120"/><w:bottom w:w="30"/><w:right w:w="120"/></w:tcMar><w:vAlign w:val="center"/></w:tcPr><w:p><w:r><w:t>甲方</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w="3600"/><w:gridSpan w:val="2"/></w:tcPr><w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:sz w:val="28"/></w:rPr><w:t>青年政策运营方</w:t></w:r></w:p></w:tc></w:tr></w:tbl>
         #|<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"/></w:sectPr>
         #|</w:body></w:document>
       ),
@@ -34,7 +34,37 @@ test "preview_document preserves flow order and resolved DOCX layout metadata" {
   assert_true(paragraph.runs[0].font_size_half_points is Some(32))
   assert_true(paragraph.runs[0].font_east_asia is Some("方正小标宋简体"))
   assert_eq(table.grid_widths_twips, [1800, 3600])
-  assert_true(table.rows[0][1].width_twips is Some(3600))
+  assert_true(table.rows[0].height_twips is Some(781))
+  assert_true(table.rows[0].height_rule is Some("atLeast"))
+  assert_true(table.rows[0].cells[0].margin_left_twips is Some(120))
+  assert_true(table.rows[0].cells[0].vertical_alignment is Some("center"))
+  assert_eq(table.rows[0].cells[1].grid_span, 2)
+  assert_true(table.rows[0].cells[1].width_twips is Some(3600))
+  assert_true(
+    table.rows[0].cells[1].paragraphs[0].metadata.alignment is Some("center"),
+  )
+  assert_true(
+    table.rows[0].cells[1].paragraphs[0].runs[0].font_size_half_points
+    is Some(28),
+  )
   assert_true(section.page_width_twips is Some(11906))
   assert_true(section.margin_left_twips is Some(1440))
+}
+
+///|
+test "preview keeps a leading page break before its paragraph text" {
+  let archive : @opc.Package = { parts: [] }
+  let archive = archive
+    .replace_text(
+      "word/document.xml", "<w:document xmlns:w=\"urn:w\"><w:body><w:p><w:pPr><w:rPr><w:sz w:val=\"52\"/></w:rPr></w:pPr></w:p><w:p><w:r><w:br w:type=\"page\"/></w:r><w:r><w:t>文件4</w:t></w:r></w:p></w:body></w:document>",
+    )
+    .replace_text("word/styles.xml", "<w:styles xmlns:w=\"urn:w\"/>")
+  let preview = @docx.preview_document(archive)
+  guard preview.blocks
+    is [FlowParagraph(spacer), FlowPageBreak, FlowParagraph(heading)] else {
+    fail("expected spacer, leading page break, then heading")
+  }
+  assert_true(spacer.runs[0].font_size_half_points is Some(52))
+  assert_eq(spacer.runs[0].text, "")
+  assert_eq(heading.runs.map(run => run.text).join(""), "文件4")
 }

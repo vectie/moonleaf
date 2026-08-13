@@ -21,6 +21,7 @@ fn empty_paragraph_metadata() -> ParagraphMetadata {
     spacing_before_twips: None,
     spacing_after_twips: None,
     line_twips: None,
+    line_rule: None,
     left_indent_twips: None,
     right_indent_twips: None,
     first_line_twips: None,
@@ -70,6 +71,7 @@ fn merge_paragraph_style(
       base.spacing_after_twips,
     ),
     line_twips: prefer(direct.line_twips, base.line_twips),
+    line_rule: prefer(direct.line_rule, base.line_rule),
     left_indent_twips: prefer(direct.left_indent_twips, base.left_indent_twips),
     right_indent_twips: prefer(
       direct.right_indent_twips,

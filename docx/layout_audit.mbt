@@ -140,14 +140,14 @@ fn tables_equal(
     for row_index = 0; row_index < left.rows.length(); row_index = row_index + 1 {
       let left_row = left.rows[row_index]
       let right_row = right.rows[row_index]
-      if left_row.length() != right_row.length() {
+      if left_row.cells.length() != right_row.cells.length() {
         return false
       }
       for cell_index = 0
-          cell_index < left_row.length()
+          cell_index < left_row.cells.length()
           cell_index = cell_index + 1 {
-        let left_cell = left_row[cell_index]
-        let right_cell = right_row[cell_index]
+        let left_cell = left_row.cells[cell_index]
+        let right_cell = right_row.cells[cell_index]
         if left_cell.grid_span != right_cell.grid_span ||
           left_cell.vertical_merge != right_cell.vertical_merge ||
           left_cell.width_twips != right_cell.width_twips {

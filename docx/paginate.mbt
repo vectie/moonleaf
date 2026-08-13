@@ -34,27 +34,6 @@ fn run_font_size(run : RunMetadata, profile : PaginationProfile) -> Int {
   positive_or(run.font_size_half_points, profile.default_font_size_half_points)
 }
 
-///| Approximate shaped advance in twips. Full-width CJK glyphs use one em;
-
-///| ASCII uses half an em. The pagination boundary stays deterministic across
-
-///|
-/// native, JS and Wasm while the page renderer binds the actual font bundle.
-fn text_advance_twips(text : String, font_size_half_points : Int) -> Int {
-  let em_twips = font_size_half_points * 10
-  let advance = Ref(0)
-  for character in text {
-    if character == '\n' || character == '\r' {
-      ()
-    } else if character.is_ascii() {
-      advance.val = advance.val + (em_twips + 1) / 2
-    } else {
-      advance.val = advance.val + em_twips
-    }
-  }
-  advance.val
-}
-
 ///|
 fn paragraph_line_count(
   paragraph : ParagraphInfo,
@@ -109,46 +88,55 @@ fn paragraph_height(
     init=profile.default_font_size_half_points * 12,
     fn(current, run) { current.max(run_font_size(run, profile) * 12) },
   )
-  let line_height = positive_or(
-    paragraph.metadata.line_twips,
-    font_line.max(profile.default_line_twips),
-  )
+  let line_height = match paragraph.metadata.line_twips {
+    Some(value) if value > 0 && paragraph.metadata.line_rule == Some("exact") =>
+      value
+    Some(value) if value > 0 => (font_line * value / 240).max(font_line)
+    _ => font_line.max(profile.default_line_twips)
+  }
   paragraph_line_count(paragraph, width_twips, profile) * line_height
 }
 
 ///|
 fn cell_height(cell : TableCellInfo, profile : PaginationProfile) -> Int {
   let width = positive_or(cell.width_twips, 2400)
-  let line_height = profile.default_line_twips
-  let lines = Ref(0)
-  for text in cell.text.split("\n") {
-    let advance = text_advance_twips(
-      text.to_owned(),
-      profile.default_font_size_half_points,
-    )
-    lines.val = lines.val + ((advance + width - 1) / width).max(1)
+  let paragraph_total = if cell.paragraphs.is_empty() {
+    profile.default_line_twips
+  } else {
+    cell.paragraphs.fold(init=0, fn(total, paragraph) {
+      total +
+      paragraph.metadata.spacing_before_twips.unwrap_or(0) +
+      paragraph_height(paragraph, width, profile) +
+      paragraph.metadata.spacing_after_twips.unwrap_or(0)
+    })
   }
-  if lines.val == 0 {
-    lines.val = 1
-  }
-  lines.val * line_height + profile.table_cell_vertical_padding_twips
+  paragraph_total +
+  cell.margin_top_twips.unwrap_or(profile.table_cell_vertical_padding_twips / 2) +
+  cell.margin_bottom_twips.unwrap_or(
+    profile.table_cell_vertical_padding_twips / 2,
+  )
 }
 
 ///|
-fn table_row_height(
-  row : Array[TableCellInfo],
-  profile : PaginationProfile,
-) -> Int {
-  row.fold(init=profile.default_line_twips, fn(height, cell) {
+fn table_row_height(row : TableRowInfo, profile : PaginationProfile) -> Int {
+  let content_height = row.cells.fold(init=profile.default_line_twips, fn(
+    height,
+    cell,
+  ) {
     height.max(cell_height(cell, profile))
   })
+  let content_height = content_height.max(
+    profile.default_line_twips + profile.table_cell_vertical_padding_twips * 2,
+  )
+  match row.height_twips {
+    Some(value) if row.height_rule == Some("exact") => value
+    Some(value) => content_height.max(value)
+    None => content_height
+  }
 }
 
 ///|
-fn table_with_rows(
-  table : TableInfo,
-  rows : Array[Array[TableCellInfo]],
-) -> TableInfo {
+fn table_with_rows(table : TableInfo, rows : Array[TableRowInfo]) -> TableInfo {
   { rows, grid_widths_twips: table.grid_widths_twips }
 }
 
@@ -186,6 +174,24 @@ fn pagination_block_count(blocks : Array[DocxFlowBlock]) -> Int {
     }
   }
   count.val
+}
+
+///|
+/// Keep a short table caption and up to two following metadata paragraphs
+/// with the table when they would otherwise be orphaned at the page bottom.
+fn table_follows_soon(blocks : Array[DocxFlowBlock], index : Int) -> Bool {
+  let mut seen_paragraphs = 0
+  for next = index + 1
+      next < blocks.length() && seen_paragraphs < 3
+      next = next + 1 {
+    match blocks[next] {
+      FlowParagraph(_) => seen_paragraphs = seen_paragraphs + 1
+      FlowTable(_) => return true
+      FlowSection(_) => ()
+      FlowPageBreak => return false
+    }
+  }
+  false
 }
 
 ///|
@@ -279,6 +285,18 @@ pub fn paginate_document(
         )
         let mut height = pending_paragraph_after.val.max(before) +
           content_height
+        let keep_with_table = paragraph_line_count(
+            paragraph, content_width_twips, profile,
+          ) ==
+          1 &&
+          table_follows_soon(preview.blocks, index)
+        if keep_with_table &&
+          used.val > 0 &&
+          content_height_twips - used.val < profile.default_line_twips * 5 {
+          next_page(pages, current, used)
+          pending_paragraph_after.val = 0
+          height = before + content_height
+        }
         if used.val > 0 && used.val + height > content_height_twips {
           next_page(pages, current, used)
           height = before + content_height
@@ -297,7 +315,7 @@ pub fn paginate_document(
           }
           pending_paragraph_after.val = 0
         }
-        let fragment : Array[Array[TableCellInfo]] = []
+        let fragment : Array[TableRowInfo] = []
         let fragment_height = Ref(0)
         for row in table.rows {
           let height = table_row_height(row, profile)

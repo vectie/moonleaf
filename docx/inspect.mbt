@@ -49,6 +49,14 @@ fn string_attr(element : @xml.Element?, name : String) -> String? {
 }
 
 ///|
+fn child(element : @xml.Element?, name : String) -> @xml.Element? {
+  match element {
+    Some(value) => value.first_child(name)
+    None => None
+  }
+}
+
+///|
 fn paragraph_metadata_from_pr(pr : @xml.Element) -> ParagraphMetadata {
   let pr = Some(pr)
   let spacing = match pr {
@@ -67,6 +75,7 @@ fn paragraph_metadata_from_pr(pr : @xml.Element) -> ParagraphMetadata {
     spacing_before_twips: nonnegative_int_attr(spacing, "before"),
     spacing_after_twips: nonnegative_int_attr(spacing, "after"),
     line_twips: nonnegative_int_attr(spacing, "line"),
+    line_rule: string_attr(spacing, "lineRule"),
     left_indent_twips: signed_indent_attr(ind, "left"),
     right_indent_twips: signed_indent_attr(ind, "right"),
     first_line_twips: signed_indent_attr(ind, "firstLine"),
@@ -137,9 +146,22 @@ fn collect_run_info(
 ///|
 fn parse_cell_info(
   cell : @xml.Element,
+  styles : StyleTable,
   warnings : Array[@scene.Warning],
 ) -> TableCellInfo {
   let pr = cell.first_child("tcPr")
+  let margins = match pr {
+    Some(x) => x.first_child("tcMar")
+    None => None
+  }
+  let paragraphs : Array[ParagraphInfo] = []
+  for paragraph in cell.children_named("p") {
+    let nested_tables : Array[TableInfo] = []
+    let nested_sections : Array[SectionInfo] = []
+    inspect_element(
+      paragraph, paragraphs, nested_tables, nested_sections, styles, warnings,
+    )
+  }
   let grid_span = match pr {
     Some(x) =>
       match x.first_child("gridSpan") {
@@ -161,7 +183,10 @@ fn parse_cell_info(
     None => 1
   }
   {
-    text: cell.text_content(),
+    text: paragraphs
+    .map(paragraph => paragraph.runs.map(run => run.text).join(""))
+    .join("\n"),
+    paragraphs,
     grid_span,
     vertical_merge: match pr {
       Some(x) =>
@@ -177,6 +202,14 @@ fn parse_cell_info(
     },
     width_twips: match pr {
       Some(x) => nonnegative_int_attr(x.first_child("tcW"), "w")
+      None => None
+    },
+    margin_top_twips: nonnegative_int_attr(child(margins, "top"), "w"),
+    margin_right_twips: nonnegative_int_attr(child(margins, "right"), "w"),
+    margin_bottom_twips: nonnegative_int_attr(child(margins, "bottom"), "w"),
+    margin_left_twips: nonnegative_int_attr(child(margins, "left"), "w"),
+    vertical_alignment: match pr {
+      Some(x) => string_attr(x.first_child("vAlign"), "val")
       None => None
     },
   }
@@ -351,11 +384,15 @@ pub fn preview_document(
     inspect_element(child, paragraphs, tables, sections, styles, warnings)
     match child.local_name() {
       "p" => {
+        let leading_break = leading_page_break(child)
+        if leading_break {
+          blocks.push(FlowPageBreak)
+        }
         match paragraphs.get(0) {
           Some(paragraph) => blocks.push(FlowParagraph(paragraph))
           None => ()
         }
-        if element_contains_page_break(child) {
+        if !leading_break && element_contains_page_break(child) {
           blocks.push(FlowPageBreak)
         }
         for section in sections {
@@ -381,6 +418,29 @@ pub fn preview_document(
     resources: inspected.resources,
     warnings,
   }
+}
+
+///|
+fn first_rendered_content(element : @xml.Element) -> Int {
+  if element.local_name() == "lastRenderedPageBreak" ||
+    (element.local_name() == "br" && element.attribute("type") == Some("page")) {
+    return 1
+  }
+  if element.local_name() == "t" && !element.text_content().trim().is_empty() {
+    return 2
+  }
+  for child in element.child_elements() {
+    let found = first_rendered_content(child)
+    if found != 0 {
+      return found
+    }
+  }
+  0
+}
+
+///|
+fn leading_page_break(element : @xml.Element) -> Bool {
+  first_rendered_content(element) == 1
 }
 
 ///|
@@ -447,6 +507,22 @@ fn inspect_element(
       }
       let resolved = merge_resolved_style(paragraph_base, paragraph_direct)
       collect_run_info(element, None, runs, styles, resolved, warnings)
+      if runs.is_empty() {
+        runs.push({
+          text: "",
+          bold: resolved.bold.unwrap_or(false),
+          italic: resolved.italic.unwrap_or(false),
+          underline: resolved.underline.unwrap_or(false),
+          font_size_half_points: resolved.font_size_half_points,
+          font_ascii: resolved.font_ascii,
+          font_east_asia: resolved.font_east_asia,
+          font_complex_script: resolved.font_complex_script,
+          color: resolved.color,
+          highlight: resolved.highlight,
+          strike: resolved.strike.unwrap_or(false),
+          hyperlink: None,
+        })
+      }
       paragraphs.push({
         metadata: resolved.paragraph,
         outline_level: resolved.outline_level,
@@ -477,9 +553,15 @@ fn inspect_element(
       for tr in element.children_named("tr") {
         let cells = []
         for tc in tr.children_named("tc") {
-          cells.push(parse_cell_info(tc, warnings))
+          cells.push(parse_cell_info(tc, styles, warnings))
         }
-        rows.push(cells)
+        let row_properties = tr.first_child("trPr")
+        let row_height = child(row_properties, "trHeight")
+        rows.push({
+          cells,
+          height_twips: nonnegative_int_attr(row_height, "val"),
+          height_rule: string_attr(row_height, "hRule"),
+        })
       }
       tables.push({ rows, grid_widths_twips })
     }

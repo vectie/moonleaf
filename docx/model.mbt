@@ -7,6 +7,7 @@ pub(all) struct ParagraphMetadata {
   spacing_before_twips : Int?
   spacing_after_twips : Int?
   line_twips : Int?
+  line_rule : String?
   left_indent_twips : Int?
   right_indent_twips : Int?
   first_line_twips : Int?
@@ -57,14 +58,27 @@ pub(all) struct ParagraphInfo {
 ///|
 pub(all) struct TableCellInfo {
   text : String
+  paragraphs : Array[ParagraphInfo]
   grid_span : Int
   vertical_merge : String?
   width_twips : Int?
+  margin_top_twips : Int?
+  margin_right_twips : Int?
+  margin_bottom_twips : Int?
+  margin_left_twips : Int?
+  vertical_alignment : String?
+} derive(Eq, Debug)
+
+///|
+pub(all) struct TableRowInfo {
+  cells : Array[TableCellInfo]
+  height_twips : Int?
+  height_rule : String?
 } derive(Eq, Debug)
 
 ///|
 pub(all) struct TableInfo {
-  rows : Array[Array[TableCellInfo]]
+  rows : Array[TableRowInfo]
   grid_widths_twips : Array[Int]
 } derive(Eq, Debug)
 

@@ -64,9 +64,13 @@ test "inspect_document exposes focused document structure metadata" {
   assert_true(metadata.right_indent_twips is None)
   assert_true(metadata.first_line_twips is Some(-120))
   assert_true(metadata.hanging_twips is Some(60))
-  assert_eq(result.tables[0].rows[0][0].grid_span, 2)
-  assert_true(result.tables[0].rows[0][0].vertical_merge is Some("restart"))
-  assert_true(result.tables[0].rows[1][0].vertical_merge is Some("continue"))
+  assert_eq(result.tables[0].rows[0].cells[0].grid_span, 2)
+  assert_true(
+    result.tables[0].rows[0].cells[0].vertical_merge is Some("restart"),
+  )
+  assert_true(
+    result.tables[0].rows[1].cells[0].vertical_merge is Some("continue"),
+  )
   assert_eq(result.sections.length(), 1)
   let section = result.sections[0]
   assert_true(section.page_width_twips is Some(12240))
@@ -133,9 +137,9 @@ test "inspect_document validates margins and grid spans" {
   assert_true(section.margin_right_twips is None)
   assert_true(section.margin_bottom_twips is Some(-2))
   assert_true(section.margin_left_twips is None)
-  assert_eq(result.tables[0].rows[0][0].grid_span, 1)
-  assert_eq(result.tables[0].rows[0][1].grid_span, 1)
-  assert_eq(result.tables[0].rows[0][2].grid_span, 1)
+  assert_eq(result.tables[0].rows[0].cells[0].grid_span, 1)
+  assert_eq(result.tables[0].rows[0].cells[1].grid_span, 1)
+  assert_eq(result.tables[0].rows[0].cells[2].grid_span, 1)
   assert_eq(
     result.warnings
     .filter(fn(w) { w.code == "DOCX_GRID_SPAN_INVALID" })
