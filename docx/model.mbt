@@ -77,6 +77,7 @@ pub(all) struct TableInfo {
 pub(all) enum DocxFlowBlock {
   FlowParagraph(ParagraphInfo)
   FlowTable(TableInfo)
+  FlowPageBreak
   FlowSection(SectionInfo)
 } derive(Eq, Debug)
 

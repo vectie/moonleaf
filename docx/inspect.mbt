@@ -355,6 +355,9 @@ pub fn preview_document(
           Some(paragraph) => blocks.push(FlowParagraph(paragraph))
           None => ()
         }
+        if element_contains_page_break(child) {
+          blocks.push(FlowPageBreak)
+        }
         for section in sections {
           blocks.push(FlowSection(section))
         }
@@ -378,6 +381,17 @@ pub fn preview_document(
     resources: inspected.resources,
     warnings,
   }
+}
+
+///|
+fn element_contains_page_break(element : @xml.Element) -> Bool {
+  if element.local_name() == "lastRenderedPageBreak" {
+    return true
+  }
+  if element.local_name() == "br" && element.attribute("type") == Some("page") {
+    return true
+  }
+  element.child_elements().any(element_contains_page_break)
 }
 
 ///|

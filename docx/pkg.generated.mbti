@@ -38,6 +38,7 @@ pub(all) struct DocxDocument {
 pub(all) enum DocxFlowBlock {
   FlowParagraph(ParagraphInfo)
   FlowTable(TableInfo)
+  FlowPageBreak
   FlowSection(SectionInfo)
 } derive(Eq, @debug.Debug)
 
