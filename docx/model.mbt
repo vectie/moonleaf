@@ -119,3 +119,40 @@ pub(all) struct DocxPreviewDocument {
   resources : Array[ResourceInfo]
   warnings : Array[@scene.Warning]
 } derive(Eq, Debug)
+
+///|
+/// Deterministic layout constants used by MoonLeaf's portable paginator.
+pub(all) struct PaginationProfile {
+  default_margin_top_twips : Int
+  default_margin_right_twips : Int
+  default_margin_bottom_twips : Int
+  default_margin_left_twips : Int
+  default_font_size_half_points : Int
+  default_line_twips : Int
+  table_cell_vertical_padding_twips : Int
+  page_safety_twips : Int
+} derive(Eq, Debug)
+
+///|
+/// One physical page projected from DOCX flow blocks.
+pub(all) struct DocxPage {
+  blocks : Array[DocxFlowBlock]
+  used_height_twips : Int
+} derive(Eq, Debug)
+
+///| Portable MoonLeaf pagination output. This contains layout decisions, not
+
+///|
+/// raster or PDF bytes; glyph rasterization remains a renderer responsibility.
+pub(all) struct PagedDocxDocument {
+  pages : Array[DocxPage]
+  page_width_twips : Int
+  page_height_twips : Int
+  margin_top_twips : Int
+  margin_right_twips : Int
+  margin_bottom_twips : Int
+  margin_left_twips : Int
+  content_width_twips : Int
+  content_height_twips : Int
+  diagnostics : Array[@scene.Warning]
+} derive(Eq, Debug)

@@ -14,6 +14,8 @@ pub fn inspect_document(@opc.Package) -> DocxDocument raise DocxError
 
 pub fn layout_audit_contract_version() -> String
 
+pub fn paginate_document(@opc.Package, profile? : PaginationProfile) -> PagedDocxDocument raise DocxError
+
 pub fn preview_document(@opc.Package) -> DocxPreviewDocument raise DocxError
 
 pub fn read(@opc.Package) -> @scene.TextDocument raise DocxError
@@ -46,6 +48,11 @@ pub(all) enum DocxFlowBlock {
   FlowSection(SectionInfo)
 } derive(Eq, @debug.Debug)
 
+pub(all) struct DocxPage {
+  blocks : Array[DocxFlowBlock]
+  used_height_twips : Int
+} derive(Eq, @debug.Debug)
+
 pub(all) struct DocxPreviewDocument {
   blocks : Array[DocxFlowBlock]
   headers : Array[String]
@@ -75,6 +82,31 @@ pub(all) struct LayoutAudit {
   inserted_text_slot_paragraphs : Int
   diagnostics : Array[String]
 } derive(Eq)
+
+pub(all) struct PagedDocxDocument {
+  pages : Array[DocxPage]
+  page_width_twips : Int
+  page_height_twips : Int
+  margin_top_twips : Int
+  margin_right_twips : Int
+  margin_bottom_twips : Int
+  margin_left_twips : Int
+  content_width_twips : Int
+  content_height_twips : Int
+  diagnostics : Array[@scene.Warning]
+} derive(Eq, @debug.Debug)
+
+pub(all) struct PaginationProfile {
+  default_margin_top_twips : Int
+  default_margin_right_twips : Int
+  default_margin_bottom_twips : Int
+  default_margin_left_twips : Int
+  default_font_size_half_points : Int
+  default_line_twips : Int
+  table_cell_vertical_padding_twips : Int
+  page_safety_twips : Int
+} derive(Eq, @debug.Debug)
+pub fn PaginationProfile::default() -> Self
 
 pub(all) struct ParagraphInfo {
   metadata : ParagraphMetadata
