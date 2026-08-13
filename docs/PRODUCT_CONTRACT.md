@@ -22,6 +22,7 @@ macros, signatures or document collaboration.
 | Capability | Status |
 | --- | --- |
 | DOCX paragraph/table preview and bounded text replacement | available |
+| Ordered rich DOCX preview metadata for host renderers | available |
 | XLSX common cell/formula/style preview and inline-text cell edit | available |
 | PPTX slide/text/shape/picture preview and exact text replacement | available |
 | Save-as-copy, reopen and re-render verification | available |

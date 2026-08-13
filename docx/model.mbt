@@ -16,6 +16,10 @@ pub(all) struct ParagraphMetadata {
 ///|
 pub(all) struct RunMetadata {
   text : String
+  bold : Bool
+  italic : Bool
+  underline : Bool
+  font_size_half_points : Int?
   font_ascii : String?
   font_east_asia : String?
   font_complex_script : String?
@@ -37,6 +41,10 @@ priv struct ResolvedStyle {
   color : String?
   highlight : String?
   strike : Bool?
+  bold : Bool?
+  italic : Bool?
+  underline : Bool?
+  font_size_half_points : Int?
 }
 
 ///|
@@ -51,11 +59,25 @@ pub(all) struct TableCellInfo {
   text : String
   grid_span : Int
   vertical_merge : String?
+  width_twips : Int?
 } derive(Eq, Debug)
 
 ///|
 pub(all) struct TableInfo {
   rows : Array[Array[TableCellInfo]]
+  grid_widths_twips : Array[Int]
+} derive(Eq, Debug)
+
+///| Ordered rich DOCX content for host renderers. This keeps the existing
+
+///| portable text scene stable while exposing source formatting and table
+
+///|
+/// geometry that a faithful document preview needs.
+pub(all) enum DocxFlowBlock {
+  FlowParagraph(ParagraphInfo)
+  FlowTable(TableInfo)
+  FlowSection(SectionInfo)
 } derive(Eq, Debug)
 
 ///|
@@ -82,6 +104,15 @@ pub(all) struct DocxDocument {
   paragraphs : Array[ParagraphInfo]
   tables : Array[TableInfo]
   sections : Array[SectionInfo]
+  headers : Array[String]
+  footers : Array[String]
+  resources : Array[ResourceInfo]
+  warnings : Array[@scene.Warning]
+} derive(Eq, Debug)
+
+///|
+pub(all) struct DocxPreviewDocument {
+  blocks : Array[DocxFlowBlock]
   headers : Array[String]
   footers : Array[String]
   resources : Array[ResourceInfo]

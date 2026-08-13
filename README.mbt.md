@@ -48,6 +48,9 @@ library.
 - `@opc.open` and `@opc.open_with_policy` preflight ZIP metadata, require
   per-entry CRC integrity, and decode the OOXML container; `@opc.save` encodes it
 - `@docx.read`, `@xlsx.read`, and `@pptx.read` return neutral scene values
+- `@docx.preview_document` returns ordered DOCX paragraph/table/section flow
+  with resolved alignment, spacing, indentation, CJK fonts, run emphasis,
+  table widths, and page geometry for higher-fidelity host previews
 - `@docx.replace_text`, `@xlsx.set_cell_text`, and `@pptx.replace_text`
   return new packages and leave the input package unchanged
 

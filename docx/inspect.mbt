@@ -110,6 +110,10 @@ fn collect_run_info(
       )
       out.push({
         text: child.text_content(),
+        bold: resolved.bold.unwrap_or(false),
+        italic: resolved.italic.unwrap_or(false),
+        underline: resolved.underline.unwrap_or(false),
+        font_size_half_points: resolved.font_size_half_points,
         font_ascii: resolved.font_ascii,
         font_east_asia: resolved.font_east_asia,
         font_complex_script: resolved.font_complex_script,
@@ -169,6 +173,10 @@ fn parse_cell_info(
               None => Some("continue")
             }
         }
+      None => None
+    },
+    width_twips: match pr {
+      Some(x) => nonnegative_int_attr(x.first_child("tcW"), "w")
       None => None
     },
   }
@@ -311,6 +319,67 @@ pub fn inspect_document(
   { scene, paragraphs, tables, sections, headers, footers, resources, warnings }
 }
 
+///| Preserve the main-document flow order while exposing the resolved DOCX
+
+///| metadata needed by host preview renderers. The stable `read()` scene stays
+
+///|
+/// intentionally portable and lossy; this API is the richer DOCX boundary.
+pub fn preview_document(
+  document_package : @opc.Package,
+) -> DocxPreviewDocument raise DocxError {
+  let inspected = inspect_document(document_package)
+  let source = document_package.text("word/document.xml") catch {
+    error => raise InvalidDocument(repr(error))
+  }
+  let root = @xml.parse(source) catch {
+    error => raise InvalidDocument(repr(error))
+  }
+  let body = if root.local_name() == "body" {
+    Some(root)
+  } else {
+    root.first_child("body")
+  }
+  guard body is Some(body) else { raise InvalidDocument("missing w:body") }
+  let styles = parse_style_table(document_package)
+  let warnings = inspected.warnings.copy()
+  let blocks : Array[DocxFlowBlock] = []
+  for child in body.child_elements() {
+    let paragraphs = []
+    let tables = []
+    let sections = []
+    inspect_element(child, paragraphs, tables, sections, styles, warnings)
+    match child.local_name() {
+      "p" => {
+        match paragraphs.get(0) {
+          Some(paragraph) => blocks.push(FlowParagraph(paragraph))
+          None => ()
+        }
+        for section in sections {
+          blocks.push(FlowSection(section))
+        }
+      }
+      "tbl" =>
+        match tables.get(0) {
+          Some(table) => blocks.push(FlowTable(table))
+          None => ()
+        }
+      "sectPr" =>
+        for section in sections {
+          blocks.push(FlowSection(section))
+        }
+      _ => ()
+    }
+  }
+  {
+    blocks,
+    headers: inspected.headers,
+    footers: inspected.footers,
+    resources: inspected.resources,
+    warnings,
+  }
+}
+
 ///|
 fn inspect_element(
   element : @xml.Element,
@@ -380,6 +449,17 @@ fn inspect_element(
     }
     "tbl" => {
       let rows = []
+      let grid_widths_twips = []
+      match element.first_child("tblGrid") {
+        Some(grid) =>
+          for column in grid.children_named("gridCol") {
+            match nonnegative_int_attr(Some(column), "w") {
+              Some(width) => grid_widths_twips.push(width)
+              None => ()
+            }
+          }
+        None => ()
+      }
       for tr in element.children_named("tr") {
         let cells = []
         for tc in tr.children_named("tc") {
@@ -387,7 +467,7 @@ fn inspect_element(
         }
         rows.push(cells)
       }
-      tables.push({ rows, })
+      tables.push({ rows, grid_widths_twips })
     }
     "sectPr" => sections.push(parse_section(element))
     _ =>

@@ -39,6 +39,10 @@ fn empty_resolved_style() -> ResolvedStyle {
     color: None,
     highlight: None,
     strike: None,
+    bold: None,
+    italic: None,
+    underline: None,
+    font_size_half_points: None,
   }
 }
 
@@ -93,6 +97,13 @@ fn merge_resolved_style(
     color: prefer(direct.color, base.color),
     highlight: prefer(direct.highlight, base.highlight),
     strike: prefer(direct.strike, base.strike),
+    bold: prefer(direct.bold, base.bold),
+    italic: prefer(direct.italic, base.italic),
+    underline: prefer(direct.underline, base.underline),
+    font_size_half_points: prefer(
+      direct.font_size_half_points,
+      base.font_size_half_points,
+    ),
   }
 }
 
@@ -114,6 +125,19 @@ fn run_style_from_pr(pr : @xml.Element?) -> ResolvedStyle {
           None => None
           Some(_) => Some(property_enabled(pr, "strike"))
         },
+        bold: match pr.first_child("b") {
+          None => None
+          Some(_) => Some(property_enabled(pr, "b"))
+        },
+        italic: match pr.first_child("i") {
+          None => None
+          Some(_) => Some(property_enabled(pr, "i"))
+        },
+        underline: match pr.first_child("u") {
+          None => None
+          Some(_) => Some(property_enabled(pr, "u"))
+        },
+        font_size_half_points: nonnegative_int_attr(pr.first_child("sz"), "val"),
       }
     }
   }

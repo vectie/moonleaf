@@ -13,7 +13,7 @@ rendering application; MoonDesk owns those user-facing concerns.
 | `xml` | XML tokenization, typed nodes, and serialization | no OPC path or archive policy |
 | `opc` | ZIP/OPC policy, path containment, relationships, CRC and package access | no document-format semantics |
 | `scene` | host-neutral document, sheet, and slide projection types | no Rabbita widgets or desktop drawing |
-| `docx` | WordprocessingML read, inspect, and bounded text edit | unsupported layout remains explicit |
+| `docx` | WordprocessingML read, ordered rich preview metadata, inspect, and bounded text edit | unsupported layout remains explicit |
 | `xlsx` | SpreadsheetML read, inspect, and bounded cell edit | no formula recalculation engine |
 | `pptx` | PresentationML read, inspect, and exact text replacement | no animation or full layout engine |
 

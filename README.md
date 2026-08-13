@@ -30,6 +30,9 @@ The same MoonBit source is tested on native, JavaScript, Wasm, and Wasm-GC.
 
 UI frameworks and platform-specific file pickers remain outside this library.
 MoonDesk or another client can render `scene` values through its own components.
+For higher-fidelity DOCX previews, `@docx.preview_document` retains ordered
+paragraph/table/section flow and resolved layout metadata without introducing a
+UI dependency.
 
 ## Safe open boundary
 
