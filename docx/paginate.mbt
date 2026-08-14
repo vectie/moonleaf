@@ -99,7 +99,13 @@ fn paragraph_height(
 
 ///|
 fn cell_height(cell : TableCellInfo, profile : PaginationProfile) -> Int {
-  let width = positive_or(cell.width_twips, 2400)
+  let width = (positive_or(cell.width_twips, 2400) -
+  cell.margin_left_twips.unwrap_or(
+    profile.table_cell_vertical_padding_twips / 2,
+  ) -
+  cell.margin_right_twips.unwrap_or(
+    profile.table_cell_vertical_padding_twips / 2,
+  )).max(1)
   let paragraph_total = if cell.paragraphs.is_empty() {
     profile.default_line_twips
   } else {
