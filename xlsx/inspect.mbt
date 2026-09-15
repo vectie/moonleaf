@@ -412,7 +412,7 @@ pub fn inspect(
             let numeric = match (cell.attribute("t"), raw) {
               (None | Some("n"), Some(v)) =>
                 try {
-                  let parsed : Double = @strconv.from_str(v)
+                  let parsed = @string.parse_double(v)
                   Some(parsed)
                 } catch {
                   _ => None

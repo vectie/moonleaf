@@ -415,6 +415,25 @@ test "inspect built-in dates epochs serial-60 rounding and invalid ranges" {
 }
 
 ///|
+test "numeric date parsing accepts exponents and rejects malformed numbers" {
+  let styles = "<styleSheet><cellXfs count=\"1\"><xf numFmtId=\"14\"/></cellXfs></styleSheet>"
+  let cells = @xlsx.inspect(
+    inspect_fixture(
+      "",
+      Some(styles),
+      None,
+      "<c r=\"A1\" s=\"0\"><v>1.25e0</v></c><c r=\"B1\" s=\"0\"><v>1.25days</v></c>",
+    ),
+  )
+  guard cells[0].date_time is Some(date) else {
+    fail("exponent date was not parsed")
+  }
+  assert_eq(date.day, Some(1))
+  assert_eq(date.hour, 6)
+  assert_eq(cells[1].date_time, None)
+}
+
+///|
 test "inspect missing and out-of-range styles warn only affected cells" {
   let missing = @xlsx.inspect(
     inspect_fixture(

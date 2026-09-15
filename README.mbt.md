@@ -114,6 +114,15 @@ moon fmt
 
 Apache-2.0. See package-level provenance notes for behavioral references.
 
+### 0.1.15 compiler compatibility
+
+Numeric parsing uses the current `core/string` integer and double APIs instead
+of the removed `core/strconv.from_str` function. Numbering defaults, invalid
+cached page counts and numeric spreadsheet dates have regression coverage.
+On MoonBit 0.1.20260904, strict checks pass for all targets and **111/111 tests
+pass on each of native, JavaScript, Wasm and Wasm-GC**. No public API or document
+fidelity claim is expanded by this compatibility patch.
+
 ### Current verification checkpoint
 
 The prior broad checkpoint passed 93/93 tests on each target. For the current

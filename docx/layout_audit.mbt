@@ -194,7 +194,7 @@ fn layout_structure(element : @xml.Element) -> @xml.Element {
     }
   }
   let attributes = if element.name == "w:t" { [] } else { element.attributes }
-  { name: element.name, attributes, children }
+  { name: element.name, attributes, children, }
 }
 
 ///|
@@ -258,7 +258,7 @@ fn cached_page_count(document_package : @opc.Package) -> Int? {
   }
   match find_pages(root) {
     Some(value) => {
-      let parsed : Int = @strconv.from_str(value) catch { _ => return None }
+      let parsed = @string.parse_int(value) catch { _ => return None }
       if parsed > 0 {
         Some(parsed)
       } else {

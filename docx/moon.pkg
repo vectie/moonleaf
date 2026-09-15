@@ -1,5 +1,5 @@
 import {
-  "moonbitlang/core/strconv",
+  "moonbitlang/core/string",
   "vectie/moonleaf/opc",
   "vectie/moonleaf/scene",
   "vectie/moonleaf/xml",

@@ -22,7 +22,7 @@ fn parse_int_or(value : String?, fallback : Int) -> Int {
   match value {
     None => fallback
     Some(value) =>
-      try @strconv.from_str(value) catch {
+      try @string.parse_int(value) catch {
         _ => fallback
       } noraise {
         value => value
@@ -33,7 +33,7 @@ fn parse_int_or(value : String?, fallback : Int) -> Int {
 ///|
 fn load_numbering(document_package : @opc.Package) -> Numbering raise DocxError {
   if !document_package.has_part("word/numbering.xml") {
-    return { instances: [], formats: [] }
+    return { instances: [], formats: [], }
   }
   let source = document_package.text("word/numbering.xml") catch {
     error => raise InvalidDocument(repr(error))
@@ -49,7 +49,7 @@ fn load_numbering(document_package : @opc.Package) -> Numbering raise DocxError 
         match (child.attribute("numId"), child.first_child("abstractNumId")) {
           (Some(num_id), Some(abstract_id_element)) =>
             match abstract_id_element.attribute("val") {
-              Some(abstract_id) => instances.push({ num_id, abstract_id })
+              Some(abstract_id) => instances.push({ num_id, abstract_id, })
               None => ()
             }
           _ => ()
@@ -67,14 +67,14 @@ fn load_numbering(document_package : @opc.Package) -> Numbering raise DocxError 
                   }
                 None => true
               }
-              formats.push({ abstract_id, level, ordered })
+              formats.push({ abstract_id, level, ordered, })
             }
           None => ()
         }
       _ => ()
     }
   }
-  { instances, formats }
+  { instances, formats, }
 }
 
 ///|
