@@ -1,6 +1,6 @@
 ///|
 fn package_with(document : String) -> @opc.Package {
-  let document_package : @opc.Package = { parts: [] }
+  let document_package : @opc.Package = { parts: [], }
   document_package.replace_text("word/document.xml", document)
 }
 
@@ -162,7 +162,7 @@ test "replace_text changes only w:t content and preserves other parts" {
 
 ///|
 test "missing main document reports a DOCX error" {
-  let document_package : @opc.Package = { parts: [] }
+  let document_package : @opc.Package = { parts: [], }
   try @docx.read(document_package) catch {
     error => debug_inspect(error, content="MissingDocument")
   } noraise {

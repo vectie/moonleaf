@@ -103,7 +103,7 @@ fn transformed_bounds(
       height: item.width,
     }
   } else {
-    { x, y, width: item.width, height: item.height }
+    { x, y, width: item.width, height: item.height, }
   }
 }
 
@@ -213,7 +213,7 @@ fn element_bounds(
   } else {
     bounds.y
   }
-  { x, y, width: bounds.width, height: bounds.height }
+  { x, y, width: bounds.width, height: bounds.height, }
 }
 
 ///|
@@ -434,5 +434,5 @@ fn parse_slide(
     Some(v) if v != "" => v
     _ => part_stem(part)
   }
-  { name, width, height, elements }
+  { name, width, height, elements, }
 }

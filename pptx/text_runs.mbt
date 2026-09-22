@@ -61,15 +61,15 @@ fn text_runs(
       match child.local_name() {
         "r" | "fld" =>
           match text_from_run(child) {
-            Some(text) => result.push({ text, style: text_style(child, part) })
+            Some(text) => result.push({ text, style: text_style(child, part), })
             None => ()
           }
-        "br" => result.push({ text: "\n", style: @scene.TextStyle::plain() })
+        "br" => result.push({ text: "\n", style: @scene.TextStyle::plain(), })
         _ => ()
       }
     }
     if paragraph_index + 1 < paragraphs.length() {
-      result.push({ text: "\n", style: @scene.TextStyle::plain() })
+      result.push({ text: "\n", style: @scene.TextStyle::plain(), })
     }
   }
   result

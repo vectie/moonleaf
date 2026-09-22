@@ -1,6 +1,6 @@
 ///|
 fn inspect_style_package(document : String, styles : String) -> @opc.Package {
-  let document_package : @opc.Package = { parts: [] }
+  let document_package : @opc.Package = { parts: [], }
   document_package
   .replace_text("word/document.xml", document)
   .replace_text("word/styles.xml", styles)

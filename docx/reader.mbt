@@ -58,7 +58,7 @@ fn parse_run(run : @xml.Element) -> @scene.TextRun? {
   if text.is_empty() {
     None
   } else {
-    Some({ text: text.to_string(), style: parse_run_style(run) })
+    Some({ text: text.to_string(), style: parse_run_style(run), })
   }
 }
 
@@ -207,5 +207,5 @@ pub fn read(
       _ => ()
     }
   }
-  { blocks, warnings: [] }
+  { blocks, warnings: [], }
 }

@@ -1,5 +1,12 @@
 import {
   "moonbitlang/core/json",
+  "moonbitlang/core/buffer",
+  "moonbitlang/core/string",
+  "moonbitlang/core/encoding/utf8",
+  "vectie/moonleaf/opc",
+  "vectie/moonleaf/docx",
+  "vectie/moonleaf/xml",
+  "vectie/moonleaf/xlsx",
 }
 
 supported_targets = "all"

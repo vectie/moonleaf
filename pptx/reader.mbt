@@ -97,5 +97,5 @@ pub fn read(container : @opc.Package) -> @scene.Presentation raise PptxError {
   for part in ordered_slide_parts(root, relationships) {
     slides.push(parse_slide(container, part, width, height, warnings))
   }
-  { slides, warnings }
+  { slides, warnings, }
 }

@@ -12,6 +12,10 @@ pub fn inspect(@opc.Package) -> Array[InspectedCell] raise XlsxError
 
 pub fn read(@opc.Package) -> @scene.Workbook raise XlsxError
 
+pub fn recalculate(@opc.Package) -> @opc.Package raise XlsxError
+
+pub fn set_cell_number(@opc.Package, String, Int, Int, Double) -> @opc.Package raise XlsxError
+
 pub fn set_cell_text(@opc.Package, String, Int, Int, String) -> @opc.Package raise XlsxError
 
 // Errors
@@ -26,6 +30,9 @@ pub(all) suberror XlsxError {
   SheetNotFound(String)
   InvalidCoordinates(row~ : Int, column~ : Int)
 } derive(Eq, @debug.Debug)
+pub fn XlsxError::equal(Self, Self) -> Bool
+pub fn XlsxError::not_equal(Self, Self) -> Bool
+pub fn XlsxError::to_repr(Self) -> @debug.Repr
 
 // Types and methods
 pub(all) struct DateTimeMetadata {
@@ -39,6 +46,9 @@ pub(all) struct DateTimeMetadata {
   minute : Int
   second : Int
 } derive(Eq, @debug.Debug)
+pub fn DateTimeMetadata::equal(Self, Self) -> Bool
+pub fn DateTimeMetadata::not_equal(Self, Self) -> Bool
+pub fn DateTimeMetadata::to_repr(Self) -> @debug.Repr
 
 pub(all) enum DisplayKind {
   General
@@ -48,6 +58,9 @@ pub(all) enum DisplayKind {
   DateTime
   Unsupported
 } derive(Eq, @debug.Debug)
+pub fn DisplayKind::equal(Self, Self) -> Bool
+pub fn DisplayKind::not_equal(Self, Self) -> Bool
+pub fn DisplayKind::to_repr(Self) -> @debug.Repr
 
 pub(all) enum InspectWarning {
   MissingStylesPart
@@ -55,6 +68,9 @@ pub(all) enum InspectWarning {
   UnsupportedNumberFormat(Int, String)
   AmbiguousNumberFormat(Int, String)
 } derive(Eq, @debug.Debug)
+pub fn InspectWarning::equal(Self, Self) -> Bool
+pub fn InspectWarning::not_equal(Self, Self) -> Bool
+pub fn InspectWarning::to_repr(Self) -> @debug.Repr
 
 pub(all) struct InspectedCell {
   sheet_name : String
@@ -71,6 +87,9 @@ pub(all) struct InspectedCell {
   date_time : DateTimeMetadata?
   warnings : Array[InspectWarning]
 } derive(Eq, @debug.Debug)
+pub fn InspectedCell::equal(Self, Self) -> Bool
+pub fn InspectedCell::not_equal(Self, Self) -> Bool
+pub fn InspectedCell::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 

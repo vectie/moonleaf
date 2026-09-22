@@ -119,7 +119,7 @@ fn normalized_diagnostics(scene : @scene.Document) -> Array[DocumentDiagnostic] 
     PresentationDocument(presentation) => presentation.warnings
   }
   warnings.map(fn(warning) {
-    { code: warning.code, message: warning.message, part: warning.part }
+    { code: warning.code, message: warning.message, part: warning.part, }
   })
 }
 
@@ -177,7 +177,7 @@ pub fn DocumentSession::capabilities(
 
 ///|
 fn clone_text_run(run : @scene.TextRun) -> @scene.TextRun {
-  { text: run.text, style: run.style }
+  { text: run.text, style: run.style, }
 }
 
 ///|

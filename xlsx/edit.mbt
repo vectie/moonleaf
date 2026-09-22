@@ -1,6 +1,6 @@
 ///|
 fn attribute(name : String, value : String) -> @xml.Attribute {
-  { name, value }
+  { name, value, }
 }
 
 ///|
@@ -9,7 +9,7 @@ fn element(
   attributes : Array[@xml.Attribute],
   children : Array[@xml.Node],
 ) -> @xml.Element {
-  { name, attributes, children }
+  { name, attributes, children, }
 }
 
 ///|
@@ -96,7 +96,7 @@ fn replace_or_insert_cell(
   if !inserted.val {
     children.push(Element(inline_text_cell(reference, text, None)))
   }
-  { name: row_element.name, attributes: row_element.attributes, children }
+  { name: row_element.name, attributes: row_element.attributes, children, }
 }
 
 ///|
@@ -143,7 +143,7 @@ fn replace_or_insert_row(
   if !inserted.val {
     children.push(Element(new_row(row, column, text)))
   }
-  { name: sheet_data.name, attributes: sheet_data.attributes, children }
+  { name: sheet_data.name, attributes: sheet_data.attributes, children, }
 }
 
 ///|
@@ -231,7 +231,7 @@ fn update_worksheet(
       ),
     )
   }
-  { name: worksheet.name, attributes: worksheet.attributes, children }
+  { name: worksheet.name, attributes: worksheet.attributes, children, }
 }
 
 ///|

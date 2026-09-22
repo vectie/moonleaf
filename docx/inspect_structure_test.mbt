@@ -1,6 +1,6 @@
 ///|
 test "inspect_document retains valid relationships and reports rejected targets" {
-  let container = ({ parts: [] } : @opc.Package)
+  let container = ({ parts: [], } : @opc.Package)
     .replace_text(
       "word/document.xml", "<w:document xmlns:w=\"urn:w\" xmlns:r=\"urn:r\"><w:body><w:p><w:hyperlink r:id=\"rLink\"><w:r><w:t>Moon</w:t></w:r></w:hyperlink></w:p></w:body></w:document>",
     )
@@ -38,7 +38,7 @@ test "inspect_document retains valid relationships and reports rejected targets"
 
 ///|
 test "inspect_document reports malformed document relationships" {
-  let container = ({ parts: [] } : @opc.Package)
+  let container = ({ parts: [], } : @opc.Package)
     .replace_text(
       "word/document.xml", "<w:document xmlns:w=\"urn:w\"><w:body/></w:document>",
     )
@@ -53,7 +53,7 @@ test "inspect_document reports malformed document relationships" {
 
 ///|
 test "inspect_document exposes focused document structure metadata" {
-  let container = ({ parts: [] } : @opc.Package).replace_text(
+  let container = ({ parts: [], } : @opc.Package).replace_text(
     "word/document.xml", "<w:document xmlns:w=\"urn:w\"><w:body><w:p><w:pPr><w:spacing w:before=\"-40\" w:after=\"120\"/><w:ind w:left=\"-240\" w:right=\"bad\" w:firstLine=\"-120\" w:hanging=\"60\"/></w:pPr><w:r><w:t>Indented</w:t></w:r></w:p><w:tbl><w:tr><w:tc><w:tcPr><w:gridSpan w:val=\"2\"/><w:vMerge w:val=\"restart\"/></w:tcPr><w:p><w:r><w:t>A</w:t></w:r></w:p></w:tc></w:tr><w:tr><w:tc><w:tcPr><w:vMerge/></w:tcPr><w:p><w:r><w:t>B</w:t></w:r></w:p></w:tc></w:tr></w:tbl><w:sectPr><w:pgSz w:w=\"12240\" w:h=\"15840\"/><w:pgMar w:top=\"1440\" w:right=\"1080\" w:bottom=\"1440\" w:left=\"1080\"/></w:sectPr></w:body></w:document>",
   )
   let result = @docx.inspect_document(container)
@@ -83,7 +83,7 @@ test "inspect_document exposes focused document structure metadata" {
 
 ///|
 test "inspect_document treats an absent relationships part as empty" {
-  let container = ({ parts: [] } : @opc.Package).replace_text(
+  let container = ({ parts: [], } : @opc.Package).replace_text(
     "word/document.xml", "<w:document xmlns:w=\"urn:w\"><w:body/></w:document>",
   )
   let result = @docx.inspect_document(container)
@@ -94,7 +94,7 @@ test "inspect_document treats an absent relationships part as empty" {
 
 ///|
 test "inspect_document ignores relationship type suffix spoofs" {
-  let container = ({ parts: [] } : @opc.Package)
+  let container = ({ parts: [], } : @opc.Package)
     .replace_text(
       "word/document.xml", "<w:document xmlns:w=\"urn:w\"><w:body/></w:document>",
     )
@@ -110,7 +110,7 @@ test "inspect_document ignores relationship type suffix spoofs" {
 
 ///|
 test "inspect_document retains an exact external image without scene warning" {
-  let container = ({ parts: [] } : @opc.Package)
+  let container = ({ parts: [], } : @opc.Package)
     .replace_text(
       "word/document.xml", "<w:document xmlns:w=\"urn:w\"><w:body/></w:document>",
     )
@@ -128,7 +128,7 @@ test "inspect_document retains an exact external image without scene warning" {
 
 ///|
 test "inspect_document validates margins and grid spans" {
-  let container = ({ parts: [] } : @opc.Package).replace_text(
+  let container = ({ parts: [], } : @opc.Package).replace_text(
     "word/document.xml", "<w:document xmlns:w=\"urn:w\"><w:body><w:tbl><w:tr><w:tc><w:tcPr><w:gridSpan w:val=\"0\"/></w:tcPr><w:p/></w:tc><w:tc><w:tcPr><w:gridSpan w:val=\"-2\"/></w:tcPr><w:p/></w:tc><w:tc><w:tcPr><w:gridSpan w:val=\"bad\"/></w:tcPr><w:p/></w:tc></w:tr></w:tbl><w:sectPr><w:pgMar w:top=\"-1\" w:right=\"bad\" w:bottom=\"-2\" w:left=\"also-bad\"/></w:sectPr></w:body></w:document>",
   )
   let result = @docx.inspect_document(container)

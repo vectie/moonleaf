@@ -83,14 +83,14 @@ pub fn Package::replace_part(
   let replaced = Ref(false)
   for part in self.parts {
     if part.name == normalized {
-      parts.push({ name: normalized, content })
+      parts.push({ name: normalized, content, })
       replaced.val = true
     } else {
       parts.push(part)
     }
   }
   if !replaced.val {
-    parts.push({ name: normalized, content })
+    parts.push({ name: normalized, content, })
   }
   { parts, }
 }

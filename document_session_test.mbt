@@ -312,7 +312,7 @@ test "failed edits preserve original state and accessors isolate mutation" {
   }
   assert_true(scene_cell_is_text(session.scene(), 1, 1, "Hello sheet"))
   let diagnostics = session.diagnostics()
-  diagnostics.push({ code: "injected", message: "mutated", part: None })
+  diagnostics.push({ code: "injected", message: "mutated", part: None, })
   assert_true(session.diagnostics() == before_diagnostics)
 }
 

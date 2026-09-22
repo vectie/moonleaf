@@ -4,6 +4,7 @@ package "vectie/moonleaf/render"
 import {
   "moonbitlang/core/debug",
   "moonbitlang/core/json",
+  "vectie/moonleaf/opc",
 }
 
 // Values
@@ -11,7 +12,19 @@ pub fn contract_version() -> String
 
 pub fn engine_id() -> String
 
+pub fn render_docx_pdf(@opc.Package, Array[PdfFontInput], default_family~ : String) -> PdfDocument raise
+
+pub fn render_xlsx_proof_pdf(@opc.Package, Array[PdfFontInput], default_family~ : String) -> PdfDocument raise
+
 // Errors
+pub(all) suberror PdfError {
+  Unsupported(String)
+  InvalidFont(String)
+  LayoutOverflow(String)
+} derive(Eq, @debug.Debug)
+pub fn PdfError::equal(Self, Self) -> Bool
+pub fn PdfError::not_equal(Self, Self) -> Bool
+pub fn PdfError::to_repr(Self) -> @debug.Repr
 
 // Types and methods
 pub(all) struct Evidence {
@@ -25,7 +38,24 @@ pub(all) struct Evidence {
   page_count : Int
   rendered_unix_ms : Int64
 } derive(Eq, ToJson, @debug.Debug, @json.FromJson)
+pub fn Evidence::equal(Self, Self) -> Bool
+pub fn Evidence::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Evidence::not_equal(Self, Self) -> Bool
+pub fn Evidence::to_json(Self) -> Json
+pub fn Evidence::to_repr(Self) -> @debug.Repr
 pub fn Evidence::valid(Self) -> Bool
+
+pub(all) struct PdfDocument {
+  bytes : Bytes
+  page_count : Int
+} derive(@debug.Debug)
+pub fn PdfDocument::to_repr(Self) -> @debug.Repr
+
+pub(all) struct PdfFontInput {
+  family : String
+  bytes : Bytes
+} derive(@debug.Debug)
+pub fn PdfFontInput::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 

@@ -10,7 +10,7 @@ priv struct Parser {
 
 ///|
 fn Parser::new(source : String, options : ParseOptions) -> Parser {
-  { source, options, offset: 0, nodes: 0, decoded_text: 0 }
+  { source, options, offset: 0, nodes: 0, decoded_text: 0, }
 }
 
 ///|
@@ -260,12 +260,12 @@ fn Parser::parse_element(
         self.fail("duplicate attribute")
       }
     }
-    attrs.push({ name: n, value: v })
+    attrs.push({ name: n, value: v, })
     self.skip_ws()
   }
   let children = []
   if self.consume("/>") {
-    return { name: qname, attributes: attrs, children }
+    return { name: qname, attributes: attrs, children, }
   }
   self.expect(">")
   while !self.at_end() && !self.starts_with("</") {
@@ -314,7 +314,7 @@ fn Parser::parse_element(
   }
   self.skip_ws()
   self.expect(">")
-  { name: qname, attributes: attrs, children }
+  { name: qname, attributes: attrs, children, }
 }
 
 ///|

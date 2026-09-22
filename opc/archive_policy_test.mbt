@@ -132,12 +132,16 @@ test "archive policy validates input entry and total size ceilings" {
   let defaults = @opc.ArchivePolicy::default()
   expect_archive_rejection(
     content,
-    { ..defaults, max_compressed_input_bytes: 1, max_entry_compressed_bytes: 1 },
+    {
+      ..defaults,
+      max_compressed_input_bytes: 1,
+      max_entry_compressed_bytes: 1,
+    },
     "max_compressed_input_bytes",
   )
   expect_archive_rejection(
     content,
-    { ..defaults, max_entry_compressed_bytes: 1 },
+    { ..defaults, max_entry_compressed_bytes: 1, },
     "max_entry_compressed_bytes",
   )
   expect_archive_rejection(
@@ -165,14 +169,14 @@ test "archive policy rejects too many entries and excessive compression ratio" {
   let many = policy_fixture([("one.bin", [b'1']), ("two.bin", [b'2'])])
   expect_archive_rejection(
     many,
-    { ..@opc.ArchivePolicy::default(), max_entries: 2 },
+    { ..@opc.ArchivePolicy::default(), max_entries: 2, },
     "max_entries",
   )
   let repeated = FixedArray::make(4096, b'A')
   let compressed = policy_fixture([("word/repeated.bin", repeated)])
   expect_archive_rejection(
     compressed,
-    { ..@opc.ArchivePolicy::default(), max_compression_ratio: 1 },
+    { ..@opc.ArchivePolicy::default(), max_compression_ratio: 1, },
     "max_compression_ratio",
   )
 }
@@ -182,7 +186,7 @@ test "archive policy rejects depth and path-length violations" {
   let deep = policy_fixture([("a/b/c/file.xml", @fzip.str_to_u8("<x/>"))])
   expect_archive_rejection(
     deep,
-    { ..@opc.ArchivePolicy::default(), max_path_depth: 3 },
+    { ..@opc.ArchivePolicy::default(), max_path_depth: 3, },
     "max_path_depth",
   )
   let long = policy_fixture([
@@ -190,7 +194,7 @@ test "archive policy rejects depth and path-length violations" {
   ])
   expect_archive_rejection(
     long,
-    { ..@opc.ArchivePolicy::default(), max_path_length: 19 },
+    { ..@opc.ArchivePolicy::default(), max_path_length: 19, },
     "max_path_length",
   )
 }

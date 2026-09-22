@@ -135,7 +135,7 @@ fn open_package_with_policy(
         raise PackageError::InvalidPackage("duplicate part: " + normalized)
       }
     }
-    parts.push({ name: normalized, content: part_content })
+    parts.push({ name: normalized, content: part_content, })
   }
   let archive : Package = { parts, }
   if !archive.has_part("[Content_Types].xml") {

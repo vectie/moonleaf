@@ -1,6 +1,6 @@
 ///|
 fn text_part(name : String, content : String) -> @opc.Part {
-  { name, content: @utf8.encode(content).to_fixedarray() }
+  { name, content: @utf8.encode(content).to_fixedarray(), }
 }
 
 ///|
@@ -137,24 +137,24 @@ test "read common XLSX workbook cells and merged ranges" {
   assert_true(
     sheet.cells ==
     [
-      { row: 1, column: 1, value: Text("Hello Moon"), style_id: Some(5) },
-      { row: 1, column: 2, value: Text("Inline text"), style_id: None },
-      { row: 1, column: 3, value: Text("plain string"), style_id: None },
-      { row: 1, column: 4, value: Number("42.5"), style_id: None },
-      { row: 1, column: 5, value: Boolean(true), style_id: None },
-      { row: 1, column: 6, value: Error("#DIV/0!"), style_id: None },
+      { row: 1, column: 1, value: Text("Hello Moon"), style_id: Some(5), },
+      { row: 1, column: 2, value: Text("Inline text"), style_id: None, },
+      { row: 1, column: 3, value: Text("plain string"), style_id: None, },
+      { row: 1, column: 4, value: Number("42.5"), style_id: None, },
+      { row: 1, column: 5, value: Boolean(true), style_id: None, },
+      { row: 1, column: 6, value: Error("#DIV/0!"), style_id: None, },
       {
         row: 1,
         column: 7,
         value: Formula(expression="SUM(D1,1)", cached=Some("43.5")),
         style_id: None,
       },
-      { row: 1, column: 8, value: Empty, style_id: None },
+      { row: 1, column: 8, value: Empty, style_id: None, },
     ],
   )
   assert_true(
     sheet.merged_ranges ==
-    [{ start_row: 2, start_column: 1, end_row: 3, end_column: 2 }],
+    [{ start_row: 2, start_column: 1, end_row: 3, end_column: 2, }],
   )
 }
 

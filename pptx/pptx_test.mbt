@@ -89,7 +89,7 @@ fn fixture_package() -> @opc.Package {
           ),
         ).to_fixedarray(),
       },
-      { name: "ppt/media/image1.png", content: minimal_png() },
+      { name: "ppt/media/image1.png", content: minimal_png(), },
       {
         name: "docProps/core.xml",
         content: @utf8.encode("<core>unchanged</core>").to_fixedarray(),
@@ -110,7 +110,7 @@ test "read presentation order, size, text, shapes and images" {
   guard first.elements[0] is TextBox(bounds~, runs~) else {
     fail("expected text box")
   }
-  assert_true(bounds == { x: 10, y: 20, width: 300, height: 400 })
+  assert_true(bounds == { x: 10, y: 20, width: 300, height: 400, })
   assert_eq(runs.length(), 1)
   assert_eq(runs[0].text, "Hello & Moon")
   assert_true(runs[0].style.bold)
@@ -119,14 +119,14 @@ test "read presentation order, size, text, shapes and images" {
   guard first.elements[1] is Image(bounds=image_bounds, relationship_id~) else {
     fail("expected image")
   }
-  assert_true(image_bounds == { x: 500, y: 600, width: 700, height: 800 })
+  assert_true(image_bounds == { x: 500, y: 600, width: 700, height: 800, })
   assert_eq(relationship_id, "rIdImage")
   guard presentation.slides[1].elements[0]
     is Shape(kind~, bounds=shape_bounds, text~) else {
     fail("expected preset shape")
   }
   assert_eq(kind, "roundRect")
-  assert_true(shape_bounds == { x: 1, y: 2, width: 3, height: 4 })
+  assert_true(shape_bounds == { x: 1, y: 2, width: 3, height: 4, })
   assert_eq(text[0].text, "Second")
 }
 
@@ -168,7 +168,7 @@ test "group without grpSpPr xfrm leaves transformed child bounds unchanged" {
   let parts = base.parts.map(fn(part) {
     if part.name == "ppt/slides/slide1.xml" {
       (
-        { name: part.name, content: @utf8.encode(slide).to_fixedarray() } :
+        { name: part.name, content: @utf8.encode(slide).to_fixedarray(), } :
         @opc.Part)
     } else {
       part
@@ -178,7 +178,7 @@ test "group without grpSpPr xfrm leaves transformed child bounds unchanged" {
   guard presentation.slides[1].elements[0] is Shape(bounds~, ..) else {
     fail("expected shape")
   }
-  assert_true(bounds == { x: -11, y: 22, width: 333, height: 444 })
+  assert_true(bounds == { x: -11, y: 22, width: 333, height: 444, })
 }
 
 ///|
@@ -207,11 +207,11 @@ test "image validation emits one image and six warnings" {
   let parts = base.parts.map(fn(part) {
     if part.name == "ppt/slides/slide1.xml" {
       (
-        { name: part.name, content: @utf8.encode(pictures).to_fixedarray() } :
+        { name: part.name, content: @utf8.encode(pictures).to_fixedarray(), } :
         @opc.Part)
     } else if part.name == "ppt/slides/_rels/slide1.xml.rels" {
       (
-        { name: part.name, content: @utf8.encode(rels).to_fixedarray() } :
+        { name: part.name, content: @utf8.encode(rels).to_fixedarray(), } :
         @opc.Part)
     } else {
       part

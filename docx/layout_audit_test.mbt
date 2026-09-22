@@ -1,6 +1,6 @@
 ///|
 fn audit_package(document : String, pages : Int) -> @opc.Package {
-  let archive : @opc.Package = { parts: [] }
+  let archive : @opc.Package = { parts: [], }
   archive
   .replace_text("word/document.xml", document)
   .replace_text(

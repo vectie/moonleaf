@@ -29,12 +29,18 @@ pub(all) suberror DocumentSessionError {
   MergedCellNotAnchor(sheet~ : String, row~ : Int, column~ : Int)
   SaveVerification(String)
 } derive(Eq, @debug.Debug)
+pub fn DocumentSessionError::equal(Self, Self) -> Bool
+pub fn DocumentSessionError::not_equal(Self, Self) -> Bool
+pub fn DocumentSessionError::to_repr(Self) -> @debug.Repr
 
 pub(all) suberror MoonLeafError {
   UnsupportedExtension(String)
   Package(String)
   Document(String)
 } derive(Eq, @debug.Debug)
+pub fn MoonLeafError::equal(Self, Self) -> Bool
+pub fn MoonLeafError::not_equal(Self, Self) -> Bool
+pub fn MoonLeafError::to_repr(Self) -> @debug.Repr
 
 // Types and methods
 pub(all) struct DocumentCapabilities {
@@ -43,12 +49,18 @@ pub(all) struct DocumentCapabilities {
   replace_text : Bool
   set_cell_text : Bool
 } derive(Eq, @debug.Debug)
+pub fn DocumentCapabilities::equal(Self, Self) -> Bool
+pub fn DocumentCapabilities::not_equal(Self, Self) -> Bool
+pub fn DocumentCapabilities::to_repr(Self) -> @debug.Repr
 
 pub(all) struct DocumentDiagnostic {
   code : String
   message : String
   part : String?
 } derive(Eq, @debug.Debug)
+pub fn DocumentDiagnostic::equal(Self, Self) -> Bool
+pub fn DocumentDiagnostic::not_equal(Self, Self) -> Bool
+pub fn DocumentDiagnostic::to_repr(Self) -> @debug.Repr
 
 pub(all) enum DocumentFormat {
   Docx
@@ -56,6 +68,9 @@ pub(all) enum DocumentFormat {
   Pptx
 } derive(Eq, @debug.Debug)
 pub fn DocumentFormat::capabilities(Self) -> DocumentCapabilities
+pub fn DocumentFormat::equal(Self, Self) -> Bool
+pub fn DocumentFormat::not_equal(Self, Self) -> Bool
+pub fn DocumentFormat::to_repr(Self) -> @debug.Repr
 
 pub struct DocumentSession {
   // private fields

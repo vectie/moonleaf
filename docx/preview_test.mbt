@@ -1,6 +1,6 @@
 ///|
 test "preview_document preserves flow order and resolved DOCX layout metadata" {
-  let document_package : @opc.Package = { parts: [] }
+  let document_package : @opc.Package = { parts: [], }
   let document_package = document_package
     .replace_text(
       "word/document.xml",
@@ -53,7 +53,7 @@ test "preview_document preserves flow order and resolved DOCX layout metadata" {
 
 ///|
 test "preview keeps a leading page break before its paragraph text" {
-  let archive : @opc.Package = { parts: [] }
+  let archive : @opc.Package = { parts: [], }
   let archive = archive
     .replace_text(
       "word/document.xml", "<w:document xmlns:w=\"urn:w\"><w:body><w:p><w:pPr><w:rPr><w:sz w:val=\"52\"/></w:rPr></w:pPr></w:p><w:p><w:r><w:br w:type=\"page\"/></w:r><w:r><w:t>文件4</w:t></w:r></w:p></w:body></w:document>",

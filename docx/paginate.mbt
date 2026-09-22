@@ -143,7 +143,7 @@ fn table_row_height(row : TableRowInfo, profile : PaginationProfile) -> Int {
 
 ///|
 fn table_with_rows(table : TableInfo, rows : Array[TableRowInfo]) -> TableInfo {
-  { rows, grid_widths_twips: table.grid_widths_twips }
+  { rows, grid_widths_twips: table.grid_widths_twips, }
 }
 
 ///|
@@ -153,7 +153,7 @@ fn add_page(
   used : Int,
 ) -> Unit {
   if !blocks.is_empty() || pages.is_empty() {
-    pages.push({ blocks: blocks.copy(), used_height_twips: used })
+    pages.push({ blocks: blocks.copy(), used_height_twips: used, })
   }
   blocks.clear()
 }

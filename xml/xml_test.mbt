@@ -13,7 +13,7 @@ test "parse namespaces, attributes, entities, comments, and cdata" {
 test "serialize escapes content" {
   let element : @xml.Element = {
     name: "x",
-    attributes: [{ name: "a", value: "\"&" }],
+    attributes: [{ name: "a", value: "\"&", }],
     children: [@xml.Node::Text("<ok>")],
   }
   assert_eq(@xml.serialize(element), "<x a=\"&quot;&amp;\">&lt;ok&gt;</x>")
@@ -50,11 +50,11 @@ fn expect_limit(
 ///|
 test "parse resource limits" {
   let defaults = @xml.ParseOptions::safe_defaults()
-  expect_limit("<root/>", { ..defaults, max_input_utf16: 6 })
-  expect_limit("<a><b/></a>", { ..defaults, max_depth: 1 })
-  expect_limit("<a><b/></a>", { ..defaults, max_nodes: 1 })
-  expect_limit("<a x=\"1\"/>", { ..defaults, max_attributes_per_element: 0 })
-  expect_limit("<a>xy</a>", { ..defaults, max_total_decoded_text: 1 })
+  expect_limit("<root/>", { ..defaults, max_input_utf16: 6, })
+  expect_limit("<a><b/></a>", { ..defaults, max_depth: 1, })
+  expect_limit("<a><b/></a>", { ..defaults, max_nodes: 1, })
+  expect_limit("<a x=\"1\"/>", { ..defaults, max_attributes_per_element: 0, })
+  expect_limit("<a>xy</a>", { ..defaults, max_total_decoded_text: 1, })
 }
 
 ///|

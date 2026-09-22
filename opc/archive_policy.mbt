@@ -262,7 +262,7 @@ fn extract_verified_archive(
   policy : ArchivePolicy,
   infos : Array[@fzip.UnzipFileInfo],
 ) -> Array[(String, FixedArray[Byte])] raise PackageError {
-  let entries = @fzip.unzip_sync(content, opts={ verify_checksum: true }) catch {
+  let entries = @fzip.unzip_sync(content, opts={ verify_checksum: true, }) catch {
     _ =>
       raise PackageError::InvalidPackage(
         "ZIP extraction or CRC integrity verification failed",

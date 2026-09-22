@@ -21,6 +21,9 @@ pub(all) suberror PptxError {
   InvalidSlide(part~ : String, message~ : String)
   InvalidNumber(part~ : String, value~ : String)
 } derive(Eq, @debug.Debug)
+pub fn PptxError::equal(Self, Self) -> Bool
+pub fn PptxError::not_equal(Self, Self) -> Bool
+pub fn PptxError::to_repr(Self) -> @debug.Repr
 pub fn PptxError::to_string(Self) -> String
 
 // Types and methods

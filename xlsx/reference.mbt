@@ -72,7 +72,7 @@ fn parse_range_reference(reference : String) -> @scene.CellRange? {
         (Some((start_row, start_column)), Some((end_row, end_column))) if start_row <=
           end_row &&
           start_column <= end_column =>
-          Some({ start_row, start_column, end_row, end_column })
+          Some({ start_row, start_column, end_row, end_column, })
         _ => None
       }
     }

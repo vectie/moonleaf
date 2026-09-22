@@ -20,7 +20,7 @@ fn workbook_sheets(
       is (Some(name), Some(relationship_id)) else {
       raise InvalidWorkbook("a sheet is missing name or relationship id")
     }
-    result.push({ name, relationship_id })
+    result.push({ name, relationship_id, })
   }
   result
 }
@@ -257,5 +257,5 @@ pub fn read(xlsx_package : @opc.Package) -> @scene.Workbook raise XlsxError {
       merged_ranges: parse_merged_ranges(worksheet),
     })
   }
-  { sheets, warnings: [] }
+  { sheets, warnings: [], }
 }

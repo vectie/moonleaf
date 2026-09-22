@@ -349,7 +349,16 @@ pub fn inspect_document(
       }
     }
   }
-  { scene, paragraphs, tables, sections, headers, footers, resources, warnings }
+  {
+    scene,
+    paragraphs,
+    tables,
+    sections,
+    headers,
+    footers,
+    resources,
+    warnings,
+  }
 }
 
 ///| Preserve the main-document flow order while exposing the resolved DOCX
@@ -563,7 +572,7 @@ fn inspect_element(
           height_rule: string_attr(row_height, "hRule"),
         })
       }
-      tables.push({ rows, grid_widths_twips })
+      tables.push({ rows, grid_widths_twips, })
     }
     "sectPr" => sections.push(parse_section(element))
     _ =>

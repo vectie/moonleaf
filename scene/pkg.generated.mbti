@@ -16,6 +16,9 @@ pub(all) struct Cell {
   value : CellValue
   style_id : Int?
 } derive(Eq, @debug.Debug)
+pub fn Cell::equal(Self, Self) -> Bool
+pub fn Cell::not_equal(Self, Self) -> Bool
+pub fn Cell::to_repr(Self) -> @debug.Repr
 
 pub(all) struct CellRange {
   start_row : Int
@@ -23,6 +26,9 @@ pub(all) struct CellRange {
   end_row : Int
   end_column : Int
 } derive(Eq, @debug.Debug)
+pub fn CellRange::equal(Self, Self) -> Bool
+pub fn CellRange::not_equal(Self, Self) -> Bool
+pub fn CellRange::to_repr(Self) -> @debug.Repr
 
 pub(all) enum CellValue {
   Empty
@@ -32,23 +38,35 @@ pub(all) enum CellValue {
   Formula(expression~ : String, cached~ : String?)
   Error(String)
 } derive(Eq, @debug.Debug)
+pub fn CellValue::equal(Self, Self) -> Bool
+pub fn CellValue::not_equal(Self, Self) -> Bool
+pub fn CellValue::to_repr(Self) -> @debug.Repr
 
 pub(all) enum Document {
   TextDocument(TextDocument)
   WorkbookDocument(Workbook)
   PresentationDocument(Presentation)
 } derive(Eq, @debug.Debug)
+pub fn Document::equal(Self, Self) -> Bool
+pub fn Document::not_equal(Self, Self) -> Bool
+pub fn Document::to_repr(Self) -> @debug.Repr
 
 pub(all) enum DocumentKind {
   Text
   Spreadsheet
   Presentation
 } derive(Eq, @debug.Debug)
+pub fn DocumentKind::equal(Self, Self) -> Bool
+pub fn DocumentKind::not_equal(Self, Self) -> Bool
+pub fn DocumentKind::to_repr(Self) -> @debug.Repr
 
 pub(all) struct Presentation {
   slides : Array[Slide]
   warnings : Array[Warning]
 } derive(Eq, @debug.Debug)
+pub fn Presentation::equal(Self, Self) -> Bool
+pub fn Presentation::not_equal(Self, Self) -> Bool
+pub fn Presentation::to_repr(Self) -> @debug.Repr
 
 pub(all) struct Rect {
   x : Int
@@ -56,12 +74,18 @@ pub(all) struct Rect {
   width : Int
   height : Int
 } derive(Eq, @debug.Debug)
+pub fn Rect::equal(Self, Self) -> Bool
+pub fn Rect::not_equal(Self, Self) -> Bool
+pub fn Rect::to_repr(Self) -> @debug.Repr
 
 pub(all) struct Sheet {
   name : String
   cells : Array[Cell]
   merged_ranges : Array[CellRange]
 } derive(Eq, @debug.Debug)
+pub fn Sheet::equal(Self, Self) -> Bool
+pub fn Sheet::not_equal(Self, Self) -> Bool
+pub fn Sheet::to_repr(Self) -> @debug.Repr
 
 pub(all) struct Slide {
   name : String
@@ -69,12 +93,18 @@ pub(all) struct Slide {
   height : Int
   elements : Array[SlideElement]
 } derive(Eq, @debug.Debug)
+pub fn Slide::equal(Self, Self) -> Bool
+pub fn Slide::not_equal(Self, Self) -> Bool
+pub fn Slide::to_repr(Self) -> @debug.Repr
 
 pub(all) enum SlideElement {
   TextBox(bounds~ : Rect, runs~ : Array[TextRun])
   Shape(kind~ : String, bounds~ : Rect, text~ : Array[TextRun])
   Image(bounds~ : Rect, relationship_id~ : String)
 } derive(Eq, @debug.Debug)
+pub fn SlideElement::equal(Self, Self) -> Bool
+pub fn SlideElement::not_equal(Self, Self) -> Bool
+pub fn SlideElement::to_repr(Self) -> @debug.Repr
 
 pub(all) enum TextBlock {
   Paragraph(Array[TextRun])
@@ -82,16 +112,25 @@ pub(all) enum TextBlock {
   ListItem(level~ : Int, ordered~ : Bool, Array[TextRun])
   Table(Array[Array[String]])
 } derive(Eq, @debug.Debug)
+pub fn TextBlock::equal(Self, Self) -> Bool
+pub fn TextBlock::not_equal(Self, Self) -> Bool
+pub fn TextBlock::to_repr(Self) -> @debug.Repr
 
 pub(all) struct TextDocument {
   blocks : Array[TextBlock]
   warnings : Array[Warning]
 } derive(Eq, @debug.Debug)
+pub fn TextDocument::equal(Self, Self) -> Bool
+pub fn TextDocument::not_equal(Self, Self) -> Bool
+pub fn TextDocument::to_repr(Self) -> @debug.Repr
 
 pub(all) struct TextRun {
   text : String
   style : TextStyle
 } derive(Eq, @debug.Debug)
+pub fn TextRun::equal(Self, Self) -> Bool
+pub fn TextRun::not_equal(Self, Self) -> Bool
+pub fn TextRun::to_repr(Self) -> @debug.Repr
 
 pub(all) struct TextStyle {
   bold : Bool
@@ -100,18 +139,27 @@ pub(all) struct TextStyle {
   font_size_half_points : Int?
   color : String?
 } derive(Eq, @debug.Debug)
+pub fn TextStyle::equal(Self, Self) -> Bool
+pub fn TextStyle::not_equal(Self, Self) -> Bool
 pub fn TextStyle::plain() -> Self
+pub fn TextStyle::to_repr(Self) -> @debug.Repr
 
 pub(all) struct Warning {
   code : String
   message : String
   part : String?
 } derive(Eq, @debug.Debug)
+pub fn Warning::equal(Self, Self) -> Bool
+pub fn Warning::not_equal(Self, Self) -> Bool
+pub fn Warning::to_repr(Self) -> @debug.Repr
 
 pub(all) struct Workbook {
   sheets : Array[Sheet]
   warnings : Array[Warning]
 } derive(Eq, @debug.Debug)
+pub fn Workbook::equal(Self, Self) -> Bool
+pub fn Workbook::not_equal(Self, Self) -> Bool
+pub fn Workbook::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 

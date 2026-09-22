@@ -28,6 +28,9 @@ pub(all) suberror DocxError {
   InvalidDocument(String)
   InvalidReplacement(String)
 } derive(Eq, @debug.Debug)
+pub fn DocxError::equal(Self, Self) -> Bool
+pub fn DocxError::not_equal(Self, Self) -> Bool
+pub fn DocxError::to_repr(Self) -> @debug.Repr
 
 // Types and methods
 pub(all) struct DocxDocument {
@@ -40,6 +43,9 @@ pub(all) struct DocxDocument {
   resources : Array[ResourceInfo]
   warnings : Array[@scene.Warning]
 } derive(Eq, @debug.Debug)
+pub fn DocxDocument::equal(Self, Self) -> Bool
+pub fn DocxDocument::not_equal(Self, Self) -> Bool
+pub fn DocxDocument::to_repr(Self) -> @debug.Repr
 
 pub(all) enum DocxFlowBlock {
   FlowParagraph(ParagraphInfo)
@@ -47,11 +53,17 @@ pub(all) enum DocxFlowBlock {
   FlowPageBreak
   FlowSection(SectionInfo)
 } derive(Eq, @debug.Debug)
+pub fn DocxFlowBlock::equal(Self, Self) -> Bool
+pub fn DocxFlowBlock::not_equal(Self, Self) -> Bool
+pub fn DocxFlowBlock::to_repr(Self) -> @debug.Repr
 
 pub(all) struct DocxPage {
   blocks : Array[DocxFlowBlock]
   used_height_twips : Int
 } derive(Eq, @debug.Debug)
+pub fn DocxPage::equal(Self, Self) -> Bool
+pub fn DocxPage::not_equal(Self, Self) -> Bool
+pub fn DocxPage::to_repr(Self) -> @debug.Repr
 
 pub(all) struct DocxPreviewDocument {
   blocks : Array[DocxFlowBlock]
@@ -60,6 +72,9 @@ pub(all) struct DocxPreviewDocument {
   resources : Array[ResourceInfo]
   warnings : Array[@scene.Warning]
 } derive(Eq, @debug.Debug)
+pub fn DocxPreviewDocument::equal(Self, Self) -> Bool
+pub fn DocxPreviewDocument::not_equal(Self, Self) -> Bool
+pub fn DocxPreviewDocument::to_repr(Self) -> @debug.Repr
 
 pub(all) struct LayoutAudit {
   contract_version : String
@@ -82,6 +97,8 @@ pub(all) struct LayoutAudit {
   inserted_text_slot_paragraphs : Int
   diagnostics : Array[String]
 } derive(Eq)
+pub fn LayoutAudit::equal(Self, Self) -> Bool
+pub fn LayoutAudit::not_equal(Self, Self) -> Bool
 
 pub(all) struct PagedDocxDocument {
   pages : Array[DocxPage]
@@ -95,6 +112,9 @@ pub(all) struct PagedDocxDocument {
   content_height_twips : Int
   diagnostics : Array[@scene.Warning]
 } derive(Eq, @debug.Debug)
+pub fn PagedDocxDocument::equal(Self, Self) -> Bool
+pub fn PagedDocxDocument::not_equal(Self, Self) -> Bool
+pub fn PagedDocxDocument::to_repr(Self) -> @debug.Repr
 
 pub(all) struct PaginationProfile {
   default_margin_top_twips : Int
@@ -107,12 +127,18 @@ pub(all) struct PaginationProfile {
   page_safety_twips : Int
 } derive(Eq, @debug.Debug)
 pub fn PaginationProfile::default() -> Self
+pub fn PaginationProfile::equal(Self, Self) -> Bool
+pub fn PaginationProfile::not_equal(Self, Self) -> Bool
+pub fn PaginationProfile::to_repr(Self) -> @debug.Repr
 
 pub(all) struct ParagraphInfo {
   metadata : ParagraphMetadata
   outline_level : Int?
   runs : Array[RunMetadata]
 } derive(Eq, @debug.Debug)
+pub fn ParagraphInfo::equal(Self, Self) -> Bool
+pub fn ParagraphInfo::not_equal(Self, Self) -> Bool
+pub fn ParagraphInfo::to_repr(Self) -> @debug.Repr
 
 pub(all) struct ParagraphMetadata {
   alignment : String?
@@ -125,6 +151,9 @@ pub(all) struct ParagraphMetadata {
   first_line_twips : Int?
   hanging_twips : Int?
 } derive(Eq, @debug.Debug)
+pub fn ParagraphMetadata::equal(Self, Self) -> Bool
+pub fn ParagraphMetadata::not_equal(Self, Self) -> Bool
+pub fn ParagraphMetadata::to_repr(Self) -> @debug.Repr
 
 pub(all) struct ResourceInfo {
   relationship_id : String
@@ -132,6 +161,9 @@ pub(all) struct ResourceInfo {
   external : Bool
   media_part : String?
 } derive(Eq, @debug.Debug)
+pub fn ResourceInfo::equal(Self, Self) -> Bool
+pub fn ResourceInfo::not_equal(Self, Self) -> Bool
+pub fn ResourceInfo::to_repr(Self) -> @debug.Repr
 
 pub(all) struct RunMetadata {
   text : String
@@ -147,6 +179,9 @@ pub(all) struct RunMetadata {
   strike : Bool
   hyperlink : String?
 } derive(Eq, @debug.Debug)
+pub fn RunMetadata::equal(Self, Self) -> Bool
+pub fn RunMetadata::not_equal(Self, Self) -> Bool
+pub fn RunMetadata::to_repr(Self) -> @debug.Repr
 
 pub(all) struct SectionInfo {
   page_width_twips : Int?
@@ -156,6 +191,9 @@ pub(all) struct SectionInfo {
   margin_bottom_twips : Int?
   margin_left_twips : Int?
 } derive(Eq, @debug.Debug)
+pub fn SectionInfo::equal(Self, Self) -> Bool
+pub fn SectionInfo::not_equal(Self, Self) -> Bool
+pub fn SectionInfo::to_repr(Self) -> @debug.Repr
 
 pub(all) struct TableCellInfo {
   text : String
@@ -169,17 +207,26 @@ pub(all) struct TableCellInfo {
   margin_left_twips : Int?
   vertical_alignment : String?
 } derive(Eq, @debug.Debug)
+pub fn TableCellInfo::equal(Self, Self) -> Bool
+pub fn TableCellInfo::not_equal(Self, Self) -> Bool
+pub fn TableCellInfo::to_repr(Self) -> @debug.Repr
 
 pub(all) struct TableInfo {
   rows : Array[TableRowInfo]
   grid_widths_twips : Array[Int]
 } derive(Eq, @debug.Debug)
+pub fn TableInfo::equal(Self, Self) -> Bool
+pub fn TableInfo::not_equal(Self, Self) -> Bool
+pub fn TableInfo::to_repr(Self) -> @debug.Repr
 
 pub(all) struct TableRowInfo {
   cells : Array[TableCellInfo]
   height_twips : Int?
   height_rule : String?
 } derive(Eq, @debug.Debug)
+pub fn TableRowInfo::equal(Self, Self) -> Bool
+pub fn TableRowInfo::not_equal(Self, Self) -> Bool
+pub fn TableRowInfo::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 

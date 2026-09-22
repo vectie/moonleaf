@@ -24,6 +24,9 @@ pub(all) suberror PackageError {
   MissingPart(String)
   InvalidTextPart(String)
 } derive(Eq, @debug.Debug)
+pub fn PackageError::equal(Self, Self) -> Bool
+pub fn PackageError::not_equal(Self, Self) -> Bool
+pub fn PackageError::to_repr(Self) -> @debug.Repr
 pub fn PackageError::to_string(Self) -> String
 
 // Types and methods
@@ -38,22 +41,31 @@ pub(all) struct ArchivePolicy {
   max_path_length : Int
 } derive(Eq, @debug.Debug)
 pub fn ArchivePolicy::default() -> Self
+pub fn ArchivePolicy::equal(Self, Self) -> Bool
+pub fn ArchivePolicy::not_equal(Self, Self) -> Bool
+pub fn ArchivePolicy::to_repr(Self) -> @debug.Repr
 pub fn ArchivePolicy::validate(Self) -> Unit raise PackageError
 
 pub(all) struct Package {
   parts : Array[Part]
 } derive(Eq, @debug.Debug)
+pub fn Package::equal(Self, Self) -> Bool
 pub fn Package::has_part(Self, String) -> Bool
+pub fn Package::not_equal(Self, Self) -> Bool
 pub fn Package::part(Self, String) -> Part?
 pub fn Package::relationships(Self, String) -> Array[Relationship] raise PackageError
 pub fn Package::replace_part(Self, String, FixedArray[Byte]) -> Self
 pub fn Package::replace_text(Self, String, String) -> Self
 pub fn Package::text(Self, String) -> String raise PackageError
+pub fn Package::to_repr(Self) -> @debug.Repr
 
 pub(all) struct Part {
   name : String
   content : FixedArray[Byte]
 } derive(Eq, @debug.Debug)
+pub fn Part::equal(Self, Self) -> Bool
+pub fn Part::not_equal(Self, Self) -> Bool
+pub fn Part::to_repr(Self) -> @debug.Repr
 
 pub(all) struct Relationship {
   id : String
@@ -61,6 +73,9 @@ pub(all) struct Relationship {
   target : String
   external : Bool
 } derive(Eq, @debug.Debug)
+pub fn Relationship::equal(Self, Self) -> Bool
+pub fn Relationship::not_equal(Self, Self) -> Bool
+pub fn Relationship::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 

@@ -27,7 +27,8 @@ macros, signatures or document collaboration.
 | PPTX slide/text/shape/picture preview and exact text replacement | available |
 | Save-as-copy, reopen and re-render verification | available |
 | Typed MoonLeaf PDF/page render evidence contract | available |
-| Deterministic DOCX pagination, font shaping, PDF and page-image bytes | planned; fail closed |
+| Native DOCX PDF bytes with embedded static TrueType and bounded legal layout | implemented subset; see render/README.mbt.md; exact-template production visual acceptance still required |
+| Full Office typography, shaping and print fidelity | not claimed; unsupported features fail closed |
 | Strict per-open ZIP/OPC policy and mandatory CRC verification | available |
 | Advanced charts, layout, animations and recalculation | excluded/planned |
 
@@ -59,8 +60,9 @@ destination. MoonLeaf returns neutral scenes, diagnostics, capabilities and
 verified copies. A host that requires print-ready DOCX pagination must accept
 only a typed `moonleaf.render-evidence.v1` receipt from the MoonLeaf renderer;
 another office engine is not an interchangeable implementation. Until
-MoonLeaf's deterministic layout/font/PDF implementation is complete, this
-capability is fail-closed rather than delegated.
+MoonLeaf's supported layout/font/PDF profile covers a document, this capability
+is fail-closed rather than delegated. Its native PDF implementation now exists;
+production qualification still requires genuine fonts and real visual acceptance.
 
 ## Verification
 

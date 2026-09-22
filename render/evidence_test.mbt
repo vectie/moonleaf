@@ -13,7 +13,7 @@ test "render evidence is explicitly MoonLeaf and binds fonts plus layout" {
     rendered_unix_ms: 1L,
   }
   assert_true(evidence.valid())
-  assert_false({ ..evidence, engine: "libreoffice" }.valid())
-  assert_false({ ..evidence, font_bundle_sha256: "unverified" }.valid())
-  assert_false({ ..evidence, page_count: 0 }.valid())
+  assert_false({ ..evidence, engine: "libreoffice", }.valid())
+  assert_false({ ..evidence, font_bundle_sha256: "unverified", }.valid())
+  assert_false({ ..evidence, page_count: 0, }.valid())
 }
