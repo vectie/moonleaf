@@ -8,6 +8,8 @@ import {
 }
 
 // Values
+pub fn create(Array[Array[@scene.CellValue]], sheet_name? : String) -> FixedArray[Byte] raise XlsxError
+
 pub fn inspect(@opc.Package) -> Array[InspectedCell] raise XlsxError
 
 pub fn read(@opc.Package) -> @scene.Workbook raise XlsxError
@@ -17,6 +19,8 @@ pub fn recalculate(@opc.Package) -> @opc.Package raise XlsxError
 pub fn set_cell_number(@opc.Package, String, Int, Int, Double) -> @opc.Package raise XlsxError
 
 pub fn set_cell_text(@opc.Package, String, Int, Int, String) -> @opc.Package raise XlsxError
+
+pub fn set_cells_text(@opc.Package, String, Array[(Int, Int, String)]) -> @opc.Package raise XlsxError
 
 // Errors
 pub(all) suberror XlsxError {

@@ -1,0 +1,32 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "vectie/moonleaf/csv"
+
+import {
+  "vectie/moonleaf/scene",
+}
+
+// Values
+pub fn parse(String, delimiter? : Char) -> Table raise CsvError
+
+// Errors
+pub(all) suberror CsvError {
+  InvalidDelimiter
+  InvalidQuote(row~ : Int, column~ : Int)
+  InvalidCoordinates(row~ : Int, column~ : Int)
+  UnterminatedQuote
+  TooLarge
+}
+
+// Types and methods
+pub(all) struct Table {
+  rows : Array[Array[String]]
+  delimiter : Char
+}
+pub fn Table::serialize(Self) -> String
+pub fn Table::serialize_quoted(Self) -> String
+pub fn Table::set_cell_text(Self, Int, Int, String) -> Self raise CsvError
+pub fn Table::workbook(Self, name? : String) -> @scene.Workbook
+
+// Type aliases
+
+// Traits

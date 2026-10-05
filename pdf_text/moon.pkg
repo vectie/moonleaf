@@ -1,0 +1,10 @@
+import {
+  "moonbitlang/pdflite",
+  "moonbitlang/pdflite/markdown",
+}
+
+import {
+  "moonbitlang/core/encoding/utf8",
+} for "test"
+
+supported_targets = "+wasm-gc +js +native +llvm"

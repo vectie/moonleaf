@@ -24,6 +24,16 @@ pub fn open_with_policy(
   policy : ArchivePolicy,
 ) -> @scene.Document raise MoonLeafError {
   let lower = filename.to_lower()
+  if lower.has_suffix(".csv") || lower.has_suffix(".tsv") {
+    let text = @utf8.decode(Bytes::from_array(content)) catch {
+      _ => raise MoonLeafError::Document("invalid UTF-8")
+    }
+    let delimiter = if lower.has_suffix(".tsv") { '\t' } else { ',' }
+    let table = @csv.parse(text, delimiter~) catch {
+      _ => raise MoonLeafError::Document("invalid delimited table")
+    }
+    return @scene.Document::WorkbookDocument(table.workbook())
+  }
   if !lower.has_suffix(".docx") &&
     !lower.has_suffix(".xlsx") &&
     !lower.has_suffix(".pptx") {

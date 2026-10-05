@@ -75,6 +75,7 @@ test "reject DTD and undeclared entities" {
 test "accept processing instructions around root" {
   assert_eq(@xml.parse("<?foo?><root/>").name, "root")
   assert_eq(@xml.parse("<root/><?foo?>").name, "root")
+  assert_eq(@xml.parse("\u{FEFF}<?xml version=\"1.0\"?><root/>").name, "root")
 }
 
 ///|
