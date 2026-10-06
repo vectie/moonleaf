@@ -286,6 +286,34 @@ test "XLSX A1 edit, no-op, coordinates, formula, and merge rules" {
 }
 
 ///|
+test "XLSX batch edit verifies multiple cells and rejects formula changes" {
+  let session = @moonleaf.open_session(
+    "book.xlsx",
+    document_session_xlsx_fixture(),
+  )
+  let changed = session.set_cells_text("Sheet1", [
+    (1, 1, "First"),
+    (2, 1, "Second"),
+  ])
+  assert_eq(changed.revision(), 1)
+  assert_true(scene_cell_is_text(changed.scene(), 1, 1, "First"))
+  assert_true(scene_cell_is_text(changed.scene(), 2, 1, "Second"))
+  let copy = changed.save_as_copy()
+  let reopened = @moonleaf.open("edited.xlsx", copy.bytes())
+  assert_true(scene_cell_is_text(reopened, 1, 1, "First"))
+  assert_true(scene_cell_is_text(reopened, 2, 1, "Second"))
+  try
+    session.set_cells_text("Sheet1", [(1, 1, "Safe"), (1, 2, "Formula")])
+  catch {
+    @moonleaf.DocumentSessionError::FormulaCell(_) => ()
+    _ => fail("expected formula-cell failure")
+  } noraise {
+    _ => fail("expected formula-cell failure")
+  }
+  assert_eq(session.revision(), 0)
+}
+
+///|
 test "failed edits preserve original state and accessors isolate mutation" {
   let session = @moonleaf.open_session(
     "book.xlsx",

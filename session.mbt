@@ -431,6 +431,34 @@ pub fn DocumentSession::set_cell_text(
 }
 
 ///|
+/// Apply existing-cell edits to an XLSX sheet as one verified session change.
+pub fn DocumentSession::set_cells_text(
+  self : DocumentSession,
+  sheet : String,
+  edits : Array[(Int, Int, String)],
+) -> DocumentSession raise DocumentSessionError {
+  if self.format != Xlsx {
+    raise DocumentSessionError::OperationNotSupported(
+      operation="set_cells_text",
+      format=self.format,
+    )
+  }
+  if edits.is_empty() {
+    return self
+  }
+  for (row, column, text) in edits {
+    self.validate_xlsx_cell(sheet, row, column)
+    if text.length() > 32_768 {
+      raise DocumentSessionError::Render("cell text exceeds limit")
+    }
+  }
+  let candidate = @xlsx.set_cells_text(self.source_archive, sheet, edits) catch {
+    error => raise DocumentSessionError::Render("\{Repr(error)}")
+  }
+  self.commit_candidate(candidate)
+}
+
+///|
 fn same_parts(left : @opc.Package, right : @opc.Package) -> Bool {
   if left.parts.length() != right.parts.length() {
     return false

@@ -85,6 +85,7 @@ pub fn DocumentSession::revision(Self) -> Int
 pub fn DocumentSession::save_as_copy(Self) -> VerifiedDocumentCopy raise DocumentSessionError
 pub fn DocumentSession::scene(Self) -> @scene.Document
 pub fn DocumentSession::set_cell_text(Self, String, Int, Int, String) -> Self raise DocumentSessionError
+pub fn DocumentSession::set_cells_text(Self, String, Array[(Int, Int, String)]) -> Self raise DocumentSessionError
 
 pub struct VerifiedDocumentCopy {
   // private fields

@@ -23,7 +23,9 @@ macros, signatures or document collaboration.
 | --- | --- |
 | DOCX paragraph/table preview and bounded text replacement | available |
 | Ordered rich DOCX preview metadata for host renderers | available |
-| XLSX common cell/formula/style preview and inline-text cell edit | available |
+| XLSX common cell/formula/style preview, inline-text cell edit and verified batch replacement of existing text cells | available; batch replacement preserves formula cells |
+| CSV/TSV UTF-8 table preview, bounded parser, serialization and whole-table text replacement | available |
+| PDF text extraction to page-oriented Markdown (native, JS, Wasm-GC) | available; no OCR or layout fidelity |
 | PPTX slide/text/shape/picture preview and exact text replacement | available |
 | Save-as-copy, reopen and re-render verification | available |
 | Typed MoonLeaf PDF/page render evidence contract | available |

@@ -1,4 +1,6 @@
 import {
+  "moonbitlang/core/encoding/utf8",
+  "vectie/moonleaf/csv",
   "vectie/moonleaf/docx",
   "vectie/moonleaf/opc",
   "vectie/moonleaf/pptx",

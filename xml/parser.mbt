@@ -333,6 +333,9 @@ fn parse_document_with_options(
     raise InvalidXml(offset=0, message="input limit exceeded")
   }
   let p = Parser::new(source, options)
+  if !p.at_end() && p.source[0] == '\u{FEFF}' {
+    p.offset = 1
+  }
   p.skip_ws()
   if p.starts_with("<?xml") {
     p.offset += 5

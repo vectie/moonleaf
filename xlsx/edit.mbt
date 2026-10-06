@@ -285,3 +285,140 @@ pub fn set_cell_text(
     @xml.serialize(update_worksheet(worksheet, row, column, text)),
   )
 }
+
+///|
+fn replace_existing_cells_in_row(
+  row_element : @xml.Element,
+  row : Int,
+  replacements : Map[Int, String],
+  changed : Ref[Int],
+) -> @xml.Element raise XlsxError {
+  let children : Array[@xml.Node] = []
+  let mut previous_column = 0
+  for child in row_element.children {
+    match child {
+      Element(cell) if cell.local_name() == "c" => {
+        let column = cell_column_or_implicit(cell, row, previous_column)
+        previous_column = column
+        match replacements.get(column) {
+          Some(text) => {
+            children.push(
+              Element(
+                inline_text_cell(cell_reference(row, column), text, Some(cell)),
+              ),
+            )
+            changed.val += 1
+          }
+          None => children.push(child)
+        }
+      }
+      _ => children.push(child)
+    }
+  }
+  { name: row_element.name, attributes: row_element.attributes, children, }
+}
+
+///|
+fn replace_existing_cells_in_worksheet(
+  worksheet : @xml.Element,
+  replacements : Map[Int, Map[Int, String]],
+  changed : Ref[Int],
+) -> @xml.Element raise XlsxError {
+  guard worksheet.local_name() == "worksheet" else {
+    raise InvalidWorkbook("worksheet part has an invalid root")
+  }
+  let children : Array[@xml.Node] = []
+  for child in worksheet.children {
+    match child {
+      Element(sheet_data) if sheet_data.local_name() == "sheetData" => {
+        let rows : Array[@xml.Node] = []
+        let mut previous_row = 0
+        for row_child in sheet_data.children {
+          match row_child {
+            Element(row_element) if row_element.local_name() == "row" => {
+              let row = row_number(row_element).unwrap_or(previous_row + 1)
+              previous_row = row
+              match replacements.get(row) {
+                Some(columns) =>
+                  rows.push(
+                    Element(
+                      replace_existing_cells_in_row(
+                        row_element, row, columns, changed,
+                      ),
+                    ),
+                  )
+                None => rows.push(row_child)
+              }
+            }
+            _ => rows.push(row_child)
+          }
+        }
+        children.push(
+          Element({
+            name: sheet_data.name,
+            attributes: sheet_data.attributes,
+            children: rows,
+          }),
+        )
+      }
+      _ => children.push(child)
+    }
+  }
+  { name: worksheet.name, attributes: worksheet.attributes, children, }
+}
+
+///|
+/// Change existing cells in one worksheet parse and one archive update. This
+/// deliberately does not create missing cells or change formula cells.
+pub fn set_cells_text(
+  xlsx_package : @opc.Package,
+  sheet_name : String,
+  edits : Array[(Int, Int, String)],
+) -> @opc.Package raise XlsxError {
+  if edits.is_empty() {
+    return xlsx_package
+  }
+  let replacements : Map[Int, Map[Int, String]] = Map([])
+  for (row, column, text) in edits {
+    if row < 1 || row > max_row || column < 1 || column > max_column {
+      raise InvalidCoordinates(row~, column~)
+    }
+    let columns = match replacements.get(row) {
+      Some(columns) => columns
+      None => {
+        let columns : Map[Int, String] = Map([])
+        replacements[row] = columns
+        columns
+      }
+    }
+    if columns.get(column) is Some(_) {
+      raise InvalidWorkbook("duplicate batch cell coordinate")
+    }
+    columns[column] = text
+  }
+  if !xlsx_package.has_part("xl/workbook.xml") {
+    raise MissingWorkbook
+  }
+  let workbook = parse_part(xlsx_package, "xl/workbook.xml")
+  let descriptors = workbook_sheets(workbook)
+  guard descriptor_named(descriptors, sheet_name) is Some(descriptor) else {
+    raise SheetNotFound(sheet_name)
+  }
+  let relationships = workbook_relationships(xlsx_package)
+  let part_name = worksheet_part_name(relationships, descriptor)
+  if !xlsx_package.has_part(part_name) {
+    raise MissingWorksheet(
+      sheet=descriptor.name,
+      relationship_id=descriptor.relationship_id,
+    )
+  }
+  let worksheet = parse_part(xlsx_package, part_name)
+  let changed = Ref(0)
+  let updated = replace_existing_cells_in_worksheet(
+    worksheet, replacements, changed,
+  )
+  if changed.val != edits.length() {
+    raise InvalidWorkbook("batch edit references a missing cell")
+  }
+  xlsx_package.replace_text(part_name, @xml.serialize(updated))
+}

@@ -4,21 +4,24 @@
 > [product contract](docs/PRODUCT_CONTRACT.md) for the format matrix, bounded
 > archive boundary, host boundary and release gates.
 
-MoonLeaf is a pure MoonBit, cross-platform core for previewing and making
-deliberately small edits to Office Open XML documents.
+MoonLeaf is a pure MoonBit, cross-platform core for previewing PDF and Office
+documents and making deliberately small OOXML edits.
 
 | Format | Viewer subset | Lightweight edit |
 | --- | --- | --- |
 | `.docx` | Paragraphs, headings, lists, tables, basic run styles | Exact text replacement inside `w:t` |
 | `.xlsx` | Sheets, common cell values, formulas, styles, merged ranges | Set a cell to inline text |
+| `.csv`, `.tsv` | Bounded UTF-8 tables with quoted fields and line breaks | Parse and serialize tables |
 | `.pptx` | Slide order and size, text, shapes, pictures, transforms | Exact text replacement inside `a:t` |
+| `.pdf` | Bounded text extraction to page-oriented Markdown | None |
 
 MoonLeaf is not an Office clone. It preserves unrecognized package parts and
 defaults to save-as-copy workflows so unsupported features are not silently
 discarded.
 
-The same MoonBit source is intended to compile for native, JavaScript, Wasm,
-and Wasm-GC targets. Renderers consume the neutral structures in
+The OOXML and CSV packages compile for native, JavaScript, Wasm, and Wasm-GC.
+PDF text extraction uses `moonbitlang/pdflite` and supports native, JavaScript,
+and Wasm-GC. Renderers consume the neutral structures in
 `vectie/moonleaf/scene`; UI frameworks such as Rabbita remain outside this
 library.
 
@@ -27,12 +30,16 @@ library.
 - `xml`: namespace-tolerant XML DOM, parser, and serializer
 - `opc`: ZIP/OPC access, relationships, path safety, and part preservation
 - `scene`: neutral document structures for UI renderers
+- `csv`: bounded delimited-table parsing and workbook projection
 - `docx`, `xlsx`, `pptx`: format readers and conservative editors
+- `pdf_text`: bounded text extraction through `moonbitlang/pdflite`
 - root package: filename-based viewer dispatch
 
 ## Public entry points
 
 - `@moonleaf.open` detects the viewer from a filename
+- `@csv.parse(text, delimiter~)` and `Table::serialize()` handle CSV and TSV;
+  `@moonleaf.open` projects them into the neutral workbook scene
 - `@moonleaf.open_with_policy(filename, bytes, policy)` applies explicit
   per-open ZIP/OPC limits; `open` uses conservative defaults
 - `@moonleaf.open_session(filename, bytes)` opens a DOCX, XLSX, or PPTX editing
@@ -48,6 +55,12 @@ library.
 - `@opc.open` and `@opc.open_with_policy` preflight ZIP metadata, require
   per-entry CRC integrity, and decode the OOXML container; `@opc.save` encodes it
 - `@docx.read`, `@xlsx.read`, and `@pptx.read` return neutral scene values
+- `@pdf_text.extract(bytes)` returns page-oriented PDF text for indexing;
+  encrypted files, empty text, oversized input, and oversized output fail
+- `TextDocument::plain_text()` extracts bounded visible DOCX text for indexing
+- `@xlsx.create(rows, sheet_name~)` creates a bounded single-sheet workbook
+  using MoonLeaf's MoonBit OPC writer; `@csv.Table::serialize_quoted()` writes
+  quoted CSV fields for spreadsheet exports
 - `@docx.preview_document` returns ordered DOCX paragraph/table/section flow
   with resolved alignment, spacing, indentation, CJK fonts, run emphasis,
   table widths, and page geometry for higher-fidelity host previews
