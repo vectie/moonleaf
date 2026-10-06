@@ -41,57 +41,74 @@ fn inline_text_cell(
 }
 
 ///|
-/// Resolve columns for legal worksheet cells whose `r` attribute is omitted.
-/// OOXML defines their position by document order, so editing must not append a
-/// duplicate cell or reorder subsequent explicit coordinates.
-fn cell_column_or_implicit(
-  cell : @xml.Element,
+/// Locate the exact XML node exposed at a logical coordinate by read/inspect.
+/// Explicit cell references may differ from the enclosing row, and accepted
+/// rows/cells need not be sorted. Only an ambiguous target prevents an edit.
+fn cell_location(
+  sheet_data : @xml.Element,
   row : Int,
-  previous : Int,
-) -> Int raise XlsxError {
-  match cell.attribute("r") {
-    None => previous + 1
-    Some(reference) =>
-      match parse_cell_reference(reference) {
-        Some((reference_row, column)) if reference_row == row => column
-        _ => raise InvalidCellReference(reference)
+  column : Int,
+) -> (Int, Int)? raise XlsxError {
+  let mut found = None
+  let mut previous_row = 0
+  for row_index, node in sheet_data.children {
+    if node is Element(row_element) && row_element.local_name() == "row" {
+      let logical_row = integer_attribute(row_element, "r", max_row).unwrap_or(
+        previous_row + 1,
+      )
+      previous_row = logical_row
+      let mut previous_column = 0
+      for cell_index, node in row_element.children {
+        if node is Element(cell) && cell.local_name() == "c" {
+          let (cell_row, cell_column) = match cell.attribute("r") {
+            None => (logical_row, previous_column + 1)
+            Some(reference) =>
+              match parse_cell_reference(reference) {
+                Some(position) => position
+                None => raise InvalidCellReference(reference)
+              }
+          }
+          previous_column = cell_column
+          if cell_row == row && cell_column == column {
+            if found is Some(_) {
+              raise InvalidWorkbook(
+                "worksheet has duplicate target cell: " +
+                cell_reference(row, column),
+              )
+            }
+            found = Some((row_index, cell_index))
+          }
+        }
       }
+    }
   }
+  found
 }
 
 ///|
-fn replace_or_insert_cell(
+fn insert_cell(
   row_element : @xml.Element,
   row : Int,
   column : Int,
   text : String,
-) -> @xml.Element raise XlsxError {
+) -> @xml.Element {
   let reference = cell_reference(row, column)
   let children : Array[@xml.Node] = []
   let inserted = Ref(false)
-  let previous_column = Ref(0)
   for child in row_element.children {
-    match child {
-      Element(cell) if cell.local_name() == "c" => {
-        let current_column = cell_column_or_implicit(
-          cell,
-          row,
-          previous_column.val,
+    // Insert before an explicit reference, which resets the following implicit
+    // column sequence. Otherwise append, leaving every existing position alone.
+    if !inserted.val && child is Element(cell) && cell.local_name() == "c" {
+      if cell.attribute("r") is Some(reference) &&
+        parse_cell_reference(reference) is Some((_, current_column)) &&
+        current_column > column {
+        children.push(
+          Element(inline_text_cell(cell_reference(row, column), text, None)),
         )
-        previous_column.val = current_column
-        if current_column == column {
-          children.push(Element(inline_text_cell(reference, text, Some(cell))))
-          inserted.val = true
-        } else {
-          if !inserted.val && current_column > column {
-            children.push(Element(inline_text_cell(reference, text, None)))
-            inserted.val = true
-          }
-          children.push(child)
-        }
+        inserted.val = true
       }
-      _ => children.push(child)
     }
+    children.push(child)
   }
   if !inserted.val {
     children.push(Element(inline_text_cell(reference, text, None)))
@@ -107,38 +124,60 @@ fn new_row(row : Int, column : Int, text : String) -> @xml.Element {
 }
 
 ///|
-fn row_number(row : @xml.Element) -> Int? {
-  integer_attribute(row, "r", max_row)
-}
-
-///|
 fn replace_or_insert_row(
   sheet_data : @xml.Element,
   row : Int,
   column : Int,
   text : String,
 ) -> @xml.Element raise XlsxError {
+  if cell_location(sheet_data, row, column) is Some((row_index, cell_index)) {
+    let children = sheet_data.children.copy()
+    guard children[row_index] is Element(existing_row) else {
+      raise InvalidWorkbook("target row is missing")
+    }
+    let cells = existing_row.children.copy()
+    guard cells[cell_index] is Element(existing_cell) else {
+      raise InvalidWorkbook("target cell is missing")
+    }
+    cells[cell_index] = Element(
+      inline_text_cell(cell_reference(row, column), text, Some(existing_cell)),
+    )
+    children[row_index] = Element({ ..existing_row, children: cells, })
+    return { ..sheet_data, children, }
+  }
+  // A missing coordinate may be placed in an existing logical row, even when
+  // rows are descending. Search before insertion so later rows are not doubled.
+  let mut previous_row = 0
+  for row_index, child in sheet_data.children {
+    if child is Element(existing_row) && existing_row.local_name() == "row" {
+      let current_row = integer_attribute(existing_row, "r", max_row).unwrap_or(
+        previous_row + 1,
+      )
+      previous_row = current_row
+      if current_row == row {
+        let children = sheet_data.children.copy()
+        children[row_index] = Element(
+          insert_cell(existing_row, row, column, text),
+        )
+        return { ..sheet_data, children, }
+      }
+    }
+  }
   let children : Array[@xml.Node] = []
   let inserted = Ref(false)
   for child in sheet_data.children {
-    match child {
-      Element(row_element) if row_element.local_name() == "row" => {
-        let current_row = row_number(row_element)
-        if current_row == Some(row) {
-          children.push(
-            Element(replace_or_insert_cell(row_element, row, column, text)),
-          )
-          inserted.val = true
-        } else {
-          if !inserted.val && current_row is Some(current) && current > row {
-            children.push(Element(new_row(row, column, text)))
-            inserted.val = true
-          }
-          children.push(child)
-        }
+    // An explicit row index is a safe insertion anchor: the rows after it keep
+    // their old inferred positions. With no anchor, append after all old rows.
+    if !inserted.val &&
+      child is Element(row_element) &&
+      row_element.local_name() == "row" {
+      if integer_attribute(row_element, "r", max_row) is Some(current) &&
+        current > row {
+        children.push(Element(new_row(row, column, text)))
+        inserted.val = true
       }
-      _ => children.push(child)
     }
+    children.push(child)
   }
   if !inserted.val {
     children.push(Element(new_row(row, column, text)))
@@ -287,41 +326,9 @@ pub fn set_cell_text(
 }
 
 ///|
-fn replace_existing_cells_in_row(
-  row_element : @xml.Element,
-  row : Int,
-  replacements : Map[Int, String],
-  changed : Ref[Int],
-) -> @xml.Element raise XlsxError {
-  let children : Array[@xml.Node] = []
-  let mut previous_column = 0
-  for child in row_element.children {
-    match child {
-      Element(cell) if cell.local_name() == "c" => {
-        let column = cell_column_or_implicit(cell, row, previous_column)
-        previous_column = column
-        match replacements.get(column) {
-          Some(text) => {
-            children.push(
-              Element(
-                inline_text_cell(cell_reference(row, column), text, Some(cell)),
-              ),
-            )
-            changed.val += 1
-          }
-          None => children.push(child)
-        }
-      }
-      _ => children.push(child)
-    }
-  }
-  { name: row_element.name, attributes: row_element.attributes, children, }
-}
-
-///|
 fn replace_existing_cells_in_worksheet(
   worksheet : @xml.Element,
-  replacements : Map[Int, Map[Int, String]],
+  edits : Array[(Int, Int, String)],
   changed : Ref[Int],
 ) -> @xml.Element raise XlsxError {
   guard worksheet.local_name() == "worksheet" else {
@@ -331,35 +338,36 @@ fn replace_existing_cells_in_worksheet(
   for child in worksheet.children {
     match child {
       Element(sheet_data) if sheet_data.local_name() == "sheetData" => {
-        let rows : Array[@xml.Node] = []
-        let mut previous_row = 0
-        for row_child in sheet_data.children {
-          match row_child {
-            Element(row_element) if row_element.local_name() == "row" => {
-              let row = row_number(row_element).unwrap_or(previous_row + 1)
-              previous_row = row
-              match replacements.get(row) {
-                Some(columns) =>
-                  rows.push(
-                    Element(
-                      replace_existing_cells_in_row(
-                        row_element, row, columns, changed,
-                      ),
-                    ),
-                  )
-                None => rows.push(row_child)
-              }
+        let mut updated = sheet_data
+        for (row, column, text) in edits {
+          if cell_location(updated, row, column) is Some((row_index, cell_index)) {
+            let rows = updated.children.copy()
+            guard rows[row_index] is Element(existing_row) else {
+              raise InvalidWorkbook("target row is missing")
             }
-            _ => rows.push(row_child)
+            let cells = existing_row.children.copy()
+            guard cells[cell_index] is Element(existing_cell) else {
+              raise InvalidWorkbook("target cell is missing")
+            }
+            if existing_cell.children.any(fn(node) {
+                match node {
+                  Element(element) => element.local_name() == "f"
+                  _ => false
+                }
+              }) {
+              raise InvalidWorkbook("batch edit targets formula cell")
+            }
+            cells[cell_index] = Element(
+              inline_text_cell(
+                cell_reference(row, column), text, Some(existing_cell),
+              ),
+            )
+            rows[row_index] = Element({ ..existing_row, children: cells, })
+            updated = { ..updated, children: rows, }
+            changed.val += 1
           }
         }
-        children.push(
-          Element({
-            name: sheet_data.name,
-            attributes: sheet_data.attributes,
-            children: rows,
-          }),
-        )
+        children.push(Element(updated))
       }
       _ => children.push(child)
     }
@@ -415,7 +423,7 @@ pub fn set_cells_text(
   let worksheet = parse_part(xlsx_package, part_name)
   let changed = Ref(0)
   let updated = replace_existing_cells_in_worksheet(
-    worksheet, replacements, changed,
+    worksheet, edits, changed,
   )
   if changed.val != edits.length() {
     raise InvalidWorkbook("batch edit references a missing cell")

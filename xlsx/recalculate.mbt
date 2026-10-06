@@ -199,8 +199,8 @@ fn FormulaParser::atom(
         result
       }
     } else if parse_cell_reference(token.replace_all(old="$", new=""))
-      is Some(_) {
-      (self.resolve)(token.replace_all(old="$", new=""))
+      is Some((row, column)) {
+      (self.resolve)(cell_reference(row, column))
     } else {
       @string.parse_double(token) catch {
         _ => raise InvalidWorkbook("unsupported numeric formula token")
@@ -293,7 +293,11 @@ fn write_formula_cache(
   values : Map[String, Double],
 ) -> @xml.Element {
   if root.local_name() == "c" && root.first_child("f") is Some(_) {
-    let reference = root.attribute("r").unwrap_or("")
+    let reference = match
+      parse_cell_reference(root.attribute("r").unwrap_or("")) {
+      Some((row, column)) => cell_reference(row, column)
+      None => ""
+    }
     let children = root.children.filter(child => {
       match child {
         Element(element) => element.local_name() != "v"
@@ -352,9 +356,16 @@ pub fn recalculate(archive : @opc.Package) -> @opc.Package raise XlsxError {
           if total_cells > 10000 {
             raise InvalidWorkbook("recalculation cell bound exceeded")
           }
-          guard cell.attribute("r") is Some(reference) &&
-            parse_cell_reference(reference) is Some(_) &&
-            !cells.contains(reference) else {
+          guard cell.attribute("r") is Some(source_reference) &&
+            parse_cell_reference(source_reference) is Some((row, column)) else {
+            raise InvalidWorkbook(
+              "recalculation requires unique explicit cell references",
+            )
+          }
+          // Readers and editors identify cells by parsed coordinates, so A01
+          // and A1 must share a calculation key too. Keep the XML spelling.
+          let reference = cell_reference(row, column)
+          if cells.contains(reference) {
             raise InvalidWorkbook(
               "recalculation requires unique explicit cell references",
             )

@@ -387,13 +387,12 @@ fn DocumentSession::cell_text_equals(
     WorkbookDocument(workbook) =>
       workbook.sheets.any(sheet => {
         sheet.name == sheet_name &&
-        sheet.cells.any(cell => {
-          cell.row == row &&
-          cell.column == column &&
-          (match cell.value {
-            Text(existing) => existing == text
-            _ => false
-          })
+        // A same-value request is a no-op only for one logical target. Let the
+        // editor report ambiguous coordinates instead of bypassing its check.
+        (match
+          sheet.cells.filter(cell => cell.row == row && cell.column == column) {
+          [{ value: Text(existing), .. }] => existing == text
+          _ => false
         })
       })
     _ => false
