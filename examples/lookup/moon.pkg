@@ -1,2 +1,7 @@
-import { "vectie/moonleaf/jsontable", "moonbitlang/core/env", "moonbitlang/core/encoding/base64" }
-options("is-main": true)
+import {
+  "vectie/moonleaf/jsontable",
+  "moonbitlang/core/env",
+  "moonbitlang/core/encoding/base64",
+}
+
+pkgtype(kind: "executable")

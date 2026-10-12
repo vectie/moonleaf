@@ -11,7 +11,8 @@ extern "js" fn report_error(message : String) -> Unit = "message => { console.er
 ///|
 fn run() -> Unit raise {
   let args = @env.args()
-  guard args.length() >= 7 && args.length() <= 196 &&
+  guard args.length() >= 7 &&
+    args.length() <= 196 &&
     (args.length() - 4) % 3 == 0 &&
     ["strict", "union"].contains(args[2]) &&
     ["csv", "json", "xlsx"].contains(args[3]) else {
