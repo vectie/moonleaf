@@ -229,8 +229,8 @@ test "pivot selections must be present unique and disjoint" {
 test "pivot requires nonempty text keys and valid rectangular input" {
   for
     key in [
-      @scene.Empty,
-      @scene.Text(""),
+      @scene.CellValue::Empty,
+      @scene.CellValue::Text(""),
       @scene.Number("1"),
       @scene.Boolean(false),
     ] {

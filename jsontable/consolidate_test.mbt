@@ -143,8 +143,8 @@ test "consolidation exports both tables as CSV JSON and typed XLSX" {
 test "consolidation rejects invalid keys in all rows even a row that would be discarded" {
   for
     value in [
-      @scene.Empty,
-      @scene.Text(""),
+      @scene.CellValue::Empty,
+      @scene.CellValue::Text(""),
       @scene.Number("1"),
       @scene.Boolean(true),
     ] {

@@ -92,8 +92,8 @@ test "missing required null policies and blocked intermediate paths" {
   )
   for
     (policy, expected) in [
-      ("empty", @scene.Empty),
-      ("literal", @scene.Text("null")),
+      ("empty", @scene.CellValue::Empty),
+      ("literal", @scene.CellValue::Text("null")),
     ] {
     let spec : @jsontable.JsonRecordSpec = {
       records_path: [],

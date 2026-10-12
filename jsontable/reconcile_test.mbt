@@ -139,8 +139,8 @@ test "reconcile refuses missing empty numeric boolean and partial composite keys
   }
   for
     value in [
-      @scene.Empty,
-      @scene.Text(""),
+      @scene.CellValue::Empty,
+      @scene.CellValue::Text(""),
       @scene.Number("1"),
       @scene.Boolean(true),
     ] {
