@@ -1,0 +1,1 @@
+{"status":1,"stdout":"","stderr":"MoonLeaf query failed: Failure(\"cmd/query/main.mbt:19:5-21:6@vectie/moonleaf FAILED: usage: node query.js csv|tsv|json|jsonl INPUT_PATH RECIPE_PATH csv|json|xlsx\")\n"}

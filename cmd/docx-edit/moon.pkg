@@ -1,0 +1,10 @@
+import {
+  "moonbitlang/core/env",
+  "moonbitlang/core/encoding/utf8",
+  "vectie/moonleaf",
+  "vectie/moonleaf/opc",
+}
+
+pkgtype(kind: "executable")
+
+supported_targets = "js"

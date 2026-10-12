@@ -1,0 +1,8 @@
+{"order":"SO-001","region":"East","product":"Tea","amount":120.5}
+{"order":"SO-002","region":"West","product":"Tea","amount":80}
+{"order":"SO-003","region":"East","product":"Tea","amount":39.5}
+{"order":"SO-004","region":"East","product":"Coffee"}
+{"order":"SO-005","region":"東京","product":"Coffee","amount":60}
+{"order":"SO-006","region":"West","product":"Tea","amount":-10}
+{"order":"SO-007","region":"East","product":"Tea","amount":""}
+{"order":"SO-008","region":"North, coast","product":"Tea","amount":20}

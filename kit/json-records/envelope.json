@@ -1,0 +1,36 @@
+{
+  "response": {
+    "items": [
+      {
+        "id": "001",
+        "customer": {
+          "name": "東京 🐈"
+        },
+        "totals": {
+          "net": 12.5
+        },
+        "active": true,
+        "note": null,
+        "ignored": [
+          1,
+          2
+        ]
+      },
+      {
+        "id": "002",
+        "customer": {
+          "name": "=1+1"
+        },
+        "totals": {
+          "net": -2
+        },
+        "active": false,
+        "note": "a,\"b\"\nnext"
+      },
+      {
+        "id": "003"
+      }
+    ]
+  },
+  "next": "No request is made"
+}

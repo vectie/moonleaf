@@ -1,0 +1,89 @@
+{
+  "key_columns": [
+    "id"
+  ],
+  "edits": [
+    {
+      "key": [
+        "002"
+      ],
+      "column": "customer",
+      "before": {
+        "type": "text",
+        "value": "old"
+      },
+      "after": {
+        "type": "text",
+        "value": "東京 🐈\n=1+1"
+      }
+    },
+    {
+      "key": [
+        "001"
+      ],
+      "column": "amount",
+      "before": {
+        "type": "number",
+        "value": "12.5"
+      },
+      "after": {
+        "type": "number",
+        "value": "20"
+      }
+    },
+    {
+      "key": [
+        "001"
+      ],
+      "column": "active",
+      "before": {
+        "type": "boolean",
+        "value": false
+      },
+      "after": {
+        "type": "boolean",
+        "value": true
+      }
+    },
+    {
+      "key": [
+        "001"
+      ],
+      "column": "note",
+      "before": {
+        "type": "text",
+        "value": "remove"
+      },
+      "after": {
+        "type": "empty"
+      }
+    },
+    {
+      "key": [
+        "002"
+      ],
+      "column": "note",
+      "before": {
+        "type": "empty"
+      },
+      "after": {
+        "type": "text",
+        "value": ""
+      }
+    },
+    {
+      "key": [
+        "003"
+      ],
+      "column": "customer",
+      "before": {
+        "type": "text",
+        "value": "unchanged"
+      },
+      "after": {
+        "type": "text",
+        "value": "unchanged"
+      }
+    }
+  ]
+}

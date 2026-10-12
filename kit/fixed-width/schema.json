@@ -1,0 +1,1 @@
+{"version":1,"skip_lines":1,"blank_lines":"skip","columns":[{"name":"id","width":3,"trim":false},{"name":"name","width":8,"trim":true},{"name":"cost","width":5,"trim":true}]}

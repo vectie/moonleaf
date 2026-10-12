@@ -1,0 +1,8 @@
+{
+  "group_by": ["region", "product"],
+  "measures": [
+    {"name": "orders", "op": "count"},
+    {"name": "revenue", "op": "sum", "column": "amount"},
+    {"name": "average_sale", "op": "mean", "column": "amount"}
+  ]
+}

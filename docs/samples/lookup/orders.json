@@ -1,0 +1,3 @@
+[{"order":"SO-104","customer":"001","amount":1250.5},
+ {"order":"SO-105","customer":"002","amount":240},
+ {"order":"SO-106","customer":"unknown","amount":75}]

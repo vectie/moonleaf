@@ -1,0 +1,102 @@
+///|
+import {
+  "moonbitlang/core/env",
+  "moonbitlang/core/json",
+}
+
+///|
+extern "js" fn invoke(args : Array[String]) -> String =
+  #|args => { const r = require('node:child_process').spawnSync('node', args, {encoding:'utf8'}); return JSON.stringify({status:r.status, stdout:r.stdout, stderr:r.stderr}); }
+
+///|
+extern "js" fn save(path : String, value : String) -> Unit =
+  #|(path, value) => require('node:fs').writeFileSync(path,value)
+
+///|
+extern "js" fn xlsx(args : Array[String], path : String) -> Bool =
+  #|(args,path) => { const r=require('node:child_process').spawnSync('node',args); if(r.status!==0 || r.stdout[0]!==80 || r.stdout[1]!==75) return false; require('node:fs').writeFileSync(path,r.stdout); return true; }
+
+///|
+fn main raise {
+  let args = @env.args()
+  guard args.length() == 5 else {
+    abort("stack_cli.mbtx CLI FIXTURE_DIR EVIDENCE_DIR")
+  }
+  let cli = args[2]
+  let fixtures = args[3]
+  let evidence = args[4]
+  let inputs = [
+    "north",
+    "csv",
+    fixtures + "/north.csv",
+    "south",
+    "tsv",
+    fixtures + "/south.tsv",
+    "web",
+    "json",
+    fixtures + "/web.json",
+    "batch",
+    "jsonl",
+    fixtures + "/batch.jsonl",
+  ]
+  let command = [cli, "union", "json"]
+  command.append(inputs)
+  let report = @json.parse(invoke(command)) catch { _ => abort("report") }
+  guard report is Object(fields) &&
+    fields.get("status") == Some(Json::number(0)) &&
+    fields.get("stdout") is Some(String(output)) else {
+    abort("union failed")
+  }
+  let records = @json.parse(output) catch { _ => abort("json") }
+  guard records is Array(rows) && rows.length() == 6 else { abort("six rows") }
+  guard rows[3] is Object(row) else { abort("row") }
+  assert_eq(row.get("active"), Some(Json::boolean(false)))
+  assert_eq(row.get("amount"), Some(Json::number(0)))
+  assert_eq(row.get("_source"), Some(Json::string("web")))
+  assert_eq(row.get("_source_row"), Some(Json::number(1)))
+  guard rows[4] is Object(missing) else { abort("row") }
+  assert_eq(missing.get("amount"), None)
+  save(evidence + "/union.json", output)
+  command[2] = "csv"
+  let csv_report = invoke(command)
+  let csv_result = @json.parse(csv_report)
+  guard csv_result is Object(csv_fields) &&
+    csv_fields.get("stdout") is Some(String(csv_text)) else {
+    abort("csv")
+  }
+  assert_eq(csv_fields.get("status"), Some(Json::number(0)))
+  assert_true(
+    csv_text.has_prefix(
+      "\"id\",\"amount\",\"active\",\"_source\",\"_source_row\"",
+    ),
+  )
+  save(evidence + "/union.csv", csv_text)
+  save(evidence + "/csv-report.json", csv_report)
+  command[2] = "xlsx"
+  assert_true(xlsx(command, evidence + "/union.xlsx"))
+  command[1] = "strict"
+  command[2] = "json"
+  let refused = @json.parse(invoke(command)) catch { _ => abort("report") }
+  guard refused is Object(failure) else { abort("failure") }
+  assert_eq(failure.get("status"), Some(Json::number(1)))
+  assert_eq(failure.get("stdout"), Some(Json::string("")))
+  save(evidence + "/strict-refusal.json", refused.stringify())
+  let strict = invoke([
+    cli,
+    "strict",
+    "json",
+    "north",
+    "csv",
+    fixtures + "/north.csv",
+    "south",
+    "tsv",
+    fixtures + "/south.tsv",
+  ])
+  let strict_report = @json.parse(strict) catch { _ => abort("strict") }
+  guard strict_report is Object(success) else { abort("strict") }
+  assert_eq(success.get("status"), Some(Json::number(0)))
+  save(evidence + "/strict-reordered.json", strict)
+  println(
+    "PASS: mixed CSV/TSV/JSON/JSONL, union JSON/CSV/XLSX, reordered strict and mismatch refusal",
+  )
+}

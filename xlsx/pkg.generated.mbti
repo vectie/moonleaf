@@ -8,11 +8,45 @@ import {
 }
 
 // Values
+pub fn clear_sheet_range(@opc.Package, String, Int, Int, Int, Int) -> (@opc.Package, Int) raise XlsxError
+
+pub fn compare_workbooks(@opc.Package, @opc.Package) -> WorkbookComparison raise XlsxError
+
+pub fn copy_sheet_row_styles(@opc.Package, String, Int, Int) -> (@opc.Package, Int) raise XlsxError
+
+pub fn correct_text_cells(@opc.Package, Array[TextCellCorrection]) -> @opc.Package raise XlsxError
+
 pub fn create(Array[Array[@scene.CellValue]], sheet_name? : String) -> FixedArray[Byte] raise XlsxError
+
+pub fn delete_sheet_columns(@opc.Package, String, Int, Int) -> (@opc.Package, Int) raise XlsxError
+
+pub fn delete_sheet_rows(@opc.Package, String, Int, Int) -> (@opc.Package, Int) raise XlsxError
+
+pub fn font_decoration_cells(@opc.Package, String, FontDecoration) -> Array[(Int, Int)] raise XlsxError
+
+pub fn hidden_sheet_rows(@opc.Package, String) -> Array[Int] raise XlsxError
+
+pub fn hide_sheet_rows(@opc.Package, String, Int, Int) -> (@opc.Package, Int) raise XlsxError
+
+pub fn horizontal_alignment_cells(@opc.Package, String) -> Array[(Int, Int, String)] raise XlsxError
+
+pub fn insert_sheet_columns(@opc.Package, String, Int, Int) -> (@opc.Package, Int) raise XlsxError
+
+pub fn insert_sheet_rows(@opc.Package, String, Int, Int) -> (@opc.Package, Int) raise XlsxError
 
 pub fn inspect(@opc.Package) -> Array[InspectedCell] raise XlsxError
 
+pub fn inspect_text_cell(@opc.Package, sheet_name~ : String, address~ : String) -> TextCellTarget raise XlsxError
+
+pub fn named_tables(@opc.Package) -> Array[NamedTable] raise XlsxError
+
+pub fn number_format_cells(@opc.Package, String) -> Array[(Int, Int, String)] raise XlsxError
+
+pub fn number_format_places_cells(@opc.Package, String) -> Array[(Int, Int, Int)] raise XlsxError
+
 pub fn read(@opc.Package) -> @scene.Workbook raise XlsxError
+
+pub fn read_range(@opc.Package, sheet_name~ : String, range~ : String) -> RangeValues raise XlsxError
 
 pub fn recalculate(@opc.Package) -> @opc.Package raise XlsxError
 
@@ -21,6 +55,22 @@ pub fn set_cell_number(@opc.Package, String, Int, Int, Double) -> @opc.Package r
 pub fn set_cell_text(@opc.Package, String, Int, Int, String) -> @opc.Package raise XlsxError
 
 pub fn set_cells_text(@opc.Package, String, Array[(Int, Int, String)]) -> @opc.Package raise XlsxError
+
+pub fn set_font_decoration_range(@opc.Package, String, Int, Int, Int, Int, FontDecoration, Bool) -> (@opc.Package, Int) raise XlsxError
+
+pub fn set_horizontal_alignment_range(@opc.Package, String, Int, Int, Int, Int, HorizontalAlignment) -> (@opc.Package, Int) raise XlsxError
+
+pub fn set_number_format_places_range(@opc.Package, String, Int, Int, Int, Int, NumberFormatPreset, Int) -> (@opc.Package, Int) raise XlsxError
+
+pub fn set_number_format_range(@opc.Package, String, Int, Int, Int, Int, NumberFormatPreset) -> (@opc.Package, Int) raise XlsxError
+
+pub fn set_wrap_text_range(@opc.Package, String, Int, Int, Int, Int, Bool) -> (@opc.Package, Int) raise XlsxError
+
+pub fn show_sheet_rows(@opc.Package, String, Int, Int) -> (@opc.Package, Int) raise XlsxError
+
+pub fn sort_sheet_rows(@opc.Package, String, Int, Bool, Bool) -> (@opc.Package, Int) raise XlsxError
+
+pub fn wrapped_cells(@opc.Package, String) -> Array[(Int, Int)] raise XlsxError
 
 // Errors
 pub(all) suberror XlsxError {
@@ -39,6 +89,28 @@ pub fn XlsxError::not_equal(Self, Self) -> Bool
 pub fn XlsxError::to_repr(Self) -> @debug.Repr
 
 // Types and methods
+pub(all) struct CellDifference {
+  address : String
+  before : ComparisonCell?
+  after : ComparisonCell?
+  changes : Array[String]
+} derive(Eq, @debug.Debug)
+pub fn CellDifference::equal(Self, Self) -> Bool
+pub fn CellDifference::not_equal(Self, Self) -> Bool
+pub fn CellDifference::to_repr(Self) -> @debug.Repr
+
+pub(all) struct ComparisonCell {
+  row : Int
+  column : Int
+  value_type : String
+  value : String?
+  formula : String?
+  formula_attributes : Map[String, String]
+} derive(Eq, @debug.Debug)
+pub fn ComparisonCell::equal(Self, Self) -> Bool
+pub fn ComparisonCell::not_equal(Self, Self) -> Bool
+pub fn ComparisonCell::to_repr(Self) -> @debug.Repr
+
 pub(all) struct DateTimeMetadata {
   date1904 : Bool
   serial : Double
@@ -65,6 +137,18 @@ pub(all) enum DisplayKind {
 pub fn DisplayKind::equal(Self, Self) -> Bool
 pub fn DisplayKind::not_equal(Self, Self) -> Bool
 pub fn DisplayKind::to_repr(Self) -> @debug.Repr
+
+pub(all) enum FontDecoration {
+  Bold
+  Italic
+  Underline
+}
+
+pub(all) enum HorizontalAlignment {
+  Left
+  Center
+  Right
+}
 
 pub(all) enum InspectWarning {
   MissingStylesPart
@@ -94,6 +178,77 @@ pub(all) struct InspectedCell {
 pub fn InspectedCell::equal(Self, Self) -> Bool
 pub fn InspectedCell::not_equal(Self, Self) -> Bool
 pub fn InspectedCell::to_repr(Self) -> @debug.Repr
+
+pub(all) struct NamedTable {
+  name : String
+  sheet_name : String
+  table_part : String
+  reference : String
+  import_reference : String?
+  columns : Array[String]
+  header_rows : Int
+  totals_rows : Int
+  data_rows : Int
+  calculated_columns : Bool
+} derive(Eq, @debug.Debug)
+
+pub(all) enum NumberFormatPreset {
+  FormatGeneral
+  FormatNumber
+  FormatPercent
+  FormatCurrency
+}
+
+pub(all) struct RangeValues {
+  sheet_name : String
+  range : @scene.CellRange
+  rows : Array[Array[@scene.CellValue]]
+  styled_cells : Int
+} derive(Eq, @debug.Debug)
+
+pub(all) struct SheetDifference {
+  name : String
+  before_position : Int?
+  after_position : Int?
+  before_state : String?
+  after_state : String?
+  before_merges : Array[String]
+  after_merges : Array[String]
+  changes : Array[String]
+  cells : Array[CellDifference]
+} derive(Eq, @debug.Debug)
+pub fn SheetDifference::equal(Self, Self) -> Bool
+pub fn SheetDifference::not_equal(Self, Self) -> Bool
+pub fn SheetDifference::to_repr(Self) -> @debug.Repr
+
+pub(all) struct TextCellCorrection {
+  sheet : String
+  address : String
+  expected : String
+  replacement : String
+} derive(Eq, @debug.Debug)
+
+pub(all) struct TextCellTarget {
+  sheet : String
+  address : String
+  text : String
+  style_id : Int?
+} derive(Eq, @debug.Debug)
+
+pub(all) struct WorkbookComparison {
+  before_sheets : Array[String]
+  after_sheets : Array[String]
+  sheets : Array[SheetDifference]
+  changed_cells : Int
+  before_date1904 : Bool
+  after_date1904 : Bool
+  date_system_changed : Bool
+  warnings : Array[String]
+} derive(Eq, @debug.Debug)
+pub fn WorkbookComparison::equal(Self, Self) -> Bool
+pub fn WorkbookComparison::not_equal(Self, Self) -> Bool
+pub fn WorkbookComparison::to_json(Self) -> Json
+pub fn WorkbookComparison::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 

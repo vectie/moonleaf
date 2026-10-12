@@ -3,3 +3,6 @@
 /.moonsuite/
 /.repos/
 .DS_Store
+
+# Local dependency-free Python host adapters and tests
+__pycache__/

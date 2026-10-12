@@ -52,6 +52,47 @@ test "preview_document preserves flow order and resolved DOCX layout metadata" {
 }
 
 ///|
+test "DOCX preview retains bullet and restarted numbered list metadata" {
+  let archive : @opc.Package = { parts: [], }
+  let archive = archive
+    .replace_text(
+      "word/document.xml",
+      "<w:document xmlns:w=\"urn:w\"><w:body>" +
+      "<w:p><w:pPr><w:numPr><w:ilvl w:val=\"0\"/><w:numId w:val=\"5\"/></w:numPr></w:pPr><w:r><w:t>收入</w:t></w:r></w:p>" +
+      "<w:p><w:pPr><w:numPr><w:ilvl w:val=\"0\"/><w:numId w:val=\"6\"/></w:numPr></w:pPr><w:r><w:t>第一项</w:t></w:r></w:p>" +
+      "<w:p><w:r><w:t>普通段落</w:t></w:r></w:p>" +
+      "</w:body></w:document>",
+    )
+    .replace_text(
+      "word/numbering.xml",
+      "<w:numbering xmlns:w=\"urn:w\">" +
+      "<w:abstractNum w:abstractNumId=\"1\"><w:lvl w:ilvl=\"0\"><w:start w:val=\"1\"/><w:numFmt w:val=\"bullet\"/><w:lvlText w:val=\"•\"/></w:lvl></w:abstractNum>" +
+      "<w:abstractNum w:abstractNumId=\"2\"><w:lvl w:ilvl=\"0\"><w:start w:val=\"1\"/><w:numFmt w:val=\"decimal\"/><w:lvlText w:val=\"%1)\"/></w:lvl></w:abstractNum>" +
+      "<w:num w:numId=\"5\"><w:abstractNumId w:val=\"1\"/></w:num>" +
+      "<w:num w:numId=\"6\"><w:abstractNumId w:val=\"2\"/><w:lvlOverride w:ilvl=\"0\"><w:startOverride w:val=\"3\"/></w:lvlOverride></w:num>" +
+      "</w:numbering>",
+    )
+  let preview = @docx.preview_document(archive)
+  guard preview.blocks
+    is [FlowParagraph(bullet), FlowParagraph(numbered), FlowParagraph(plain)] else {
+    fail("expected three paragraphs")
+  }
+  guard bullet.list is Some(bullet_list) else { fail("missing bullet list") }
+  assert_eq(bullet_list.num_id, "5")
+  assert_eq(bullet_list.format, "bullet")
+  assert_eq(bullet_list.label_template, "•")
+  assert_eq(bullet_list.start, 1)
+  guard numbered.list is Some(numbered_list) else {
+    fail("missing numbered list")
+  }
+  assert_eq(numbered_list.num_id, "6")
+  assert_eq(numbered_list.format, "decimal")
+  assert_eq(numbered_list.label_template, "%1)")
+  assert_eq(numbered_list.start, 3)
+  assert_true(plain.list is None)
+}
+
+///|
 test "preview keeps a leading page break before its paragraph text" {
   let archive : @opc.Package = { parts: [], }
   let archive = archive

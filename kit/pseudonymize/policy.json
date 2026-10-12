@@ -1,0 +1,7 @@
+{
+  "key_columns": ["record"],
+  "columns": [
+    {"column": "customer", "mode": "pseudonym", "prefix": "CLIENT-"},
+    {"column": "email", "mode": "mask", "value": "[removed]"}
+  ]
+}

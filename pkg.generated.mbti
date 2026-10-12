@@ -3,8 +3,11 @@ package "vectie/moonleaf"
 
 import {
   "moonbitlang/core/debug",
+  "vectie/moonleaf/docx",
   "vectie/moonleaf/opc",
+  "vectie/moonleaf/pptx",
   "vectie/moonleaf/scene",
+  "vectie/moonleaf/xlsx",
 }
 
 // Values
@@ -76,16 +79,21 @@ pub struct DocumentSession {
   // private fields
 }
 pub fn DocumentSession::capabilities(Self) -> DocumentCapabilities
+pub fn DocumentSession::correct_xlsx_text_cells(Self, Array[@xlsx.TextCellCorrection]) -> Self raise DocumentSessionError
 pub fn DocumentSession::diagnostics(Self) -> Array[DocumentDiagnostic]
+pub fn DocumentSession::docx_text_targets(Self) -> Array[@docx.TextTarget] raise DocumentSessionError
 pub fn DocumentSession::filename(Self) -> String
 pub fn DocumentSession::format(Self) -> DocumentFormat
 pub fn DocumentSession::is_dirty(Self) -> Bool
+pub fn DocumentSession::pptx_text_targets(Self) -> Array[@pptx.TextTarget] raise DocumentSessionError
 pub fn DocumentSession::replace_text(Self, String, String) -> Self raise DocumentSessionError
 pub fn DocumentSession::revision(Self) -> Int
 pub fn DocumentSession::save_as_copy(Self) -> VerifiedDocumentCopy raise DocumentSessionError
 pub fn DocumentSession::scene(Self) -> @scene.Document
 pub fn DocumentSession::set_cell_text(Self, String, Int, Int, String) -> Self raise DocumentSessionError
 pub fn DocumentSession::set_cells_text(Self, String, Array[(Int, Int, String)]) -> Self raise DocumentSessionError
+pub fn DocumentSession::set_docx_target_text(Self, String, String, String) -> Self raise DocumentSessionError
+pub fn DocumentSession::set_pptx_target_text(Self, String, String, String) -> Self raise DocumentSessionError
 
 pub struct VerifiedDocumentCopy {
   // private fields

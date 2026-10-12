@@ -1,0 +1,52 @@
+{
+  "orders": [
+    {
+      "id": "001",
+      "customer": {
+        "name": "雪😀 & Co"
+      },
+      "lines": [
+        {
+          "sku": "0001",
+          "qty": 1,
+          "active": true,
+          "note": "not selected"
+        },
+        {
+          "sku": "0002",
+          "qty": 3,
+          "active": false,
+          "note": "a,\"b\"\nnext"
+        }
+      ]
+    },
+    {
+      "id": "002",
+      "customer": {
+        "name": "No line order"
+      },
+      "lines": []
+    },
+    {
+      "id": "003",
+      "customer": {
+        "name": "Gamma"
+      },
+      "lines": [
+        {
+          "sku": "0003",
+          "qty": 5,
+          "active": true,
+          "note": "=1+1"
+        },
+        {
+          "sku": "0003",
+          "qty": 5,
+          "active": true,
+          "note": null
+        }
+      ]
+    }
+  ],
+  "next": "not fetched"
+}

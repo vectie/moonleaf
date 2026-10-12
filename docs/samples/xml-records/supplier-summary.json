@@ -1,0 +1,7 @@
+{
+  "group_by": ["supplier"],
+  "measures": [
+    {"name": "products", "op": "count"},
+    {"name": "units_available", "op": "sum", "column": "stock"}
+  ]
+}

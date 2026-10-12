@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "filters": [{"column": "active", "mode": "boolean", "op": "eq", "value": true}],
+  "sort": [{"column": "amount", "mode": "number", "direction": "desc", "blanks": "last"}],
+  "select": ["id", "amount", "note"],
+  "limit": 100
+}

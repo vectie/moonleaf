@@ -52,7 +52,20 @@ priv struct ResolvedStyle {
 pub(all) struct ParagraphInfo {
   metadata : ParagraphMetadata
   outline_level : Int?
+  list : ListInfo?
   runs : Array[RunMetadata]
+} derive(Eq, Debug)
+
+///|
+/// Word numbering resolved for a paragraph. `label_template` is the source
+/// `w:lvlText`, such as `%1.` or `•`; callers can render common formats while
+/// retaining the list identity and explicit restart value.
+pub(all) struct ListInfo {
+  num_id : String
+  level : Int
+  format : String
+  label_template : String
+  start : Int
 } derive(Eq, Debug)
 
 ///|

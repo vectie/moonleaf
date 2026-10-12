@@ -1,0 +1,1 @@
+{"version": 1, "source_sha256": "79b798dd64a4922bc35f14c4d24e31b1ce3ab17f17399d0ffb2e42dc29f356b9", "target": "body/tbl:3/tr:2/tc:1/p:1/r:1/t:1", "expected": "Acme", "replacement": "  Client B & <雪😀>\r\n\t "}

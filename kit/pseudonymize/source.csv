@@ -1,0 +1,5 @@
+record,customer,email,amount,note
+001,Aurora Labs,aurora@example.test,12.50,"First, renewal"
+002,Orbit Ltd,orbit@example.test,20.00,"A ""quoted"" note"
+003,Aurora Labs,aurora@example.test,30.00,
+004,,,0,No customer

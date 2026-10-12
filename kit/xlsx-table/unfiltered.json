@@ -1,0 +1,1 @@
+[{"id":"001","name":"Acme","amount":12.5,"active":true,"serial":60,"note":"=1+1"},{"id":"002","name":"Blue","amount":2,"active":false,"serial":61,"note":""},{},{"id":"003","name":"東京 🐈","amount":-3,"active":true,"note":"a,\"b\"\nnext"},{}]

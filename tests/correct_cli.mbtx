@@ -1,0 +1,49 @@
+///|
+import {
+  "moonbitlang/core/env",
+}
+
+///|
+extern "js" fn verify(args : Array[String]) -> Unit =
+  #|args => {
+  #| const fs=require('node:fs'), cp=require('node:child_process'), path=require('node:path'), assert=require('node:assert/strict'), crypto=require('node:crypto');
+  #| const [cli,preview,out]=args; if(!out)throw Error('Expected CLI, preview CLI, fresh output directory'); fs.mkdirSync(out,{recursive:false});
+  #| const save=(name,data)=>{const p=path.join(out,name);fs.writeFileSync(p,data);return p};
+  #| const hash=p=>crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex');
+  #| const text=value=>({type:'text',value}), number=value=>({type:'number',value}), bool=value=>({type:'boolean',value}), empty={type:'empty'};
+  #| const source=[{id:'001',customer:'Acme',amount:12.5,active:false,note:'remove'},{id:'002',customer:'old',amount:0,active:true},{id:'003',customer:'unchanged',amount:-3,active:false,note:'a,"b"\nnext'}];
+  #| const spec={key_columns:['id'],edits:[{key:['002'],column:'customer',before:text('old'),after:text('東京 🐈\n=1+1')},{key:['001'],column:'amount',before:number('12.5'),after:number('20')},{key:['001'],column:'active',before:bool(false),after:bool(true)},{key:['001'],column:'note',before:text('remove'),after:empty},{key:['002'],column:'note',before:empty,after:text('')},{key:['003'],column:'customer',before:text('unchanged'),after:text('unchanged')}]};
+  #| const input=save('source.json',JSON.stringify(source,null,2)+'\n'), recipe=save('corrections.json',JSON.stringify(spec,null,2)+'\n');const before=[hash(input),hash(recipe)];
+  #| const expected=[{id:'001',customer:'Acme',amount:20,active:true},{id:'002',customer:'東京 🐈\n=1+1',amount:0,active:true,note:''},source[2]];
+  #| const headers=['id','customer','amount','active','note'];const expectedRows=[headers,['001','Acme','20','true',''],['002','東京 🐈\n=1+1','0','true',''],['003','unchanged','-3','false','a,"b"\nnext']];
+  #| const run=(src=input,map=recipe,mode='copy',format='json',inputFormat='json')=>cp.spawnSync(process.execPath,[cli,inputFormat,src,map,mode,format],{maxBuffer:16000000,timeout:10000});
+  #| const good=(...a)=>{const r=run(...a);assert.equal(r.status,0,r.stderr.toString());assert.equal(r.stderr.length,0);return r.stdout};
+  #| const bad=(...a)=>{const r=run(...a);assert.notEqual(r.status,0);assert.equal(r.stdout.length,0);assert.ok(r.stderr.length)};
+  #| let expectedReport;
+  #| for(const mode of ['copy','report'])for(const format of ['json','csv','xlsx']) {
+  #|   const bytes=good(input,recipe,mode,format), p=save(mode+'.'+format,bytes);
+  #|   if(mode==='copy'&&format==='json')assert.deepEqual(JSON.parse(bytes),expected);
+  #|   if(mode==='report'&&format==='json') {expectedReport=JSON.parse(bytes);assert.equal(expectedReport.length,6);assert.deepEqual(expectedReport.map(x=>x.input_row),[2,1,1,1,2,3]);assert.equal(expectedReport[3].after_type,'empty');assert.equal(expectedReport[4].before_type,'empty');assert.equal(expectedReport[4].after,'');assert.equal(expectedReport[5].status,'unchanged');}
+  #|   const r=cp.spawnSync(process.execPath,[preview,p],{encoding:'utf8',maxBuffer:16000000});assert.equal(r.status,0,r.stderr);save('reopened-'+mode+'-'+format+'.json',r.stdout);const rows=JSON.parse(r.stdout).sheets[0].rows.map(row=>row.map(v=>v==='TRUE'?'true':v==='FALSE'?'false':v));
+  #|   if(mode==='copy')assert.deepEqual(rows,expectedRows);
+  #|   else {const h=['edit','input_row','key','column','before_type','before','after_type','after','status'];assert.deepEqual(rows,[h,...expectedReport.map(r=>h.map(k=>r[k]===undefined?'':String(r[k])))]);}
+  #|   if(format==='xlsx'){const zip=cp.spawnSync('unzip',['-t',p],{encoding:'utf8'});assert.equal(zip.status,0);save(mode+'-xlsx-integrity.txt',zip.stdout);const xml=cp.spawnSync('unzip',['-p',p,'xl/worksheets/sheet1.xml'],{encoding:'utf8'});assert.equal(xml.status,0);assert.ok(!xml.stdout.includes('<f>'));assert.ok(xml.stdout.includes('=1+1'));save(mode+'-sheet1.xml',xml.stdout);}
+  #| }
+  #| const changed=structuredClone(source);changed[2].customer='external change';bad(save('conflict.json',JSON.stringify(changed)));assert.deepEqual(JSON.parse(good()),expected);
+  #| const dupe=structuredClone(source);dupe.push(source[0]);bad(save('duplicate-key.json',JSON.stringify(dupe)));
+  #| const late=structuredClone(spec);late.edits.push({key:['missing'],column:'customer',before:text('old'),after:text('new')});bad(input,save('missing-key.json',JSON.stringify(late)));
+  #| const repeated=structuredClone(spec);repeated.edits.push(spec.edits[0]);bad(input,save('repeated-cell.json',JSON.stringify(repeated)));
+  #| const typo=structuredClone(spec);typo.edits[0].aftr=text('wrong');bad(input,save('typo.json',JSON.stringify(typo)));
+  #| bad(save('invalid-utf8.json',Buffer.from([0xff])));bad(out);bad(path.join(out,'absent'));bad('-');bad(input,'-');bad(input,recipe,'copy','pdf');bad(save('malformed.json','[{'));bad(input,save('malformed-recipe.json','{'));
+  #| const over=save('over-byte-limit.json','');const fd=fs.openSync(over,'w');fs.ftruncateSync(fd,8388609);fs.closeSync(fd);bad(over);
+  #| const jsonl=save('source.jsonl',source.map(x=>JSON.stringify(x)).join('\n'));assert.deepEqual(JSON.parse(good(jsonl,recipe,'copy','json','jsonl')),expected);
+  #| const csv=save('source.csv','id,value\r\n001,"a,b"\r\n002,old\r\n');const csvSpec={key_columns:['id'],edits:[{key:['002'],column:'value',before:text('old'),after:text('new\n"quoted"')}]};const csvMap=save('csv-corrections.json',JSON.stringify(csvSpec));assert.deepEqual(JSON.parse(good(csv,csvMap,'copy','json','csv')),[{id:'001',value:'a,b'},{id:'002',value:'new\n"quoted"'}]);
+  #| const tsv=save('source.tsv','id\tvalue\n001\ta,b\n002\told\n');assert.deepEqual(JSON.parse(good(tsv,csvMap,'copy','json','tsv')),[{id:'001',value:'a,b'},{id:'002',value:'new\n"quoted"'}]);
+  #| assert.deepEqual([hash(input),hash(recipe)],before);save('original-sha256.json',JSON.stringify({source:before[0],recipe:before[1]},null,2)+'\n');
+  #| console.log('PASS: typed batch edits, report and copy in three formats independently reopened; CSV/TSV/JSONL intake; conflict/duplicate/missing/repeated/invalid/file/UTF-8/size refusals; successful retry; original SHA256 unchanged');
+  #| }
+
+///|
+fn main {
+  verify(@env.args()[2:].to_array())
+}

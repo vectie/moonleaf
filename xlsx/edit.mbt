@@ -302,6 +302,9 @@ pub fn set_cell_text(
   if row < 1 || row > max_row || column < 1 || column > max_column {
     raise InvalidCoordinates(row~, column~)
   }
+  if !valid_xml_cell_text(text) {
+    raise InvalidWorkbook("XLSX cell contains an invalid XML character")
+  }
   if !xlsx_package.has_part("xl/workbook.xml") {
     raise MissingWorkbook
   }
@@ -321,7 +324,13 @@ pub fn set_cell_text(
   let worksheet = parse_part(xlsx_package, part_name)
   xlsx_package.replace_text(
     part_name,
-    @xml.serialize(update_worksheet(worksheet, row, column, text)),
+    // XML processors normalize literal CR/CRLF. A reference preserves the
+    // exact decoded text in edited and untouched cells through Excel/openpyxl
+    // reopen. Serialization has already escaped literal user entity spellings.
+    @xml.serialize(update_worksheet(worksheet, row, column, text)).replace_all(
+      old="\r",
+      new="&#13;",
+    ),
   )
 }
 
@@ -340,7 +349,8 @@ fn replace_existing_cells_in_worksheet(
       Element(sheet_data) if sheet_data.local_name() == "sheetData" => {
         let mut updated = sheet_data
         for (row, column, text) in edits {
-          if cell_location(updated, row, column) is Some((row_index, cell_index)) {
+          if cell_location(updated, row, column)
+            is Some((row_index, cell_index)) {
             let rows = updated.children.copy()
             guard rows[row_index] is Element(existing_row) else {
               raise InvalidWorkbook("target row is missing")
@@ -359,7 +369,9 @@ fn replace_existing_cells_in_worksheet(
             }
             cells[cell_index] = Element(
               inline_text_cell(
-                cell_reference(row, column), text, Some(existing_cell),
+                cell_reference(row, column),
+                text,
+                Some(existing_cell),
               ),
             )
             rows[row_index] = Element({ ..existing_row, children: cells, })
@@ -390,6 +402,9 @@ pub fn set_cells_text(
   for (row, column, text) in edits {
     if row < 1 || row > max_row || column < 1 || column > max_column {
       raise InvalidCoordinates(row~, column~)
+    }
+    if !valid_xml_cell_text(text) {
+      raise InvalidWorkbook("XLSX cell contains an invalid XML character")
     }
     let columns = match replacements.get(row) {
       Some(columns) => columns
@@ -422,11 +437,12 @@ pub fn set_cells_text(
   }
   let worksheet = parse_part(xlsx_package, part_name)
   let changed = Ref(0)
-  let updated = replace_existing_cells_in_worksheet(
-    worksheet, edits, changed,
-  )
+  let updated = replace_existing_cells_in_worksheet(worksheet, edits, changed)
   if changed.val != edits.length() {
     raise InvalidWorkbook("batch edit references a missing cell")
   }
-  xlsx_package.replace_text(part_name, @xml.serialize(updated))
+  xlsx_package.replace_text(
+    part_name,
+    @xml.serialize(updated).replace_all(old="\r", new="&#13;"),
+  )
 }

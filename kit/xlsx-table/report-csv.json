@@ -1,0 +1,25 @@
+{
+  "sheet": "Sales & Returns",
+  "range": "B3:G8",
+  "header": "first_row",
+  "input_rows": 5,
+  "matched_rows": 2,
+  "output_rows": 2,
+  "output_columns": [
+    "id",
+    "name",
+    "amount",
+    "active",
+    "serial",
+    "note"
+  ],
+  "worksheet_rows": [
+    4,
+    7
+  ],
+  "warnings": [
+    "Value-only extraction; formulas and intersecting merges are refused. No workbook rewrite or recalculation.",
+    "Numbers are raw finite numeric tokens, including date/time serials. Styles, display formats, date epoch, hidden/filter state and rich-text formatting are not applied.",
+    "Selected styled cells: 2. Only the explicit worksheet range is returned; other sheets and values are not qualified."
+  ]
+}

@@ -1,0 +1,1 @@
+[{"id":"001","region":"北","note":"web","active":true,"amount":30},{"id":"1","region":"北","note":"leading zero matters","active":false,"amount":31},{"id":"é","region":"x","note":"composed","active":false,"amount":32},{"id":"é","region":"x","note":"decomposed","active":false,"amount":33}]

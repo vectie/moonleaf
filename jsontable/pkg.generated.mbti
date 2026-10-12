@@ -1,0 +1,390 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "vectie/moonleaf/jsontable"
+
+import {
+  "moonbitlang/core/debug",
+  "vectie/moonleaf/opc",
+  "vectie/moonleaf/scene",
+  "vectie/moonleaf/xlsx",
+}
+
+// Values
+pub fn extract_docx(@opc.Package, table_id~ : String, header~ : DocxHeader) -> DocxTable raise DocxTableError
+
+pub fn extract_pptx(@opc.Package, table_id~ : String, header~ : PptxHeader) -> PptxTable raise PptxTableError
+
+pub fn extract_xlsx(@opc.Package, sheet_name~ : String, range~ : String, header~ : XlsxHeader) -> XlsxTable raise XlsxTableError
+
+pub fn extract_xlsx_named_table(@opc.Package, table_name~ : String) -> NamedXlsxTable raise XlsxTableError
+
+pub fn list_docx_tables(@opc.Package) -> Array[DocxTableCandidate] raise DocxTableError
+
+pub fn parse(String, jsonl? : Bool) -> Table raise TableError
+
+pub fn parse_correction_recipe(String) -> CorrectionRecipe raise CorrectionError
+
+pub fn parse_delimited(String, delimiter? : Char) -> Table raise LookupError
+
+pub fn parse_delimited_schema(String) -> DelimitedSchema raise TypedDelimitedError
+
+pub fn parse_fixed_width(String, FixedWidthSchema) -> FixedWidthTable raise FixedWidthError
+
+pub fn parse_fixed_width_schema(String) -> FixedWidthSchema raise FixedWidthError
+
+pub fn parse_json_line_spec(String) -> JsonLineSpec raise JsonLineError
+
+pub fn parse_json_lines(String, JsonLineSpec) -> JsonLineTable raise JsonLineError
+
+pub fn parse_json_record_spec(String) -> JsonRecordSpec raise JsonRecordError
+
+pub fn parse_json_records(String, JsonRecordSpec) -> Table raise JsonRecordError
+
+pub fn parse_markdown_tables(String) -> Array[MarkdownTable] raise MarkdownTableError
+
+pub fn parse_query_recipe(String) -> QueryRecipe raise QueryError
+
+pub fn parse_typed_delimited(String, DelimitedSchema, delimiter? : Char) -> Table raise TypedDelimitedError
+
+pub fn parse_xml_records(String, XmlRecordSpec) -> Table raise XmlRecordError
+
+pub fn parse_xml_spec(String) -> XmlRecordSpec raise XmlRecordError
+
+pub fn stack(Array[Table], sources~ : Array[String], mode~ : StackMode, source_column? : String, row_column? : String) -> Table raise StackError
+
+// Errors
+pub(all) suberror ConsolidateError {
+  InvalidConsolidate(String)
+  InvalidConsolidateKey(row~ : Int, column~ : String)
+  UnsupportedConsolidateValue(row~ : Int, column~ : String)
+} derive(Eq, @debug.Debug)
+
+pub(all) suberror CorrectionError {
+  InvalidCorrection(String)
+  CorrectionConflict(edit~ : Int, row~ : Int, column~ : String)
+} derive(Eq, @debug.Debug)
+
+pub(all) suberror DocxTableError {
+  InvalidDocxSelection(String)
+} derive(Eq, @debug.Debug)
+pub fn DocxTableError::equal(Self, Self) -> Bool
+pub fn DocxTableError::not_equal(Self, Self) -> Bool
+pub fn DocxTableError::to_repr(Self) -> @debug.Repr
+
+pub(all) suberror FixedWidthError {
+  InvalidFixedWidthSchema(String)
+  InvalidFixedWidth(line~ : Int, reason~ : String)
+} derive(Eq, @debug.Debug)
+
+pub(all) suberror JsonLineError {
+  InvalidJsonLineSpec(String)
+  InvalidJsonLines(String)
+  JsonLineFieldError(parent_row~ : Int, item_row~ : Int?, column~ : String, reason~ : String)
+} derive(Eq, @debug.Debug)
+
+pub(all) suberror JsonRecordError {
+  InvalidJsonRecordSpec(String)
+  InvalidJsonRecords(String)
+  JsonRecordFieldError(row~ : Int, column~ : String, reason~ : String)
+} derive(Eq, @debug.Debug)
+
+pub(all) suberror LookupError {
+  InvalidTable(String)
+  UnknownColumn(String)
+  DuplicateKey(Int, Int)
+  InvalidKey(Int)
+  InvalidDelimited(String)
+} derive(Eq, @debug.Debug)
+
+pub(all) suberror MarkdownTableError {
+  InvalidMarkdownTable(line~ : Int, reason~ : String)
+} derive(Eq, @debug.Debug)
+
+pub(all) suberror PivotError {
+  InvalidPivot(String)
+  UnknownPivotColumn(String)
+  InvalidPivotKey(row~ : Int, column~ : String)
+  UnsupportedPivotValue(row~ : Int, column~ : String)
+  DuplicatePivotCell(first_row~ : Int, row~ : Int, key~ : String)
+} derive(Eq, @debug.Debug)
+
+pub(all) suberror PptxTableError {
+  InvalidPptxSelection(String)
+} derive(Eq, @debug.Debug)
+pub fn PptxTableError::equal(Self, Self) -> Bool
+pub fn PptxTableError::not_equal(Self, Self) -> Bool
+pub fn PptxTableError::to_repr(Self) -> @debug.Repr
+
+pub(all) suberror QueryError {
+  InvalidQuery(String)
+} derive(Eq, @debug.Debug)
+
+pub(all) suberror ReconcileError {
+  InvalidReconcile(String)
+  InvalidReconcileKey(side~ : String, row~ : Int, column~ : String)
+  DuplicateReconcileKey(side~ : String, first_row~ : Int, row~ : Int)
+  UnsupportedReconcileValue(side~ : String, row~ : Int, column~ : String)
+} derive(Eq, @debug.Debug)
+
+pub(all) suberror StackError {
+  InvalidStack(String)
+} derive(Eq, @debug.Debug)
+
+pub(all) suberror SummaryError {
+  InvalidSummary(String)
+  UnknownSummaryColumn(String)
+  InvalidSummaryNumber(row~ : Int, column~ : String)
+  SummaryOverflow(row~ : Int, column~ : String)
+  UnsupportedGroupValue(row~ : Int, column~ : String)
+} derive(Eq, @debug.Debug)
+
+pub(all) suberror TableError {
+  InvalidJson(String)
+  ExpectedArray
+  ExpectedObject(Int)
+  Export(String)
+} derive(Eq, @debug.Debug)
+
+pub(all) suberror TypedDelimitedError {
+  InvalidDelimitedSchema(String)
+  InvalidTypedDelimited(String)
+  DelimitedConversion(row~ : Int, column~ : String, reason~ : String)
+} derive(Eq, @debug.Debug)
+
+pub(all) suberror UnpivotError {
+  InvalidUnpivot(String)
+  UnknownUnpivotColumn(String)
+  UnsupportedUnpivotValue(row~ : Int, column~ : String)
+} derive(Eq, @debug.Debug)
+
+pub(all) suberror XlsxTableError {
+  InvalidXlsxSelection(String)
+} derive(Eq, @debug.Debug)
+
+pub(all) suberror XmlRecordError {
+  InvalidXmlSpec(String)
+  InvalidRecordXml(String)
+  XmlRecordLimit(String)
+  RepeatedXmlField(row~ : Int, column~ : String)
+  NonLeafXmlField(row~ : Int, column~ : String)
+} derive(Eq, @debug.Debug)
+
+// Types and methods
+pub(all) struct Consolidation {
+  kept : Table
+  report : Table
+} derive(Eq, @debug.Debug)
+
+pub struct CorrectionRecipe {
+  // private fields
+}
+
+pub(all) struct CorrectionResult {
+  table : Table
+  report : Table
+} derive(Eq, @debug.Debug)
+
+pub struct DelimitedSchema {
+  // private fields
+}
+
+pub(all) enum DocxHeader {
+  FirstTableRow
+  TableColumns(Array[String])
+} derive(Eq, @debug.Debug)
+pub fn DocxHeader::equal(Self, Self) -> Bool
+pub fn DocxHeader::not_equal(Self, Self) -> Bool
+pub fn DocxHeader::to_repr(Self) -> @debug.Repr
+
+pub(all) struct DocxTable {
+  table : Table
+  table_id : String
+  source_rows : Array[Int]
+  warnings : Array[String]
+} derive(Eq, @debug.Debug)
+pub fn DocxTable::equal(Self, Self) -> Bool
+pub fn DocxTable::not_equal(Self, Self) -> Bool
+pub fn DocxTable::to_repr(Self) -> @debug.Repr
+
+pub(all) struct DocxTableCandidate {
+  id : String
+  rows : Int
+  columns : Int
+  first_row : Array[String]
+  refusal : String?
+} derive(Eq, @debug.Debug)
+pub fn DocxTableCandidate::equal(Self, Self) -> Bool
+pub fn DocxTableCandidate::not_equal(Self, Self) -> Bool
+pub fn DocxTableCandidate::to_repr(Self) -> @debug.Repr
+
+pub struct FixedWidthSchema {
+  // private fields
+}
+
+pub(all) struct FixedWidthTable {
+  table : Table
+  source_lines : Array[Int]
+  skipped_lines : Array[Int]
+} derive(Eq, @debug.Debug)
+
+pub(all) struct JsonLineSpec {
+  records_path : Array[String]
+  items_path : Array[String]
+  parent_fields : Array[JsonRecordField]
+  item_fields : Array[JsonRecordField]
+} derive(Eq, @debug.Debug)
+
+pub(all) struct JsonLineTable {
+  table : Table
+  parent_count : Int
+  empty_parent_rows : Array[Int]
+} derive(Eq, @debug.Debug)
+
+pub(all) struct JsonRecordField {
+  name : String
+  path : Array[String]
+  required : Bool
+  nulls : JsonRecordNulls
+} derive(Eq, @debug.Debug)
+
+pub(all) enum JsonRecordNulls {
+  RejectNull
+  EmptyNull
+  LiteralNull
+} derive(Eq, @debug.Debug)
+
+pub(all) struct JsonRecordSpec {
+  records_path : Array[String]
+  fields : Array[JsonRecordField]
+} derive(Eq, @debug.Debug)
+
+pub(all) struct LookupResult {
+  table : Table
+  source_rows : Array[Int]
+  lookup_rows : Array[Int?]
+} derive(Eq, @debug.Debug)
+
+pub(all) struct MarkdownTable {
+  id : String
+  header_line : Int
+  separator_line : Int
+  source_lines : Array[Int]
+  table : Table
+} derive(Eq, @debug.Debug)
+
+pub(all) struct NamedXlsxTable {
+  table : Table
+  definition : @xlsx.NamedTable
+  source_rows : Array[Int]
+  warnings : Array[String]
+} derive(Eq, @debug.Debug)
+
+pub(all) enum PivotDuplicates {
+  Reject
+  First
+  Last
+} derive(Eq, @debug.Debug)
+
+pub(all) enum PptxHeader {
+  FirstSlideTableRow
+  SlideTableColumns(Array[String])
+} derive(Eq, @debug.Debug)
+pub fn PptxHeader::equal(Self, Self) -> Bool
+pub fn PptxHeader::not_equal(Self, Self) -> Bool
+pub fn PptxHeader::to_repr(Self) -> @debug.Repr
+
+pub(all) struct PptxTable {
+  table : Table
+  table_id : String
+  slide_number : Int
+  part : String
+  shape_id : String
+  hidden_slide : Bool
+  source_rows : Array[Int]
+  warnings : Array[String]
+} derive(Eq, @debug.Debug)
+pub fn PptxTable::equal(Self, Self) -> Bool
+pub fn PptxTable::not_equal(Self, Self) -> Bool
+pub fn PptxTable::to_repr(Self) -> @debug.Repr
+
+pub struct QueryRecipe {
+  // private fields
+}
+
+pub(all) struct QueryResult {
+  table : Table
+  source_rows : Array[Int]
+  matched_rows : Int
+} derive(Eq, @debug.Debug)
+
+pub(all) enum Retention {
+  KeepFirst
+  KeepLast
+} derive(Eq, @debug.Debug)
+
+pub(all) enum StackMode {
+  StrictHeaders
+  UnionHeaders
+} derive(Eq, @debug.Debug)
+
+pub(all) struct SummaryMeasure {
+  name : String
+  operation : SummaryOperation
+} derive(Eq, @debug.Debug)
+
+pub(all) enum SummaryOperation {
+  CountRows
+  Sum(String)
+  Mean(String)
+} derive(Eq, @debug.Debug)
+
+pub(all) struct Table {
+  columns : Array[String]
+  rows : Array[Array[@scene.CellValue]]
+} derive(Eq, @debug.Debug)
+pub fn Table::consolidate(Self, key_columns~ : Array[String], retention~ : Retention) -> Consolidation raise ConsolidateError
+pub fn Table::correct(Self, CorrectionRecipe) -> CorrectionResult raise CorrectionError
+pub fn Table::export_csv(Self) -> String
+pub fn Table::export_json(Self, omit_empty? : Bool) -> String raise TableError
+pub fn Table::export_xlsx(Self) -> FixedArray[Byte] raise TableError
+pub fn Table::lookup(Self, Self, source_key~ : String, lookup_key~ : String, columns~ : Array[String], prefix? : String, matched_only? : Bool) -> LookupResult raise LookupError
+pub fn Table::pivot(Self, id_columns~ : Array[String], key_column~ : String, value_column~ : String, duplicates? : PivotDuplicates, prefix? : String) -> Self raise PivotError
+pub fn Table::query(Self, QueryRecipe) -> QueryResult raise QueryError
+pub fn Table::reconcile(Self, Self, key_columns~ : Array[String], include_unchanged? : Bool) -> Self raise ReconcileError
+pub fn Table::summarize(Self, group_by~ : Array[String], measures~ : Array[SummaryMeasure]) -> Self raise SummaryError
+pub fn Table::text_rows(Self) -> Array[Array[String]]
+pub fn Table::unpivot(Self, id_columns~ : Array[String], value_columns~ : Array[String], names_to? : String, values_to? : String, drop_empty? : Bool) -> Self raise UnpivotError
+pub fn Table::workbook(Self) -> @scene.Workbook
+
+pub(all) enum XlsxHeader {
+  FirstRow
+  Columns(Array[String])
+} derive(Eq, @debug.Debug)
+
+pub(all) struct XlsxTable {
+  table : Table
+  sheet_name : String
+  range : @scene.CellRange
+  source_rows : Array[Int]
+  warnings : Array[String]
+} derive(Eq, @debug.Debug)
+
+pub(all) struct XmlField {
+  name : String
+  path : Array[String]
+  attribute : String?
+  repeated : XmlRepeated
+} derive(Eq, @debug.Debug)
+
+pub(all) struct XmlRecordSpec {
+  record_path : Array[String]
+  fields : Array[XmlField]
+} derive(Eq, @debug.Debug)
+
+pub(all) enum XmlRepeated {
+  RejectRepeated
+  JoinRepeated(String)
+} derive(Eq, @debug.Debug)
+
+// Type aliases
+
+// Traits

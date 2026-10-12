@@ -1,1 +1,17 @@
 *.generated.mbti whitespace=-blank-at-eof
+# Preserve actual CSV export bytes, including CRLF, in email-format patches.
+docs/samples/reconcile/output/*.csv -text -diff
+
+kit/query/*.csv -text -diff
+kit/consolidation/*.csv -text -diff
+kit/consolidation/*.tsv -text -diff
+
+kit/json-records/*.csv -text -diff
+
+kit/corrections/*.csv -text -diff
+kit/corrections/*.tsv -text -diff
+
+kit/xlsx-table/*.csv -text -diff
+
+# Retain the literal CRLF sample review/export bytes.
+kit/review-rebase/*.csv -text -diff

@@ -1,0 +1,6 @@
+"id","region","note","active","amount"
+"001","北","=1+1","false","10"
+"a|b","c","line 1
+line 2","false","11"
+"quote""key","南","comma, quote""","true","12"
+"only","西","unique","true","13"

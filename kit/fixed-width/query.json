@@ -1,0 +1,1 @@
+{"version":1,"filters":[{"column":"cost","mode":"number","op":"lt","value":"10"}],"sort":[{"column":"cost","mode":"number","direction":"asc","blanks":"last"}],"select":["id","name","cost"],"limit":100}

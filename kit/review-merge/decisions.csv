@@ -1,0 +1,5 @@
+"change_id","key_json","column","original","left_present","left","right_present","right","status","decision"
+"change-0001","[""001""]","name","Ada","yes","Ada, A.","no","","left_only","left"
+"change-0002","[""001""]","status","pending","yes","approved","yes","approved","agreed","left"
+"change-0003","[""002""]","status","open","yes","ready","yes","held","conflict","right"
+"change-0004","[""003""]","region","north","no","","yes","west","right_only","right"

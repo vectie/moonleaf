@@ -147,6 +147,7 @@ fn collect_run_info(
 fn parse_cell_info(
   cell : @xml.Element,
   styles : StyleTable,
+  numbering : Numbering,
   warnings : Array[@scene.Warning],
 ) -> TableCellInfo {
   let pr = cell.first_child("tcPr")
@@ -159,7 +160,7 @@ fn parse_cell_info(
     let nested_tables : Array[TableInfo] = []
     let nested_sections : Array[SectionInfo] = []
     inspect_element(
-      paragraph, paragraphs, nested_tables, nested_sections, styles, warnings,
+      paragraph, paragraphs, nested_tables, nested_sections, styles, numbering, warnings,
     )
   }
   let grid_span = match pr {
@@ -280,9 +281,12 @@ pub fn inspect_document(
   let tables = []
   let sections = []
   let styles = parse_style_table(document_package)
+  let numbering = load_numbering(document_package)
   let warnings = scene.warnings.copy()
   for element in root.child_elements() {
-    inspect_element(element, paragraphs, tables, sections, styles, warnings)
+    inspect_element(
+      element, paragraphs, tables, sections, styles, numbering, warnings,
+    )
   }
   let headers = []
   let footers = []
@@ -384,13 +388,16 @@ pub fn preview_document(
   }
   guard body is Some(body) else { raise InvalidDocument("missing w:body") }
   let styles = parse_style_table(document_package)
+  let numbering = load_numbering(document_package)
   let warnings = inspected.warnings.copy()
   let blocks : Array[DocxFlowBlock] = []
   for child in body.child_elements() {
     let paragraphs = []
     let tables = []
     let sections = []
-    inspect_element(child, paragraphs, tables, sections, styles, warnings)
+    inspect_element(
+      child, paragraphs, tables, sections, styles, numbering, warnings,
+    )
     match child.local_name() {
       "p" => {
         let leading_break = leading_page_break(child)
@@ -470,6 +477,7 @@ fn inspect_element(
   tables : Array[TableInfo],
   sections : Array[SectionInfo],
   styles : StyleTable,
+  numbering : Numbering,
   warnings : Array[@scene.Warning],
 ) -> Unit {
   match element.local_name() {
@@ -535,6 +543,10 @@ fn inspect_element(
       paragraphs.push({
         metadata: resolved.paragraph,
         outline_level: resolved.outline_level,
+        list: match list_properties(pr) {
+          Some((level, num_id)) => Some(numbering.info(num_id, level))
+          None => None
+        },
         runs,
       })
       match pr {
@@ -562,7 +574,7 @@ fn inspect_element(
       for tr in element.children_named("tr") {
         let cells = []
         for tc in tr.children_named("tc") {
-          cells.push(parse_cell_info(tc, styles, warnings))
+          cells.push(parse_cell_info(tc, styles, numbering, warnings))
         }
         let row_properties = tr.first_child("trPr")
         let row_height = child(row_properties, "trHeight")
@@ -577,7 +589,9 @@ fn inspect_element(
     "sectPr" => sections.push(parse_section(element))
     _ =>
       for child in element.child_elements() {
-        inspect_element(child, paragraphs, tables, sections, styles, warnings)
+        inspect_element(
+          child, paragraphs, tables, sections, styles, numbering, warnings,
+        )
       }
   }
 }

@@ -1,0 +1,5 @@
+<orders>
+  <order id="PO-104" sku="001"><quantity>4</quantity></order>
+  <order id="PO-105" sku="003"><quantity>2</quantity></order>
+  <order id="PO-106" sku="009"><quantity>1</quantity></order>
+</orders>

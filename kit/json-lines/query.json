@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "filters": [
+    {
+      "column": "qty",
+      "mode": "number",
+      "op": "ge",
+      "value": 2
+    }
+  ],
+  "sort": [
+    {
+      "column": "qty",
+      "mode": "number",
+      "direction": "desc",
+      "blanks": "last"
+    }
+  ],
+  "select": [
+    "order",
+    "customer",
+    "sku",
+    "qty",
+    "active",
+    "note"
+  ],
+  "limit": 100
+}

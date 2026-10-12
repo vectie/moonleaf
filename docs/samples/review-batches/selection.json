@@ -1,0 +1,6 @@
+{
+  "key_columns": ["id"],
+  "edit_columns": ["status"],
+  "context_columns": ["name"],
+  "row_keys": [["003"], ["001"]]
+}

@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "filters": [
+    {
+      "column": "active",
+      "mode": "boolean",
+      "op": "eq",
+      "value": false
+    }
+  ],
+  "sort": [
+    {
+      "column": "amount",
+      "mode": "number",
+      "direction": "desc",
+      "blanks": "last"
+    }
+  ],
+  "select": [
+    "id",
+    "name",
+    "amount",
+    "active",
+    "serial",
+    "note"
+  ],
+  "limit": 100
+}

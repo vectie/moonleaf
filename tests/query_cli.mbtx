@@ -1,0 +1,142 @@
+///|
+import {
+  "moonbitlang/core/env",
+  "moonbitlang/core/json",
+}
+
+///|
+extern "js" fn invoke(args : Array[String]) -> String =
+  #|args => { const r = require('node:child_process').spawnSync('node', args, {encoding:'utf8'}); return JSON.stringify({status:r.status, stdout:r.stdout, stderr:r.stderr}); }
+
+///|
+extern "js" fn save(path : String, value : String) -> Unit =
+  #|(path, value) => require('node:fs').writeFileSync(path,value)
+
+///|
+extern "js" fn read(path : String) -> String =
+  #|path => require('node:fs').readFileSync(path,'utf8')
+
+///|
+extern "js" fn export_binary(args : Array[String], path : String) -> Bool =
+  #|(args,path) => { const r = require('node:child_process').spawnSync('node',args); if(r.status!==0 || !r.stdout || r.stdout[0]!==80 || r.stdout[1]!==75) return false; require('node:fs').writeFileSync(path,r.stdout); return true; }
+
+///|
+fn success(args : Array[String]) -> String raise {
+  let result = @json.parse(invoke(args))
+  guard result
+    is {
+      "status": Number(0, ..),
+      "stdout": String(output),
+      "stderr": String(""),
+      ..
+    } else {
+    fail("Expected success: " + result.stringify())
+  }
+  output
+}
+
+///|
+fn refused(args : Array[String], path : String) -> Unit raise {
+  let result = @json.parse(invoke(args))
+  guard result
+    is {
+      "status": Number(1, ..),
+      "stdout": String(""),
+      "stderr": String(message),
+      ..
+    } &&
+    message != "" else {
+    fail("Expected fail-closed refusal: " + result.stringify())
+  }
+  save(path, result.stringify())
+}
+
+///|
+fn main raise {
+  let args = @env.args()
+  guard args.length() == 5 else {
+    abort("query_cli.mbtx QUERY_CLI KIT_DIR PREVIEW_CLI")
+  }
+  let cli = args[2]
+  let kit = args[3]
+  let preview = args[4]
+  let original = read(kit + "/input.csv")
+  let recipe = read(kit + "/recipe.json")
+  let command = [cli, "csv", kit + "/input.csv", kit + "/recipe.json", "json"]
+  let output = success(command)
+  let expected = @json.parse(
+    "[{\"id\":\"002\",\"score\":\"10\",\"note\":\"priority\"},{\"id\":\"004\",\"score\":\"10\",\"note\":\"needs, review\"},{\"id\":\"001\",\"score\":\"2\",\"note\":\"=1+1\"}]",
+  )
+  assert_eq(@json.parse(output), expected)
+  save(kit + "/output.json", output)
+  command[1] = "tsv"
+  command[2] = kit + "/input.tsv"
+  assert_eq(success(command), output)
+  command[1] = "json"
+  command[2] = kit + "/input.json"
+  let typed = success(command)
+  assert_true(typed.contains("\"score\":10"))
+  save(kit + "/typed-output.json", typed)
+  command[1] = "jsonl"
+  command[2] = kit + "/input.jsonl"
+  assert_eq(success(command), typed)
+  command[4] = "xlsx"
+  assert_true(export_binary(command, kit + "/output.xlsx"))
+  let reopened = success([preview, kit + "/output.xlsx"])
+  guard @json.parse(reopened) is { "sheets": Array(sheets), .. } &&
+    sheets[0] is { "rows": Array(rows), .. } else {
+    abort("Reopen XLSX")
+  }
+  assert_eq(rows.length(), 4)
+  assert_eq(
+    rows[1],
+    Json::array([
+      Json::string("002"),
+      Json::string("10"),
+      Json::string("priority"),
+    ]),
+  )
+  assert_eq(
+    rows[3],
+    Json::array([Json::string("001"), Json::string("2"), Json::string("=1+1")]),
+  )
+  save(kit + "/xlsx-reopened.json", reopened)
+  command[1] = "csv"
+  command[2] = kit + "/input.csv"
+  command[4] = "csv"
+  let csv = success(command)
+  save(kit + "/output.csv", csv)
+  let identity = "{\"version\":1,\"filters\":[],\"sort\":[],\"select\":[\"id\",\"score\",\"note\"],\"limit\":10000}"
+  save(kit + "/identity.json", identity)
+  command[2] = kit + "/output.csv"
+  command[3] = kit + "/identity.json"
+  command[4] = "json"
+  assert_eq(success(command), output)
+  save(kit + "/csv-reopened.json", success(command))
+  command[1] = "json"
+  command[2] = kit + "/typed-output.json"
+  assert_eq(success(command), typed)
+  save(kit + "/json-reopened.json", success(command))
+  save(
+    kit + "/bad-recipe.json",
+    "{\"version\":2,\"filters\":[],\"sort\":[],\"select\":[\"id\"],\"limit\":3}",
+  )
+  command[3] = kit + "/bad-recipe.json"
+  refused(command, kit + "/schema-refusal.json")
+  command[3] = kit + "/recipe.json"
+  save(kit + "/bad-number.csv", "id,team,score,note\n007,A,nope,skip\n")
+  command[1] = "csv"
+  command[2] = kit + "/bad-number.csv"
+  refused(command, kit + "/number-refusal.json")
+  command[2] = kit + "/missing.csv"
+  refused(command, kit + "/file-refusal.json")
+  command[2] = "-"
+  refused(command, kit + "/stdin-refusal.json")
+  command[2] = kit + "/input.csv"
+  assert_eq(success(command), output)
+  assert_eq(read(kit + "/input.csv"), original)
+  assert_eq(read(kit + "/recipe.json"), recipe)
+  println(
+    "PASS: all four input formats, stable top-three query, explicit number comparison preserving original types, JSON/CSV/XLSX outputs and actual reopen, four fail-closed refusals, retry and source/recipe retention",
+  )
+}

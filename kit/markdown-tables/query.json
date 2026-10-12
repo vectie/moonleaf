@@ -1,0 +1,1 @@
+{"version":1,"filters":[{"column":"Decision","mode":"text","op":"eq","value":"shortlist"}],"sort":[{"column":"Monthly cost","mode":"number","direction":"asc","blanks":"last"}],"select":["Vendor ID","Vendor","Monthly cost","Notes"],"limit":100}

@@ -4,3 +4,7 @@ import {
   "vectie/moonleaf/scene",
   "vectie/moonleaf/xml",
 }
+
+import {
+  "moonbitlang/core/encoding/utf8",
+} for "test"

@@ -1,0 +1,1 @@
+[{"id":"001","amount":"","_source":"north","_source_row":1},{"id":"002","amount":"12","_source":"north","_source_row":2},{"id":"003","amount":"3","_source":"south","_source_row":1},{"id":"004","amount":0,"active":false,"_source":"web","_source_row":1},{"id":"005","active":true,"_source":"web","_source_row":2},{"id":"006","amount":2.5,"_source":"batch","_source_row":1}]

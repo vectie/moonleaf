@@ -1,0 +1,7 @@
+Customer ID,Enabled,Gross amount,Memo,internal
+001, YES , 12.50 ,"北, customer",drop
+002,NO,NULL,,drop
+1,YES,-2e1,=1+1,drop
+004,NULL,0,NULL,drop
+005,YES,3.25,"line one
+line ""two""",drop

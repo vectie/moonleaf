@@ -1,0 +1,1 @@
+{"sheets":[{"name":"JSON data","rows":[["id","customer","amount","active","note"],["001","Acme","20","TRUE",""],["002","東京 🐈\n=1+1","0","TRUE",""],["003","unchanged","-3","FALSE","a,\"b\"\nnext"]]}]}

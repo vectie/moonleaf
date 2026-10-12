@@ -1,0 +1,1 @@
+{"sheets":[{"name":"工作表1","rows":[["id","customer","amount","active","note"],["001","Acme","20","true",""],["002","東京 🐈\n=1+1","0","true",""],["003","unchanged","-3","false","a,\"b\"\nnext"]]}]}

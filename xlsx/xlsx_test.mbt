@@ -74,6 +74,23 @@ fn sample_package() -> @opc.Package {
 }
 
 ///|
+test "batch editing rejects formula cells without changing the package" {
+  let original = sample_package()
+  let rejected = try {
+    ignore(
+      @xlsx.set_cells_text(original, "Budget & Plan", [(1, 7, "overwrite")]),
+    )
+    false
+  } catch {
+    @xlsx.XlsxError::InvalidWorkbook(_) => true
+    _ => false
+  }
+  assert_true(rejected)
+  let workbook = @xlsx.read(original)
+  assert_true(workbook.sheets[0].cells[6].value is Formula(..))
+}
+
+///|
 test "read rejects a sharedStrings relationship type with a malicious suffix" {
   let source = sample_package().replace_text(
     "xl/_rels/workbook.xml.rels", "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet1.xml\"/><Relationship Id=\"rId2\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings-malicious\" Target=\"sharedStrings.xml\"/></Relationships>",
@@ -236,6 +253,38 @@ test "set_cell_text rejects invalid coordinates" {
   } noraise {
     _ => fail("expected invalid coordinates")
   }
+}
+
+///|
+test "text edits reject XML control characters and preserve allowed whitespace" {
+  let original = sample_package()
+  let single_rejected = try {
+    ignore(@xlsx.set_cell_text(original, "Budget & Plan", 1, 1, "bad\u{0000}"))
+    false
+  } catch {
+    @xlsx.XlsxError::InvalidWorkbook(_) => true
+    _ => false
+  }
+  assert_true(single_rejected)
+  let batch_rejected = try {
+    ignore(
+      @xlsx.set_cells_text(original, "Budget & Plan", [
+        (1, 1, "first"),
+        (1, 2, "bad\u{000B}"),
+      ]),
+    )
+    false
+  } catch {
+    @xlsx.XlsxError::InvalidWorkbook(_) => true
+    _ => false
+  }
+  assert_true(batch_rejected)
+  let edited = @xlsx.set_cell_text(
+    original, "Budget & Plan", 1, 1, "line\nwith\ttab",
+  )
+  let workbook = @xlsx.read(edited)
+  assert_eq(workbook.sheets[0].cells[0].value, Text("line\nwith\ttab"))
+  assert_eq(original.text("custom/preserved.txt"), "leave me alone")
 }
 
 ///|

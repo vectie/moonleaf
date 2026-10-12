@@ -67,3 +67,67 @@ moon fmt
 ## License
 
 Apache-2.0. See package-level provenance notes for behavioral references.
+
+## Reshape imported tables
+
+[Pivot long observations](docs/PIVOT_TABLES.md) into a wide comparison using
+explicit identifier, key and value columns, then export a fresh CSV, JSON or
+XLSX copy. Duplicate cells are rejected unless an explicit first/last policy is
+chosen. This complements [unpivot](docs/UNPIVOT_TABLES.md) and
+[grouped summaries](docs/SUMMARY_TABLES.md).
+
+## Import an explicit XLSX range
+
+[Select a worksheet, rectangle and header policy](docs/XLSX_TABLES.md) to import
+typed scalar values into the same Table pipeline, query them and export a new
+CSV/JSON/XLSX table. Sparse positions and text identifiers are preserved;
+selected formulas, errors and intersecting merges are refused. Dates remain raw
+serials and the original workbook is never rewritten by extraction.
+
+## Import CSV/TSV as explicitly typed data
+
+[Apply a reusable column schema](docs/TYPED_DELIMITED.md) to preserve text IDs,
+convert chosen amount/Boolean columns, name missing-value markers and rename or
+select columns. Export a fresh JSON/CSV/XLSX dataset, or pass the typed Table to
+existing queries and summaries. No values or types are guessed.
+
+## Correct one DOCX text occurrence
+
+[Inspect and select a supported text element](docs/TARGETED_DOCX.md), including
+one repeated paragraph or table-cell value, and write a fresh reopened copy.
+Other occurrences and package parts remain unchanged; the request is tied to the
+inspected source digest and exact expected text.
+
+### Presentation review outlines
+
+`cmd/pptx-outline` exports ordered slide text, ordinary tables and linked speaker
+notes as fresh JSON or Markdown, with the original digest and source references.
+Hidden slides remain visible in the outline; unsupported content is disclosed.
+See [the workflow and limits](docs/PRESENTATION_OUTLINE.md).
+
+## Edit a scoped review sheet
+
+[Export selected CSV/TSV columns for editing](docs/REVIEW_SHEETS.md), retain stable
+row keys, and import changed cells into the existing typed correction recipe.
+The Python host adapter creates a fresh full-table copy with original row order,
+unselected columns and text-value readback evidence. Reordered review sheets are
+supported; source changes, missing keys and existing destinations are refused.
+
+## Carry review edits onto a newer export
+
+[Compare original, reviewed and current values](docs/REBASE_REVIEW_EDITS.md),
+resolve conflicting cells explicitly, and create an ordinary proposal bound to
+the current CSV/TSV source. Unrelated current changes and added records survive;
+already-applied edits need no second correction and deleted rows stay absent.
+
+## Combine independent reviewed corrections
+
+[Merge two frozen CSV/TSV proposals](docs/MERGE_REVIEW_EDITS.md) against one
+retained source: keep disjoint changes, count shared agreement once and resolve
+conflicting values explicitly before the existing verified-copy workflow.
+
+## Review assigned records with context
+
+[Export explicit record batches](docs/REVIEW_BATCHES.md) with immutable context
+columns, collect only the assigned corrections, and continue through the existing
+full-source proposal, merge, selection, rebase and verified-copy workflow.

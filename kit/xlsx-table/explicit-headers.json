@@ -1,0 +1,12 @@
+{
+  "sheet": "Sales & Returns",
+  "range": "B4:G5",
+  "header": [
+    "id",
+    "name",
+    "amount",
+    "active",
+    "serial",
+    "note"
+  ]
+}

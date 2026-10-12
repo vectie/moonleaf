@@ -1,0 +1,5 @@
+{"id":"001","team":"A","score":2,"note":"=1+1"}
+{"id":"002","team":"A","score":10,"note":"priority"}
+{"id":"003","team":"B","score":10,"note":"priority"}
+{"id":"004","team":"A","score":10,"note":"needs, review"}
+{"id":"005","team":"A","score":99,"note":"skip"}

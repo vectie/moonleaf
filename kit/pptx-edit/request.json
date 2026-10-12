@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "source_sha256": "7d6429227fa60a47453e496ee7c40321f44431e42abf5a61e759df73d31bf3d1",
+  "target": "slide:1/cSld:1/spTree:1/grpSp:5/sp:3/txBody:3/p:3/r:1/t:1",
+  "expected": "Acme",
+  "replacement": "  Client B & <雪😀>\r\n\t "
+}

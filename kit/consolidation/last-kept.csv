@@ -1,0 +1,12 @@
+"id","region","note","active","amount","_source","_source_row"
+"a|b","c","line 1
+line 2","false","11","north","2"
+"only","西","unique","true","13","north","4"
+"a","b|c","separate tuple","false","21","south","2"
+"1","北","leading zero matters","false","31","web","2"
+"é","x","composed","false","32","web","3"
+"é","x","decomposed","false","33","web","4"
+"quote""key","南","quote last","false","41","batch","2"
+"002","south","last tab key","true","42","batch","3"
+"001","北","newest
+東京","true","43","batch","4"

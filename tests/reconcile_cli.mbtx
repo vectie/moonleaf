@@ -1,0 +1,172 @@
+///|
+import {
+  "moonbitlang/core/env",
+  "moonbitlang/core/json",
+}
+
+///|
+extern "js" fn invoke(args : Array[String]) -> String =
+  #|args => { const r = require('node:child_process').spawnSync('node', args, {encoding:'utf8'}); return JSON.stringify({status:r.status, stdout:r.stdout, stderr:r.stderr}); }
+
+///|
+extern "js" fn save(path : String, value : String) -> Unit =
+  #|(path, value) => require('node:fs').writeFileSync(path,value)
+
+///|
+extern "js" fn read(path : String) -> String =
+  #|path => require('node:fs').readFileSync(path,'utf8')
+
+///|
+extern "js" fn export_xlsx(args : Array[String], path : String) -> Bool =
+  #|(args,path) => { const r = require('node:child_process').spawnSync('node',args); if(r.status!==0 || !r.stdout || r.stdout[0]!==80 || r.stdout[1]!==75) return false; require('node:fs').writeFileSync(path,r.stdout); return true; }
+
+///|
+fn success(args : Array[String]) -> String raise {
+  let result = @json.parse(invoke(args))
+  guard result is Object(fields) &&
+    fields.get("status") == Some(Json::number(0)) &&
+    fields.get("stdout") is Some(String(output)) &&
+    fields.get("stderr") == Some(Json::string("")) else {
+    fail("Expected success: " + result.stringify())
+  }
+  output
+}
+
+///|
+fn refused(args : Array[String], evidence : String) -> Unit raise {
+  let result = @json.parse(invoke(args))
+  guard result is Object(fields) &&
+    fields.get("status") == Some(Json::number(1)) &&
+    fields.get("stdout") == Some(Json::string("")) &&
+    fields.get("stderr") is Some(String(message)) &&
+    message != "" else {
+    fail("Expected fail-closed refusal: " + result.stringify())
+  }
+  save(evidence, result.stringify())
+}
+
+///|
+fn records(output : String) -> Array[Json] raise {
+  guard @json.parse(output) is Array(rows) else { fail("Expected JSON array") }
+  rows
+}
+
+///|
+fn main raise {
+  let args = @env.args()
+  guard args.length() == 6 else {
+    abort(
+      "reconcile_cli.mbtx CLI FIXTURE_DIR EXISTING_EVIDENCE_DIR PREVIEW_CLI",
+    )
+  }
+  let cli = args[2]
+  let fixtures = args[3]
+  let evidence = args[4]
+  let before_text = read(fixtures + "/before.csv")
+  let after_text = read(fixtures + "/after.tsv")
+  let command = [
+    cli,
+    "all",
+    "json",
+    "[\"account\",\"region\"]",
+    "csv",
+    fixtures + "/before.csv",
+    "tsv",
+    fixtures + "/after.tsv",
+  ]
+  let output = success(command)
+  let rows = records(output)
+  assert_eq(rows.length(), 4)
+  for i, change in ["unchanged", "changed", "removed", "added"] {
+    guard rows[i] is Object(row) else { abort("Expected record") }
+    assert_eq(row.get("_change"), Some(Json::string(change)))
+  }
+  guard rows[0] is Object(first) &&
+    rows[2] is Object(removed) &&
+    rows[3] is Object(added) else {
+    abort("records")
+  }
+  assert_eq(first.get("account"), Some(Json::string("001")))
+  assert_eq(first.get("_after_row"), Some(Json::number(2)))
+  assert_eq(removed.get("_after_row"), None)
+  assert_eq(added.get("_before_row"), None)
+  assert_eq(added.get("after.note"), Some(Json::string("=1+1")))
+  save(evidence + "/all.json", output)
+  command[2] = "csv"
+  let csv = success(command)
+  assert_true(csv.contains("\"=1+1\""))
+  assert_true(
+    csv.has_prefix(
+      "\"account\",\"region\",\"_change\",\"_before_row\",\"_after_row\"",
+    ),
+  )
+  save(evidence + "/all.csv", csv)
+  command[2] = "xlsx"
+  assert_true(export_xlsx(command, evidence + "/all.xlsx"))
+  let reopened = success([args[5], evidence + "/all.xlsx"])
+  guard @json.parse(reopened) is { "sheets": Array(sheets), .. } &&
+    sheets.length() == 1 &&
+    sheets[0] is { "rows": Array(sheet_rows), .. } &&
+    sheet_rows.length() == 5 &&
+    sheet_rows[1] is Array(first_row) &&
+    sheet_rows[4] is Array(added_row) else {
+    abort("Reopen actual XLSX")
+  }
+  assert_eq(first_row[0], Json::string("001"))
+  assert_eq(first_row[2], Json::string("unchanged"))
+  assert_eq(added_row[8], Json::string("=1+1"))
+  save(evidence + "/all-xlsx-reopened.json", reopened)
+  command[1] = "changes"
+  command[2] = "json"
+  let changes = success(command)
+  assert_eq(records(changes).length(), 3)
+  save(evidence + "/changes.json", changes)
+  command[1] = "all"
+  command[4] = "json"
+  command[5] = fixtures + "/before.json"
+  command[6] = "jsonl"
+  command[7] = fixtures + "/after.jsonl"
+  let typed = success(command)
+  guard records(typed)[0] is Object(typed_first) else { abort("typed") }
+  assert_eq(typed_first.get("before.active"), Some(Json::boolean(false)))
+  assert_eq(typed_first.get("before.amount"), Some(Json::number(0)))
+  save(evidence + "/typed.json", typed)
+  command[2] = "xlsx"
+  assert_true(export_xlsx(command, evidence + "/typed.xlsx"))
+  let typed_reopened = success([args[5], evidence + "/typed.xlsx"])
+  guard @json.parse(typed_reopened) is { "sheets": Array(typed_sheets), .. } &&
+    typed_sheets[0] is { "rows": Array(typed_rows), .. } &&
+    typed_rows[1] is Array(typed_row) else {
+    abort("Reopen typed XLSX")
+  }
+  assert_eq(typed_row[0], Json::string("001"))
+  assert_eq(typed_row[5], Json::string("0"))
+  assert_eq(typed_row[7], Json::string("FALSE"))
+  save(evidence + "/typed-xlsx-reopened.json", typed_reopened)
+  command[2] = "json"
+  command[4] = "csv"
+  command[5] = fixtures + "/before.csv"
+  command[6] = "csv"
+  command[7] = fixtures + "/duplicate.csv"
+  refused(command, evidence + "/duplicate-refusal.json")
+  command[6] = "tsv"
+  command[7] = fixtures + "/after.tsv"
+  assert_eq(success(command), output)
+  command[6] = "jsonl"
+  command[7] = fixtures + "/after.jsonl"
+  refused(command, evidence + "/schema-refusal.json")
+  command[6] = "tsv"
+  command[7] = fixtures + "/after.tsv"
+  command[3] = "[]"
+  refused(command, evidence + "/empty-keys-refusal.json")
+  command[3] = "[\"account\",\"region\"]"
+  command[7] = fixtures + "/missing-file.tsv"
+  refused(command, evidence + "/missing-file-refusal.json")
+  command[7] = "-"
+  refused(command, evidence + "/stdin-refusal.json")
+  assert_eq(read(fixtures + "/before.csv"), before_text)
+  assert_eq(read(fixtures + "/after.tsv"), after_text)
+  println(
+    "PASS: CSV/TSV and JSON/JSONL snapshots, composite keys, four outcomes, changes filter, JSON/CSV/XLSX outputs and actual XLSX reopen, typed values, five fail-closed refusals, retry and source retention",
+  )
+}

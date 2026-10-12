@@ -1,0 +1,8 @@
+Archive:  /workspace/scratch/665adc5202cf/.moonsuite-background/rounds-191-195-20261009/round193/evidence/cli-final/projected.xlsx
+    testing: [Content_Types].xml      OK
+    testing: _rels/.rels              OK
+    testing: xl/workbook.xml          OK
+    testing: xl/_rels/workbook.xml.rels   OK
+    testing: xl/styles.xml            OK
+    testing: xl/worksheets/sheet1.xml   OK
+No errors detected in compressed data of /workspace/scratch/665adc5202cf/.moonsuite-background/rounds-191-195-20261009/round193/evidence/cli-final/projected.xlsx.

@@ -1,0 +1,367 @@
+///|
+import {
+  "moonbitlang/core/env",
+  "moonbitlang/core/json",
+}
+
+///|
+extern "js" fn invoke(program : String, args : Array[String]) -> String =
+  #|(program,args) => { const r = require('node:child_process').spawnSync(program,args,{encoding:'utf8',maxBuffer:16000000}); return JSON.stringify({status:r.status,stdout:r.stdout,stderr:r.stderr}); }
+
+///|
+extern "js" fn export_binary(args : Array[String], path : String) -> Bool =
+  #|(args,path) => { const r = require('node:child_process').spawnSync('node',args,{maxBuffer:16000000}); if(r.status!==0 || r.stderr.length || r.stdout[0]!==80 || r.stdout[1]!==75) return false; require('node:fs').writeFileSync(path,r.stdout); return true; }
+
+///|
+extern "js" fn save(path : String, text : String) -> Unit =
+  #|(path,text) => require('node:fs').writeFileSync(path,text)
+
+///|
+extern "js" fn mkdir(path : String) -> Unit =
+  #|path => require('node:fs').mkdirSync(path,{recursive:true})
+
+///|
+extern "js" fn digest(path : String) -> String =
+  #|path => require('node:crypto').createHash('sha256').update(require('node:fs').readFileSync(path)).digest('hex')
+
+///|
+extern "js" fn bad_utf8(path : String) -> Unit =
+  #|path => require('node:fs').writeFileSync(path,Buffer.from([0xff,0xfe]))
+
+///|
+extern "js" fn sparse_oversize(path : String) -> Unit =
+  #|path => { const fs=require('node:fs'); const fd=fs.openSync(path,'w'); try{fs.ftruncateSync(fd,8388609);}finally{fs.closeSync(fd);} }
+
+///|
+fn success(args : Array[String]) -> String raise {
+  let result = @json.parse(invoke("node", args))
+  guard result
+    is {
+      "status": Number(0, ..),
+      "stdout": String(output),
+      "stderr": String(""),
+      ..
+    } else {
+    fail("Expected success: " + result.stringify())
+  }
+  output
+}
+
+///|
+fn refuse(args : Array[String], path : String) -> Unit raise {
+  let result = @json.parse(invoke("node", args))
+  guard result
+    is {
+      "status": Number(1, ..),
+      "stdout": String(""),
+      "stderr": String(error),
+      ..
+    } &&
+    error != "" else {
+    fail("Expected fail-closed refusal: " + result.stringify())
+  }
+  save(path, result.stringify())
+}
+
+///|
+fn string_cell(value : Json, uppercase : Bool) -> String {
+  match value {
+    String(text) => text
+    True => if uppercase { "TRUE" } else { "true" }
+    False => if uppercase { "FALSE" } else { "false" }
+    _ => value.stringify()
+  }
+}
+
+///|
+fn assert_preview(
+  text : String,
+  expected : Array[Json],
+  uppercase : Bool,
+) -> Unit raise {
+  guard @json.parse(text) is { "sheets": Array(sheets), .. } &&
+    sheets.length() == 1 &&
+    sheets[0] is { "rows": Array(rows), .. } &&
+    rows[0] is Array(headers) else {
+    fail("Expected workbook preview")
+  }
+  assert_eq(rows.length(), expected.length() + 1)
+  for i, object in expected {
+    guard object is Object(fields) else { fail("Expected object") }
+    assert_eq(fields.length(), headers.length())
+    let values : Array[Json] = []
+    for header in headers {
+      guard header is String(name) else { fail("Expected header") }
+      values.push(Json::string(string_cell(fields[name], uppercase)))
+    }
+    assert_eq(rows[i + 1], Json::array(values))
+  }
+}
+
+///|
+fn object(row : Array[Json], columns : Array[String]) -> Json {
+  let fields : Map[String, Json] = {}
+  for i, name in columns {
+    fields[name] = row[i]
+  }
+  Json::object(fields)
+}
+
+///|
+fn delimited(
+  rows : Array[Array[Json]],
+  columns : Array[String],
+  delimiter : String,
+  order : Array[Int],
+) -> String {
+  fn quote(text : String) -> String {
+    "\"" + text.replace_all(old="\"", new="\"\"") + "\""
+  }
+  let lines = [order.map(i => quote(columns[i])).join(delimiter)]
+  for row in rows {
+    lines.push(
+      order.map(i => quote(string_cell(row[i], false))).join(delimiter),
+    )
+  }
+  lines.join("\r\n") + "\r\n"
+}
+
+///|
+fn run() -> Unit raise {
+  let args = @env.args()
+  guard args.length() == 6 else {
+    abort("consolidate_cli.mbtx CLI KIT_DIR PREVIEW_CLI EVIDENCE_DIR")
+  }
+  let cli = args[2]
+  let kit = args[3]
+  let preview = args[4]
+  let evidence = args[5]
+  mkdir(kit)
+  mkdir(evidence)
+  let columns = ["id", "region", "note", "active", "amount"]
+  let rows : Array[Array[Json]] = [
+    ["001", "北", "=1+1", "false", "10"],
+    ["a|b", "c", "line 1\nline 2", "false", "11"],
+    ["quote\"key", "南", "comma, quote\"", "true", "12"],
+    ["only", "西", "unique", "true", "13"],
+    ["001", "北", "revised", "true", "20"],
+    ["a", "b|c", "separate tuple", "false", "21"],
+    ["002", "south", "tab\tinside", "true", "22"],
+    ["001", "北", "web", true, 30],
+    ["1", "北", "leading zero matters", false, 31],
+    ["é", "x", "composed", false, 32],
+    ["é", "x", "decomposed", false, 33],
+    ["001", "北", "batch revision", true, 40],
+    ["quote\"key", "南", "quote last", false, 41],
+    ["002", "south", "last tab key", true, 42],
+    ["001", "北", "newest\n東京", true, 43],
+  ]
+  let inputs = [
+    kit + "/north.csv",
+    kit + "/south.tsv",
+    kit + "/web.json",
+    kit + "/batch.jsonl",
+  ]
+  save(
+    inputs[0],
+    delimited(rows[0:4].to_array(), columns, ",", [0, 1, 2, 3, 4]),
+  )
+  save(
+    inputs[1],
+    delimited(rows[4:7].to_array(), columns, "\t", [1, 0, 4, 3, 2]),
+  )
+  save(
+    inputs[2],
+    Json::array(rows[7:11].to_array().map(row => object(row, columns))).stringify(),
+  )
+  save(
+    inputs[3],
+    rows[11:15]
+    .to_array()
+    .map(row => object(row, columns).stringify())
+    .join("\n") +
+    "\n",
+  )
+  let before = inputs.map(digest)
+  let sources = [
+    "north", "north", "north", "north", "south", "south", "south", "web", "web",
+    "web", "web", "batch", "batch", "batch", "batch",
+  ]
+  let source_rows = [1, 2, 3, 4, 1, 2, 3, 1, 2, 3, 4, 1, 2, 3, 4]
+  let first_winners = [1, 2, 3, 4, 1, 6, 7, 1, 9, 10, 11, 1, 3, 7, 1]
+  let last_winners = [15, 2, 13, 4, 15, 6, 14, 15, 9, 10, 11, 15, 13, 14, 15]
+  let counts = [5, 1, 2, 1, 5, 1, 2, 5, 1, 1, 1, 5, 2, 2, 5]
+  let command = [
+    cli,
+    "strict",
+    "first",
+    "kept",
+    "json",
+    "[\"id\",\"region\"]",
+    "north",
+    "csv",
+    inputs[0],
+    "south",
+    "tsv",
+    inputs[1],
+    "web",
+    "json",
+    inputs[2],
+    "batch",
+    "jsonl",
+    inputs[3],
+  ]
+  for retention in ["first", "last"] {
+    command[2] = retention
+    let winners = if retention == "first" {
+      first_winners
+    } else {
+      last_winners
+    }
+    for table in ["kept", "report"] {
+      command[3] = table
+      let expected : Array[Json] = []
+      for i, row in rows {
+        if table == "kept" && winners[i] != i + 1 {
+          continue
+        }
+        guard object(row, columns) is Object(fields) else { abort("object") }
+        fields["_source"] = Json::string(sources[i])
+        fields["_source_row"] = Json::number(source_rows[i].to_double())
+        if table == "report" {
+          fields["_input_row"] = Json::number((i + 1).to_double())
+          fields["_disposition"] = Json::string(
+            if counts[i] == 1 {
+              "unique"
+            } else if winners[i] == i + 1 {
+              "kept"
+            } else {
+              "discarded"
+            },
+          )
+          fields["_kept_input_row"] = Json::number(winners[i].to_double())
+          fields["_group_size"] = Json::number(counts[i].to_double())
+        }
+        expected.push(Json::object(fields))
+      }
+      let prefix = kit + "/" + retention + "-" + table
+      command[4] = "json"
+      let json = success(command)
+      assert_eq(@json.parse(json), Json::array(expected))
+      save(prefix + ".json", json)
+      let reopened_json = success([preview, prefix + ".json"])
+      assert_preview(reopened_json, expected, true)
+      save(prefix + "-json-reopened.json", reopened_json)
+      command[4] = "csv"
+      save(prefix + ".csv", success(command))
+      let reopened_csv = success([preview, prefix + ".csv"])
+      assert_preview(reopened_csv, expected, false)
+      save(prefix + "-csv-reopened.json", reopened_csv)
+      command[4] = "xlsx"
+      assert_true(export_binary(command, prefix + ".xlsx"))
+      let reopened_xlsx = success([preview, prefix + ".xlsx"])
+      assert_preview(reopened_xlsx, expected, true)
+      save(prefix + "-xlsx-reopened.json", reopened_xlsx)
+      let archive = @json.parse(invoke("unzip", ["-t", prefix + ".xlsx"]))
+      guard archive is { "status": Number(0, ..), .. } else {
+        fail("ZIP integrity failed")
+      }
+      let xml_result = @json.parse(
+        invoke("unzip", ["-p", prefix + ".xlsx", "xl/worksheets/sheet1.xml"]),
+      )
+      guard xml_result is { "status": Number(0, ..), "stdout": String(xml), .. } else {
+        fail("XLSX sheet missing")
+      }
+      assert_true(!xml.contains("<f>"))
+      if retention == "first" || table == "report" {
+        assert_true(
+          xml.contains(
+            "t=\"inlineStr\" s=\"0\"><is><t xml:space=\"preserve\">=1+1</t>",
+          ),
+        )
+      }
+      save(prefix + "-worksheet.xml", xml)
+    }
+  }
+  // Refuse malformed or ambiguous inputs, then prove an unchanged successful retry.
+  command[2] = "first"
+  command[3] = "kept"
+  command[4] = "json"
+  let good = success(command)
+  let bad = evidence + "/bad.json"
+  command[17] = bad
+  for
+    i, text in [
+      "{", "[]", "[1]", "{\"id\":\"001\",\"region\":\"北\",\"note\":1e400,\"active\":true,\"amount\":2}",
+      "{\"id\":\"\",\"region\":\"北\",\"note\":\"bad\",\"active\":true,\"amount\":2}",
+      "{\"id\":1,\"region\":\"北\",\"note\":\"bad\",\"active\":true,\"amount\":2}",
+      "{\"id\":true,\"region\":\"北\",\"note\":\"bad\",\"active\":true,\"amount\":2}",
+      "{\"id\":\"001\",\"note\":\"missing key\",\"active\":true,\"amount\":2}",
+    ] {
+    save(bad, text)
+    refuse(command, evidence + "/input-refusal-\{i}.json")
+  }
+  bad_utf8(bad)
+  refuse(command, evidence + "/utf8-refusal.json")
+  command[17] = evidence + "/missing.jsonl"
+  refuse(command, evidence + "/missing-refusal.json")
+  command[17] = "-"
+  refuse(command, evidence + "/stdin-refusal.json")
+  command[17] = inputs[3]
+  for i, keys in ["[]", "[\"id\",\"id\"]", "[\"absent\"]", "[1]", "{}", "["] {
+    command[5] = keys
+    refuse(command, evidence + "/key-refusal-\{i}.json")
+  }
+  command[5] = "[\"id\",\"region\"]"
+  command[15] = "north"
+  refuse(command, evidence + "/label-refusal.json")
+  command[15] = "batch"
+  assert_eq(success(command), good)
+  let solo = [
+    cli, "strict", "last", "kept", "json", "[\"id\"]", "fixture", "csv", bad,
+  ]
+  save(bad, "id,v\nx,\"unterminated")
+  refuse(solo, evidence + "/csv-refusal.json")
+  save(bad, "id,_source\nx,collision\n")
+  refuse(solo, evidence + "/source-collision.json")
+  save(bad, "id,_disposition\nx,collision\n")
+  refuse(solo, evidence + "/report-collision.json")
+  save(bad, "id\n" + Array::make(10001, "x\n").join(""))
+  refuse(solo, evidence + "/row-bound.json")
+  sparse_oversize(bad)
+  refuse(solo, evidence + "/file-bound.json")
+  save(bad, "id,region\n001,北\n")
+  command[16] = "csv"
+  command[17] = bad
+  refuse(command, evidence + "/strict-refusal.json")
+  command[1] = "union"
+  command[2] = "last"
+  let union = @json.parse(success(command))
+  guard union is Array(union_rows) else { fail("Expected union output") }
+  assert_true(
+    union_rows.contains(
+      @json.parse(
+        "{\"id\":\"001\",\"region\":\"北\",\"_source\":\"batch\",\"_source_row\":1}",
+      ),
+    ),
+  )
+  save(kit + "/union-kept.json", union.stringify())
+  assert_eq(inputs.map(digest), before)
+  save(
+    evidence + "/original-input-sha256.json",
+    Json::array(before.map(Json::string)).stringify(),
+  )
+  println(
+    "PASS: four source formats; both retention choices and complete kept/report row equality; all CSV/JSON/XLSX exports reopened; XLSX ZIP and inline-text checks; exact composite keys, originals, malformed/schema/key/provenance/UTF-8/bounds refusals, union and valid retry",
+  )
+}
+
+///|
+fn main {
+  run() catch {
+    error => {
+      println("Verifier failed: \{Repr(error)}")
+      abort("CLI verifier failed")
+    }
+  }
+}

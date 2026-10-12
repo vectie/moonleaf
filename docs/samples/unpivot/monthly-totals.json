@@ -1,0 +1,7 @@
+{
+  "group_by": ["month"],
+  "measures": [
+    {"name": "reported_stores", "op": "count"},
+    {"name": "total", "op": "sum", "column": "sales"}
+  ]
+}

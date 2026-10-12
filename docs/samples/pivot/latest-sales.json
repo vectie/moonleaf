@@ -1,0 +1,1 @@
+{"id_columns":["store"],"key_column":"month","value_column":"sales","duplicates":"last"}

@@ -1,0 +1,8 @@
+store,region,month,sales,note
+002,West,Feb,75,submitted first
+001,North,Jan,100,source note omitted
+002,West,Jan,0,zero retained
+001,North,Mar,120,March forecast
+003,North,Feb,,explicit blank
+002,West,Mar,80,March forecast
+003,North,Jan,50,January actual

@@ -1,0 +1,12 @@
+{
+  "producer": "XlsxWriter",
+  "version": "3.2.9",
+  "source": "make_fixture.py",
+  "synthetic_business_content": true,
+  "formula_caches": "Explicit fixture values supplied to write_formula; not recalculated or claimed fresh.",
+  "sha256": {
+    "original.xlsx": "4b24f6528c90fb837a416692eb5d498412b82939aa65453af6d2fd96278f1898",
+    "client-copy.xlsx": "9b8ef59cb991fea1d51bad1bf2b0564235a8b5ef5bb1ca92f0e85a768b6adea7",
+    "style-only.xlsx": "ec1ab7dbe00233d1ed98b1663cb711711e567960f98c3aa52d76351c393a8c6b"
+  }
+}

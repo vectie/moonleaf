@@ -1,0 +1,4 @@
+store,region,Jan,Feb,Mar
+001,North,100,120,
+002,West,0,75,80
+003,North,50,,-10

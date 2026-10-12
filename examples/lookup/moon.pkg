@@ -1,0 +1,2 @@
+import { "vectie/moonleaf/jsontable", "moonbitlang/core/env", "moonbitlang/core/encoding/base64" }
+options("is-main": true)

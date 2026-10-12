@@ -1,0 +1,91 @@
+{
+  "key_columns": [
+    "record"
+  ],
+  "edits": [
+    {
+      "key": [
+        "001"
+      ],
+      "column": "customer",
+      "before": {
+        "type": "text",
+        "value": "Aurora Labs"
+      },
+      "after": {
+        "type": "text",
+        "value": "CLIENT-0001"
+      }
+    },
+    {
+      "key": [
+        "002"
+      ],
+      "column": "customer",
+      "before": {
+        "type": "text",
+        "value": "Orbit Ltd"
+      },
+      "after": {
+        "type": "text",
+        "value": "CLIENT-0002"
+      }
+    },
+    {
+      "key": [
+        "003"
+      ],
+      "column": "customer",
+      "before": {
+        "type": "text",
+        "value": "Aurora Labs"
+      },
+      "after": {
+        "type": "text",
+        "value": "CLIENT-0001"
+      }
+    },
+    {
+      "key": [
+        "001"
+      ],
+      "column": "email",
+      "before": {
+        "type": "text",
+        "value": "aurora@example.test"
+      },
+      "after": {
+        "type": "text",
+        "value": "[removed]"
+      }
+    },
+    {
+      "key": [
+        "002"
+      ],
+      "column": "email",
+      "before": {
+        "type": "text",
+        "value": "orbit@example.test"
+      },
+      "after": {
+        "type": "text",
+        "value": "[removed]"
+      }
+    },
+    {
+      "key": [
+        "003"
+      ],
+      "column": "email",
+      "before": {
+        "type": "text",
+        "value": "aurora@example.test"
+      },
+      "after": {
+        "type": "text",
+        "value": "[removed]"
+      }
+    }
+  ]
+}

@@ -24,6 +24,17 @@ pub fn open_with_policy(
   policy : ArchivePolicy,
 ) -> @scene.Document raise MoonLeafError {
   let lower = filename.to_lower()
+  if lower.has_suffix(".json") ||
+    lower.has_suffix(".jsonl") ||
+    lower.has_suffix(".ndjson") {
+    let text = @utf8.decode(Bytes::from_array(content)) catch {
+      _ => raise MoonLeafError::Document("invalid UTF-8")
+    }
+    let table = @jsontable.parse(text, jsonl=!lower.has_suffix(".json")) catch {
+      error => raise MoonLeafError::Document("\{Repr(error)}")
+    }
+    return @scene.Document::WorkbookDocument(table.workbook())
+  }
   if lower.has_suffix(".csv") || lower.has_suffix(".tsv") {
     let text = @utf8.decode(Bytes::from_array(content)) catch {
       _ => raise MoonLeafError::Document("invalid UTF-8")

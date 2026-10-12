@@ -6,6 +6,9 @@ import {
 }
 
 // Values
+pub fn filter_row_indices(Array[String], RowFilter, String, Bool) -> Array[Int]
+
+pub fn sort_row_indices(Array[String], Bool) -> Array[Int]
 
 // Errors
 
@@ -77,6 +80,13 @@ pub(all) struct Rect {
 pub fn Rect::equal(Self, Self) -> Bool
 pub fn Rect::not_equal(Self, Self) -> Bool
 pub fn Rect::to_repr(Self) -> @debug.Repr
+
+pub(all) enum RowFilter {
+  Contains
+  Equals
+  NotEmpty
+  Empty
+}
 
 pub(all) struct Sheet {
   name : String

@@ -1,0 +1,23 @@
+{
+  "format": "moonleaf.pseudonym-copy-receipt.v1",
+  "source_sha256": "0708d288439fc7209d6e5d5cc3f39c7122150f9036c5fd68c707414f2627258f",
+  "copy_sha256": "146d6e38485972c69233df5854ba3cce699bf2ba18946bf8af520fe4ee1fa60e",
+  "recipe_sha256": "06a3a52c72c6397e766d194c7cc1c119901d855a4917eb8f79a8aa69c37d546c",
+  "rows": 4,
+  "columns": [
+    "record",
+    "customer",
+    "email",
+    "amount",
+    "note"
+  ],
+  "text_values_reopened": true,
+  "render_verified": false,
+  "diagnostics": [
+    "Pseudonymized data may remain identifiable; inspect every column before sharing.",
+    "Sequential tokens preserve equality within one column and file, not across files.",
+    "Keys and unselected fields remain unchanged and may identify people.",
+    "CSV/TSV formula-looking strings remain text here but may execute in spreadsheet apps.",
+    "Text-value reopen only; no MoonBit session, visual rendering, delivery or acceptance claim."
+  ]
+}

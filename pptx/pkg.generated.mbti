@@ -10,7 +10,15 @@ import {
 // Values
 pub fn read(@opc.Package) -> @scene.Presentation raise PptxError
 
+pub fn read_outline(@opc.Package) -> PresentationOutline raise PptxError
+
+pub fn read_tables(@opc.Package) -> Array[SlideTable] raise PptxError
+
 pub fn replace_text(@opc.Package, String, String) -> @opc.Package raise PptxError
+
+pub fn set_target_text(@opc.Package, String, String, String) -> @opc.Package raise PptxError
+
+pub fn text_targets(@opc.Package) -> Array[TextTarget] raise PptxError
 
 // Errors
 pub(all) suberror PptxError {
@@ -27,6 +35,68 @@ pub fn PptxError::to_repr(Self) -> @debug.Repr
 pub fn PptxError::to_string(Self) -> String
 
 // Types and methods
+pub(all) struct OutlineBlock {
+  kind : String
+  shape_id : String
+  paragraphs : Array[String]
+  rows : Array[Array[String]]
+} derive(Eq, ToJson, @debug.Debug)
+pub fn OutlineBlock::equal(Self, Self) -> Bool
+pub fn OutlineBlock::not_equal(Self, Self) -> Bool
+pub fn OutlineBlock::to_json(Self) -> Json
+pub fn OutlineBlock::to_repr(Self) -> @debug.Repr
+
+pub(all) struct PresentationOutline {
+  slides : Array[SlideOutline]
+  warnings : Array[String]
+} derive(Eq, ToJson, @debug.Debug)
+pub fn PresentationOutline::equal(Self, Self) -> Bool
+pub fn PresentationOutline::not_equal(Self, Self) -> Bool
+pub fn PresentationOutline::to_json(Self) -> Json
+pub fn PresentationOutline::to_markdown(Self) -> String
+pub fn PresentationOutline::to_repr(Self) -> @debug.Repr
+
+pub(all) struct SlideOutline {
+  number : Int
+  part : String
+  name : String
+  hidden : Bool
+  title : String
+  blocks : Array[OutlineBlock]
+  notes_part : String?
+  notes : Array[OutlineBlock]
+} derive(Eq, ToJson, @debug.Debug)
+pub fn SlideOutline::equal(Self, Self) -> Bool
+pub fn SlideOutline::not_equal(Self, Self) -> Bool
+pub fn SlideOutline::to_json(Self) -> Json
+pub fn SlideOutline::to_repr(Self) -> @debug.Repr
+
+pub(all) struct SlideTable {
+  id : String
+  slide_number : Int
+  part : String
+  shape_id : String
+  hidden_slide : Bool
+  rows : Array[Array[String]]
+  refusal : String?
+} derive(Eq, ToJson, @debug.Debug)
+pub fn SlideTable::equal(Self, Self) -> Bool
+pub fn SlideTable::not_equal(Self, Self) -> Bool
+pub fn SlideTable::to_json(Self) -> Json
+pub fn SlideTable::to_repr(Self) -> @debug.Repr
+
+pub(all) struct TextTarget {
+  id : String
+  slide_number : Int
+  part : String
+  shape_id : String
+  hidden_slide : Bool
+  text : String
+} derive(Eq, ToJson, @debug.Debug)
+pub fn TextTarget::equal(Self, Self) -> Bool
+pub fn TextTarget::not_equal(Self, Self) -> Bool
+pub fn TextTarget::to_json(Self) -> Json
+pub fn TextTarget::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 

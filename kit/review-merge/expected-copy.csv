@@ -1,0 +1,4 @@
+"id","name","status","region","private"
+"001","Ada, A.","approved","east","retain A"
+"002","Bo","held","east","retain B"
+"003","Chen","open","west","retain C"

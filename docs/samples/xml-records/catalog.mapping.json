@@ -1,0 +1,13 @@
+{
+  "record_path": ["{urn:moonleaf:catalog}catalog", "{urn:moonleaf:catalog}item"],
+  "fields": [
+    {"name": "sku", "path": [], "attribute": "sku"},
+    {"name": "supplier", "path": [], "attribute": "{urn:moonleaf:supplier}id"},
+    {"name": "name", "path": ["{urn:moonleaf:catalog}name"]},
+    {"name": "price", "path": ["{urn:moonleaf:catalog}price"]},
+    {"name": "currency", "path": ["{urn:moonleaf:catalog}price"], "attribute": "currency"},
+    {"name": "stock", "path": ["{urn:moonleaf:catalog}stock"]},
+    {"name": "barcode", "path": ["{urn:moonleaf:catalog}barcode"]},
+    {"name": "tags", "path": ["{urn:moonleaf:catalog}tag"], "repeated": "join", "separator": " | "}
+  ]
+}

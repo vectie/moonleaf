@@ -1,0 +1,5 @@
+"record","customer","email","amount","note"
+"001","CLIENT-0001","[removed]","12.50","First, renewal"
+"002","CLIENT-0002","[removed]","20.00","A ""quoted"" note"
+"003","CLIENT-0001","[removed]","30.00",""
+"004","","","0","No customer"

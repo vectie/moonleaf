@@ -22,9 +22,14 @@ pub(all) struct Table {
   rows : Array[Array[String]]
   delimiter : Char
 }
+pub fn Table::delete_columns(Self, Int, Int) -> (Self, Int) raise CsvError
+pub fn Table::delete_rows(Self, Int, Int) -> (Self, Int) raise CsvError
+pub fn Table::insert_columns(Self, Int, Int) -> Self raise CsvError
+pub fn Table::insert_rows(Self, Int, Int) -> Self raise CsvError
 pub fn Table::serialize(Self) -> String
 pub fn Table::serialize_quoted(Self) -> String
 pub fn Table::set_cell_text(Self, Int, Int, String) -> Self raise CsvError
+pub fn Table::set_cells_text(Self, Array[(Int, Int, String)]) -> Self raise CsvError
 pub fn Table::workbook(Self, name? : String) -> @scene.Workbook
 
 // Type aliases

@@ -1,0 +1,5 @@
+"change_id","key_json","column","before","after","decision"
+"change-0001","[""001""]","status","pending","approved","reject"
+"change-0002","[""001""]","name","Ada","Ada, A.","accept"
+"change-0003","[""002""]","status","open","","reject"
+"change-0004","[""003""]","status","","ready","accept"

@@ -1,0 +1,63 @@
+{
+  "key_columns": [
+    "id"
+  ],
+  "edits": [
+    {
+      "key": [
+        "001"
+      ],
+      "column": "status",
+      "before": {
+        "type": "text",
+        "value": "pending"
+      },
+      "after": {
+        "type": "text",
+        "value": "approved"
+      }
+    },
+    {
+      "key": [
+        "001"
+      ],
+      "column": "name",
+      "before": {
+        "type": "text",
+        "value": "Ada"
+      },
+      "after": {
+        "type": "text",
+        "value": "Ada, A."
+      }
+    },
+    {
+      "key": [
+        "002"
+      ],
+      "column": "status",
+      "before": {
+        "type": "text",
+        "value": "open"
+      },
+      "after": {
+        "type": "text",
+        "value": ""
+      }
+    },
+    {
+      "key": [
+        "003"
+      ],
+      "column": "status",
+      "before": {
+        "type": "text",
+        "value": ""
+      },
+      "after": {
+        "type": "text",
+        "value": "ready"
+      }
+    }
+  ]
+}

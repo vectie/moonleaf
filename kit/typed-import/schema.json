@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "columns": [
+    {
+      "source": "Customer ID",
+      "name": "id",
+      "kind": {
+        "type": "text"
+      },
+      "trim": false,
+      "nulls": []
+    },
+    {
+      "source": "Gross amount",
+      "name": "amount",
+      "kind": {
+        "type": "number"
+      },
+      "trim": true,
+      "nulls": [
+        "",
+        "NULL"
+      ]
+    },
+    {
+      "source": "Enabled",
+      "name": "active",
+      "kind": {
+        "type": "boolean",
+        "true": "YES",
+        "false": "NO"
+      },
+      "trim": true,
+      "nulls": [
+        "NULL"
+      ]
+    },
+    {
+      "source": "Memo",
+      "name": "note",
+      "kind": {
+        "type": "text"
+      },
+      "trim": false,
+      "nulls": [
+        "NULL"
+      ]
+    }
+  ]
+}

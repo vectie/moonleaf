@@ -1,0 +1,5 @@
+"change_id","key_json","column","original","reviewed","current","status","decision"
+"change-0001","[""001""]","status","pending","approved","awaiting","conflict","use-reviewed"
+"change-0002","[""001""]","name","Ada","Ada, A.","Ada","ready","use-reviewed"
+"change-0003","[""002""]","status","open","","","already_applied","keep-current"
+"change-0004","[""003""]","status","","ready","","missing_row","keep-current"

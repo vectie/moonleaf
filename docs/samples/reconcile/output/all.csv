@@ -1,0 +1,5 @@
+"account","region","_change","_before_row","_after_row","before.amount","after.amount","before.note","after.note"
+"001","北","unchanged","1","2","10","10","retained","retained"
+"002","南","changed","2","1","20","25","changed","changed"
+"003","東","removed","3","","30","","removed",""
+"004","西","added","","3","","40","","=1+1"

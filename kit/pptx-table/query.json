@@ -1,0 +1,1 @@
+{"version":1,"filters":[{"column":"amount","mode":"number","op":"ge","value":1000}],"sort":[{"column":"amount","mode":"number","direction":"desc","blanks":"last"}],"select":["id","supplier","amount","notes"],"limit":10}

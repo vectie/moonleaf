@@ -1,0 +1,106 @@
+[
+  {
+    "case": "missing-sheet",
+    "stderr": "MoonLeaf XLSX table import failed: InvalidXlsxSelection(\"SheetNotFound(\\\"absent\\\")\")\n"
+  },
+  {
+    "case": "case-sheet",
+    "stderr": "MoonLeaf XLSX table import failed: InvalidXlsxSelection(\"SheetNotFound(\\\"sales & returns\\\")\")\n"
+  },
+  {
+    "case": "bad-range",
+    "stderr": "MoonLeaf XLSX table import failed: InvalidXlsxSelection(\"InvalidCellReference(\\\"b3:G8\\\")\")\n"
+  },
+  {
+    "case": "formula",
+    "stderr": "MoonLeaf XLSX table import failed: InvalidXlsxSelection(\"InvalidWorkbook(\\\"formula selected at A1\\\")\")\n"
+  },
+  {
+    "case": "error",
+    "stderr": "MoonLeaf XLSX table import failed: InvalidXlsxSelection(\"InvalidWorkbook(\\\"unsupported selected cell type e at A2\\\")\")\n"
+  },
+  {
+    "case": "merge",
+    "stderr": "MoonLeaf XLSX table import failed: InvalidXlsxSelection(\"InvalidWorkbook(\\\"selected range intersects merged cells\\\")\")\n"
+  },
+  {
+    "case": "duplicate-header",
+    "stderr": "MoonLeaf XLSX table import failed: InvalidXlsxSelection(\"headers must be exact unique nonempty text\")\n"
+  },
+  {
+    "case": "header-count",
+    "stderr": "MoonLeaf XLSX table import failed: InvalidXlsxSelection(\"explicit header count must match selected width\")\n"
+  },
+  {
+    "case": "oversize-range",
+    "stderr": "MoonLeaf XLSX table import failed: InvalidXlsxSelection(\"InvalidWorkbook(\\\"selection exceeds 10001 rows, 128 columns or 100000 cells\\\")\")\n"
+  },
+  {
+    "case": "unknown-field",
+    "stderr": "MoonLeaf XLSX table import failed: Failure(\"cmd/xlsx-table/main.mbt:42:5-42:63@vectie/moonleaf FAILED: Selection requires exactly sheet, range and header\")\n"
+  },
+  {
+    "case": "duplicate-cell",
+    "stderr": "MoonLeaf XLSX table import failed: InvalidXlsxSelection(\"InvalidWorkbook(\\\"duplicate selected coordinate: B4\\\")\")\n"
+  },
+  {
+    "case": "array-follower",
+    "stderr": "MoonLeaf XLSX table import failed: InvalidXlsxSelection(\"InvalidWorkbook(\\\"selection intersects formula range: A1:G8\\\")\")\n"
+  },
+  {
+    "case": "invalid-number",
+    "stderr": "MoonLeaf XLSX table import failed: InvalidXlsxSelection(\"InvalidWorkbook(\\\"expected finite JSON number at D4\\\")\")\n"
+  },
+  {
+    "case": "invalid-boolean",
+    "stderr": "MoonLeaf XLSX table import failed: InvalidXlsxSelection(\"InvalidWorkbook(\\\"invalid boolean cell: no\\\")\")\n"
+  },
+  {
+    "case": "missing-shared-string",
+    "stderr": "MoonLeaf XLSX table import failed: InvalidXlsxSelection(\"InvalidWorkbook(\\\"invalid shared string index: 99\\\")\")\n"
+  },
+  {
+    "case": "duplicate-sheet",
+    "stderr": "MoonLeaf XLSX table import failed: InvalidXlsxSelection(\"InvalidWorkbook(\\\"ambiguous worksheet name: Sales & Returns\\\")\")\n"
+  },
+  {
+    "case": "missing-file",
+    "stderr": "node:fs:622\n  return binding.open(\n                 ^\n\nError: ENOENT: no such file or directory, open '/workspace/scratch/665adc5202cf/.moonsuite-background/rounds-221-225-20261009/round221/evidence/cli-final/absent'\n    at Object.openSync (node:fs:622:18)\n    at _M0FP46vectie8moonleaf3cmd12xlsx_2dtable10read__file (/workspace/scratch/665adc5202cf/.moonsuite-background/rounds-221-225-20261009/round221/build/js/debug/build/cmd/xlsx-table/xlsx-table.js:1369:117)\n    at _M0FP46vectie8moonleaf3cmd12xlsx_2dtable3run (/workspace/scratch/665adc5202cf/.moonsuite-background/rounds-221-225-20261009/round221/build/js/debug/build/cmd/xlsx-table/xlsx-table.js:22540:29)\n    at /workspace/scratch/665adc5202cf/.moonsuite-background/rounds-221-225-20261009/round221/build/js/debug/build/cmd/xlsx-table/xlsx-table.js:22657:22\n    at Object.<anonymous> (/workspace/scratch/665adc5202cf/.moonsuite-background/rounds-221-225-20261009/round221/build/js/debug/build/cmd/xlsx-table/xlsx-table.js:22673:3)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)\n    at Module.load (node:internal/modules/cjs/loader:1594:32)\n    at Module._load (node:internal/modules/cjs/loader:1396:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19) {\n  errno: -2,\n  code: 'ENOENT',\n  syscall: 'open',\n  path: '/workspace/scratch/665adc5202cf/.moonsuite-background/rounds-221-225-20261009/round221/evidence/cli-final/absent'\n}\n\nNode.js v24.19.0\n"
+  },
+  {
+    "case": "directory",
+    "stderr": "/workspace/scratch/665adc5202cf/.moonsuite-background/rounds-221-225-20261009/round221/build/js/debug/build/cmd/xlsx-table/xlsx-table.js:1369\nconst _M0FP46vectie8moonleaf3cmd12xlsx_2dtable10read__file = path => { const fs = require('node:fs'); const fd = fs.openSync(path, fs.constants.O_RDONLY | fs.constants.O_NONBLOCK); try { const s = fs.fstatSync(fd); if (!s.isFile() || s.size > 8388608) throw Error('Expected a regular file no larger than 8 MiB'); const b = fs.readFileSync(fd); if (b.length > 8388608) throw Error('File exceeds 8 MiB'); return Array.from(b); } finally { fs.closeSync(fd); } };\n                                                                                                                                                                                                                                                            ^\n\nError: Expected a regular file no larger than 8 MiB\n    at _M0FP46vectie8moonleaf3cmd12xlsx_2dtable10read__file (/workspace/scratch/665adc5202cf/.moonsuite-background/rounds-221-225-20261009/round221/build/js/debug/build/cmd/xlsx-table/xlsx-table.js:1369:259)\n    at _M0FP46vectie8moonleaf3cmd12xlsx_2dtable3run (/workspace/scratch/665adc5202cf/.moonsuite-background/rounds-221-225-20261009/round221/build/js/debug/build/cmd/xlsx-table/xlsx-table.js:22540:29)\n    at /workspace/scratch/665adc5202cf/.moonsuite-background/rounds-221-225-20261009/round221/build/js/debug/build/cmd/xlsx-table/xlsx-table.js:22657:22\n    at Object.<anonymous> (/workspace/scratch/665adc5202cf/.moonsuite-background/rounds-221-225-20261009/round221/build/js/debug/build/cmd/xlsx-table/xlsx-table.js:22673:3)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)\n    at Module.load (node:internal/modules/cjs/loader:1594:32)\n    at Module._load (node:internal/modules/cjs/loader:1396:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n\nNode.js v24.19.0\n"
+  },
+  {
+    "case": "stdin",
+    "stderr": "MoonLeaf XLSX table import failed: Failure(\"cmd/xlsx-table/main.mbt:29:5-31:6@vectie/moonleaf FAILED: usage: node xlsx-table.js SOURCE.xlsx SELECTION.json QUERY.json|- csv|json|xlsx|report\")\n"
+  },
+  {
+    "case": "stdin-spec",
+    "stderr": "MoonLeaf XLSX table import failed: Failure(\"cmd/xlsx-table/main.mbt:29:5-31:6@vectie/moonleaf FAILED: usage: node xlsx-table.js SOURCE.xlsx SELECTION.json QUERY.json|- csv|json|xlsx|report\")\n"
+  },
+  {
+    "case": "format",
+    "stderr": "MoonLeaf XLSX table import failed: Failure(\"cmd/xlsx-table/main.mbt:29:5-31:6@vectie/moonleaf FAILED: usage: node xlsx-table.js SOURCE.xlsx SELECTION.json QUERY.json|- csv|json|xlsx|report\")\n"
+  },
+  {
+    "case": "bad-zip",
+    "stderr": "MoonLeaf XLSX table import failed: InvalidPackage(\"unable to inspect ZIP container\")\n"
+  },
+  {
+    "case": "bad-crc",
+    "stderr": "MoonLeaf XLSX table import failed: InvalidPackage(\"ZIP extraction or CRC integrity verification failed\")\n"
+  },
+  {
+    "case": "invalid-spec-utf8",
+    "stderr": "MoonLeaf XLSX table import failed: Malformed(<BytesView: [0xff]>)\n"
+  },
+  {
+    "case": "invalid-query",
+    "stderr": "MoonLeaf XLSX table import failed: InvalidQuery(\"Unknown column: absent\")\n"
+  },
+  {
+    "case": "byte-limit",
+    "stderr": "/workspace/scratch/665adc5202cf/.moonsuite-background/rounds-221-225-20261009/round221/build/js/debug/build/cmd/xlsx-table/xlsx-table.js:1369\nconst _M0FP46vectie8moonleaf3cmd12xlsx_2dtable10read__file = path => { const fs = require('node:fs'); const fd = fs.openSync(path, fs.constants.O_RDONLY | fs.constants.O_NONBLOCK); try { const s = fs.fstatSync(fd); if (!s.isFile() || s.size > 8388608) throw Error('Expected a regular file no larger than 8 MiB'); const b = fs.readFileSync(fd); if (b.length > 8388608) throw Error('File exceeds 8 MiB'); return Array.from(b); } finally { fs.closeSync(fd); } };\n                                                                                                                                                                                                                                                            ^\n\nError: Expected a regular file no larger than 8 MiB\n    at _M0FP46vectie8moonleaf3cmd12xlsx_2dtable10read__file (/workspace/scratch/665adc5202cf/.moonsuite-background/rounds-221-225-20261009/round221/build/js/debug/build/cmd/xlsx-table/xlsx-table.js:1369:259)\n    at _M0FP46vectie8moonleaf3cmd12xlsx_2dtable3run (/workspace/scratch/665adc5202cf/.moonsuite-background/rounds-221-225-20261009/round221/build/js/debug/build/cmd/xlsx-table/xlsx-table.js:22540:29)\n    at /workspace/scratch/665adc5202cf/.moonsuite-background/rounds-221-225-20261009/round221/build/js/debug/build/cmd/xlsx-table/xlsx-table.js:22657:22\n    at Object.<anonymous> (/workspace/scratch/665adc5202cf/.moonsuite-background/rounds-221-225-20261009/round221/build/js/debug/build/cmd/xlsx-table/xlsx-table.js:22673:3)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)\n    at Module.load (node:internal/modules/cjs/loader:1594:32)\n    at Module._load (node:internal/modules/cjs/loader:1396:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n\nNode.js v24.19.0\n"
+  }
+]

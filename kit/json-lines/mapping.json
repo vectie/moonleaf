@@ -1,0 +1,57 @@
+{
+  "version": 1,
+  "record_path": [
+    "orders"
+  ],
+  "items_path": [
+    "lines"
+  ],
+  "parent_fields": [
+    {
+      "name": "order",
+      "path": [
+        "id"
+      ],
+      "required": true
+    },
+    {
+      "name": "customer",
+      "path": [
+        "customer",
+        "name"
+      ],
+      "required": true
+    }
+  ],
+  "item_fields": [
+    {
+      "name": "sku",
+      "path": [
+        "sku"
+      ],
+      "required": true
+    },
+    {
+      "name": "qty",
+      "path": [
+        "qty"
+      ],
+      "required": true
+    },
+    {
+      "name": "active",
+      "path": [
+        "active"
+      ],
+      "required": true
+    },
+    {
+      "name": "note",
+      "path": [
+        "note"
+      ],
+      "nulls": "empty"
+    }
+  ],
+  "empty_items": "skip"
+}

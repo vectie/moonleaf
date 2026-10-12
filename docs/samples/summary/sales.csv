@@ -1,0 +1,9 @@
+order,region,product,amount
+SO-001,East,Tea,120.5
+SO-002,West,Tea,80
+SO-003,East,Tea,39.5
+SO-004,East,Coffee,
+SO-005,東京,Coffee,60
+SO-006,West,Tea,-10
+SO-007,East,Tea,
+SO-008,"North, coast",Tea,20

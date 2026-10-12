@@ -1,0 +1,4 @@
+region,status,id
+west,open,003
+east,held,002
+east,approved,001

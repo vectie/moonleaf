@@ -8,24 +8,37 @@ fn created_cell(
   value : @scene.CellValue,
   reference : String,
   header : Bool,
-) -> String {
+) -> String raise XlsxError {
   let style = if header { "1" } else { "0" }
   match value {
     Empty => "<c r=\"\{reference}\" s=\"\{style}\"/>"
     Number(number) =>
-      "<c r=\"\{reference}\" s=\"\{style}\"><v>\{@xml.escape_text(number)}</v></c>"
+      "<c r=\"\{reference}\" s=\"\{style}\"><v>\{created_xml_text(number)}</v></c>"
     Boolean(flag) =>
       "<c r=\"\{reference}\" t=\"b\" s=\"\{style}\"><v>\{if flag { "1" } else { "0" }}</v></c>"
     Text(text) | Error(text) =>
-      "<c r=\"\{reference}\" t=\"inlineStr\" s=\"\{style}\"><is><t xml:space=\"preserve\">\{@xml.escape_text(text)}</t></is></c>"
+      "<c r=\"\{reference}\" t=\"inlineStr\" s=\"\{style}\"><is><t xml:space=\"preserve\">\{created_xml_text(text)}</t></is></c>"
     Formula(expression~, cached~) => {
       let cache = match cached {
-        Some(value) => "<v>\{@xml.escape_text(value)}</v>"
+        Some(value) => "<v>\{created_xml_text(value)}</v>"
         None => ""
       }
-      "<c r=\"\{reference}\" s=\"\{style}\"><f>\{@xml.escape_text(expression)}</f>\{cache}</c>"
+      "<c r=\"\{reference}\" s=\"\{style}\"><f>\{created_xml_text(expression)}</f>\{cache}</c>"
     }
   }
+}
+
+///|
+fn valid_xml_cell_text(text : String) -> Bool {
+  for character in text.iter() {
+    let code = character.to_int()
+    if (code < 0x20 && code != 0x9 && code != 0xA && code != 0xD) ||
+      code == 0xFFFE ||
+      code == 0xFFFF {
+      return false
+    }
+  }
+  true
 }
 
 ///|
@@ -35,7 +48,18 @@ pub fn create(
   rows : Array[Array[@scene.CellValue]],
   sheet_name? : String = "研究证据",
 ) -> FixedArray[Byte] raise XlsxError {
-  if rows.length() > 10_001 || sheet_name == "" || sheet_name.length() > 31 {
+  // Count UTF-16 units explicitly, including both units of supplementary
+  // characters, while preserving XML-valid whitespace through references.
+  let mut sheet_name_units = 0
+  for character in sheet_name.iter() {
+    sheet_name_units += if character.to_int() > 0xFFFF { 2 } else { 1 }
+  }
+  if rows.length() > 10_001 ||
+    sheet_name_units == 0 ||
+    sheet_name_units > 31 ||
+    !valid_xml_cell_text(sheet_name) ||
+    sheet_name.has_prefix("'") ||
+    sheet_name.has_suffix("'") {
     raise InvalidWorkbook("invalid XLSX dimensions or sheet name")
   }
   for forbidden in ['[', ']', ':', '*', '?', '/', '\\'] {
@@ -62,6 +86,16 @@ pub fn create(
     }
     sheet.write_string("<row r=\"\{row_index + 1}\">")
     for column_index, value in row {
+      let valid = match value {
+        Empty | Boolean(_) => true
+        Text(text) | Number(text) | Error(text) => valid_xml_cell_text(text)
+        Formula(expression~, cached~) =>
+          valid_xml_cell_text(expression) &&
+          valid_xml_cell_text(cached.unwrap_or(""))
+      }
+      if !valid {
+        raise InvalidWorkbook("XLSX cell contains an invalid XML character")
+      }
       total_text += match value {
         Empty | Boolean(_) => 0
         Text(text) | Number(text) | Error(text) => text.length()
@@ -91,7 +125,7 @@ pub fn create(
     ),
     create_part(
       "xl/workbook.xml",
-      "<?xml version=\"1.0\" encoding=\"UTF-8\"?><workbook xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\"><sheets><sheet name=\"\{@xml.escape_attribute(sheet_name)}\" sheetId=\"1\" r:id=\"rId1\"/></sheets></workbook>",
+      "<?xml version=\"1.0\" encoding=\"UTF-8\"?><workbook xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\"><sheets><sheet name=\"\{created_xml_attribute(sheet_name)}\" sheetId=\"1\" r:id=\"rId1\"/></sheets></workbook>",
     ),
     create_part(
       "xl/_rels/workbook.xml.rels", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet1.xml\"/><Relationship Id=\"rId2\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles\" Target=\"styles.xml\"/></Relationships>",

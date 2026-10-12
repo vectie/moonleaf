@@ -1,0 +1,4 @@
+"region"	"id"	"amount"	"active"	"note"
+"北"	"001"	"20"	"true"	"revised"
+"b|c"	"a"	"21"	"false"	"separate tuple"
+"south"	"002"	"22"	"true"	"tab	inside"

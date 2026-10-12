@@ -1,0 +1,8 @@
+{
+  "record_path": ["orders", "order"],
+  "fields": [
+    {"name": "order", "path": [], "attribute": "id"},
+    {"name": "sku", "path": [], "attribute": "sku"},
+    {"name": "quantity", "path": ["quantity"]}
+  ]
+}

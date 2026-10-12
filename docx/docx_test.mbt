@@ -161,6 +161,118 @@ test "replace_text changes only w:t content and preserves other parts" {
 }
 
 ///|
+test "replace_text edits header and footer paragraphs without crossing parts" {
+  let source = package_with(
+      (
+        #|<w:document xmlns:w="urn:w"><w:body><w:p><w:r><w:t>Body OLD</w:t></w:r></w:p></w:body></w:document>
+      ),
+    )
+    .replace_text(
+      "word/header1.xml",
+      (
+        #|<w:hdr xmlns:w="urn:w"><w:p><w:r><w:t>Header O</w:t></w:r><w:r><w:t>LD</w:t></w:r></w:p></w:hdr>
+      ),
+    )
+    .replace_text(
+      "word/footer1.xml",
+      (
+        #|<w:ftr xmlns:w="urn:w"><w:p><w:r><w:t>Footer OLD</w:t></w:r></w:p></w:ftr>
+      ),
+    )
+    .replace_text("word/styles.xml", "OLD")
+  let updated = @docx.replace_text(source, "OLD", "NEW")
+  assert_true(updated.text("word/document.xml").contains("Body NEW"))
+  assert_true(updated.text("word/header1.xml").contains("Header NEW"))
+  assert_true(updated.text("word/footer1.xml").contains("Footer NEW"))
+  assert_eq(updated.text("word/styles.xml"), "OLD")
+  assert_true(updated.text("word/header1.xml").contains("<w:r>"))
+}
+
+///|
+test "replace_text preserves inserted edge spaces and XML escaping" {
+  let source = package_with(
+    "<w:document xmlns:w=\"urn:w\"><w:body><w:p><w:r><w:t>OLD</w:t></w:r></w:p></w:body></w:document>",
+  )
+  let edited = @docx.replace_text(source, "OLD", " A&B ")
+  let xml = edited.text("word/document.xml")
+  assert_true(
+    xml.find("<w:t xml:space=\"preserve\"> A&amp;B </w:t>") is Some(_),
+  )
+  let document = @docx.read(edited)
+  assert_true(document.blocks is [Paragraph([{ text: " A&B ", .. }])])
+  let unchanged = @docx.replace_text(source, "missing", "new")
+  assert_eq(unchanged, source)
+  let default_space = package_with(
+    "<w:document xmlns:w=\"urn:w\"><w:body><w:p><w:r><w:t xml:space=\"default\">OLD</w:t></w:r></w:p></w:body></w:document>",
+  )
+  let preserved = @docx.replace_text(default_space, "OLD", " A ")
+  assert_true(
+    preserved
+    .text("word/document.xml")
+    .find("<w:t xml:space=\"preserve\"> A </w:t>")
+    is Some(_),
+  )
+}
+
+///|
+test "replace_text spans simple Word runs and keeps untouched run styles" {
+  let source = package_with(
+    "<w:document xmlns:w=\"urn:w\"><w:body>" +
+    "<w:p><w:r><w:rPr><w:b/></w:rPr><w:t>甲旧</w:t></w:r>" +
+    "<w:r><w:rPr><w:i/></w:rPr><w:t>公司乙</w:t></w:r>" +
+    "<w:r><w:t>旧</w:t></w:r><w:r><w:t>公司</w:t></w:r></w:p>" +
+    "<w:p><w:r><w:t>旧</w:t></w:r></w:p>" +
+    "<w:p><w:r><w:t>公司</w:t></w:r></w:p>" +
+    "</w:body></w:document>",
+  )
+  let updated = @docx.replace_text(source, "旧公司", "新机构")
+  assert_eq(@docx.replace_text(source, "旧公司", "旧公司"), source)
+  let xml = updated.text("word/document.xml")
+  assert_true(xml.find("<w:b/>") is Some(_))
+  assert_true(xml.find("<w:i/>") is Some(_))
+  assert_true(xml.find("<w:t>甲新机构</w:t>") is Some(_))
+  assert_true(xml.find("<w:t>乙</w:t>") is Some(_))
+  assert_true(xml.find("<w:t>新机构</w:t>") is Some(_))
+  let document = @docx.read(updated)
+  assert_eq(document.blocks.length(), 3)
+}
+
+///|
+test "replace_text does not cross a Word break or field" {
+  let source = package_with(
+    "<w:document xmlns:w=\"urn:w\"><w:body><w:p>" +
+    "<w:r><w:t>旧</w:t></w:r><w:r><w:br/></w:r>" +
+    "<w:r><w:t>公司</w:t></w:r>" +
+    "<w:r><w:instrText>旧</w:instrText></w:r>" +
+    "</w:p></w:body></w:document>",
+  )
+  assert_eq(@docx.replace_text(source, "旧公司", "新机构"), source)
+}
+
+///|
+test "replace_text leaves tracked revisions and field results intact" {
+  let source = package_with(
+    "<w:document xmlns:w=\"urn:w\"><w:body><w:p>" +
+    "<w:ins><w:r><w:t>旧公司</w:t></w:r></w:ins>" +
+    "<w:fldSimple w:instr=\"DATE\"><w:r><w:t>旧公司</w:t></w:r></w:fldSimple>" +
+    "<w:r><w:t>旧公司</w:t></w:r>" +
+    "</w:p></w:body></w:document>",
+  )
+  let updated = @docx.replace_text(source, "旧公司", "新机构")
+  let xml = updated.text("word/document.xml")
+  assert_true(
+    xml.find("<w:ins><w:r><w:t>旧公司</w:t></w:r></w:ins>") is Some(_),
+  )
+  assert_true(
+    xml.find(
+      "<w:fldSimple w:instr=\"DATE\"><w:r><w:t>旧公司</w:t></w:r></w:fldSimple>",
+    )
+    is Some(_),
+  )
+  assert_true(xml.find("<w:r><w:t>新机构</w:t></w:r>") is Some(_))
+}
+
+///|
 test "missing main document reports a DOCX error" {
   let document_package : @opc.Package = { parts: [], }
   try @docx.read(document_package) catch {

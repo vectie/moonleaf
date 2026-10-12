@@ -1,0 +1,22 @@
+[
+  {
+    "id": "001",
+    "customer": "Acme",
+    "amount": 12.5,
+    "active": false,
+    "note": "remove"
+  },
+  {
+    "id": "002",
+    "customer": "old",
+    "amount": 0,
+    "active": true
+  },
+  {
+    "id": "003",
+    "customer": "unchanged",
+    "amount": -3,
+    "active": false,
+    "note": "a,\"b\"\nnext"
+  }
+]

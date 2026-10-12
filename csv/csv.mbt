@@ -122,6 +122,12 @@ pub fn Table::serialize(self : Table) -> String {
     if row_index > 0 {
       output.write_string("\r\n")
     }
+    // A final empty row needs an explicit quoted field; otherwise it is
+    // indistinguishable from the line terminator before it on reopening.
+    if row_index == self.rows.length() - 1 && row == [""] {
+      output.write_string("\"\"")
+      continue
+    }
     for column_index, value in row {
       if column_index > 0 {
         output.write_char(self.delimiter)
@@ -191,7 +197,7 @@ pub fn Table::set_cell_text(
   }
   let rows = self.rows.map(item => item.copy())
   while rows.length() < row {
-    rows.push([])
+    rows.push([""])
   }
   let target = rows[row - 1]
   while target.length() < column {
@@ -208,6 +214,216 @@ pub fn Table::set_cell_text(
   }
   if cells > 100_000 || text_size > 2_000_000 {
     raise TooLarge
+  }
+  { rows, delimiter: self.delimiter, }
+}
+
+///|
+/// Insert blank rows before the 1-based row coordinate. A distant insertion
+/// materializes intervening blank rows because CSV has no sparse row syntax.
+pub fn Table::insert_rows(
+  self : Table,
+  at : Int,
+  count : Int,
+) -> Table raise CsvError {
+  if at < 1 ||
+    at > 10_000 ||
+    count < 1 ||
+    count > 100 ||
+    at + count - 1 > 10_000 ||
+    self.rows.length() + count > 10_000 {
+    raise InvalidCoordinates(row=at, column=1)
+  }
+  let rows : Array[Array[String]] = []
+  for index in 0..<(at - 1) {
+    if index < self.rows.length() {
+      rows.push(self.rows[index].copy())
+    } else {
+      rows.push([""])
+    }
+  }
+  for _ in 0..<count {
+    rows.push([""])
+  }
+  for index in (at - 1)..<self.rows.length() {
+    rows.push(self.rows[index].copy())
+  }
+  if rows.length() > 10_000 {
+    raise TooLarge
+  }
+  let mut cells = 0
+  for item in rows {
+    cells += item.length()
+  }
+  if cells > 100_000 {
+    raise TooLarge
+  }
+  { rows, delimiter: self.delimiter, }
+}
+
+///|
+/// Delete up to `count` rows, shifting following CSV rows up. The source
+/// table is unchanged and a deletion beyond its last row is a no-op.
+pub fn Table::delete_rows(
+  self : Table,
+  at : Int,
+  count : Int,
+) -> (Table, Int) raise CsvError {
+  if at < 1 ||
+    at > 10_000 ||
+    count < 1 ||
+    count > 100 ||
+    at + count - 1 > 10_000 {
+    raise InvalidCoordinates(row=at, column=1)
+  }
+  if at > self.rows.length() {
+    return (self, 0)
+  }
+  let changed = if count < self.rows.length() - at + 1 {
+    count
+  } else {
+    self.rows.length() - at + 1
+  }
+  let rows : Array[Array[String]] = []
+  for index, row in self.rows {
+    if index < at - 1 || index >= at - 1 + changed {
+      rows.push(row.copy())
+    }
+  }
+  ({ rows, delimiter: self.delimiter, }, changed)
+}
+
+///|
+/// Insert blank columns before a 1-based column, materializing any gap in
+/// each existing row. The original table remains unchanged.
+pub fn Table::insert_columns(
+  self : Table,
+  at : Int,
+  count : Int,
+) -> Table raise CsvError {
+  if at < 1 || at > 256 || count < 1 || count > 100 || at + count - 1 > 256 {
+    raise InvalidCoordinates(row=1, column=at)
+  }
+  let rows : Array[Array[String]] = []
+  let mut cells = 0
+  for row in self.rows {
+    let width = if row.length() >= at { row.length() } else { at - 1 }
+    if width + count > 256 {
+      raise TooLarge
+    }
+    let edited : Array[String] = []
+    for index in 0..<(at - 1) {
+      edited.push(row.get(index).unwrap_or(""))
+    }
+    for _ in 0..<count {
+      edited.push("")
+    }
+    for index in (at - 1)..<row.length() {
+      edited.push(row[index])
+    }
+    cells += edited.length()
+    if cells > 100_000 {
+      raise TooLarge
+    }
+    rows.push(edited)
+  }
+  { rows, delimiter: self.delimiter, }
+}
+
+///|
+/// Delete existing columns at a 1-based coordinate and shift later values
+/// left. The count reports the maximum existing column span removed across
+/// ragged rows; deleting beyond every row is a no-op.
+pub fn Table::delete_columns(
+  self : Table,
+  at : Int,
+  count : Int,
+) -> (Table, Int) raise CsvError {
+  if at < 1 || at > 256 || count < 1 || count > 100 || at + count - 1 > 256 {
+    raise InvalidCoordinates(row=1, column=at)
+  }
+  let rows : Array[Array[String]] = []
+  let mut changed = 0
+  for row in self.rows {
+    let available = if row.length() >= at { row.length() - at + 1 } else { 0 }
+    let removed = if available < count { available } else { count }
+    if removed > changed {
+      changed = removed
+    }
+    let edited : Array[String] = []
+    for index, value in row {
+      if index < at - 1 || index >= at - 1 + count {
+        edited.push(value)
+      }
+    }
+    // A CSV row has at least one field even when every column was removed.
+    if edited.is_empty() {
+      edited.push("")
+    }
+    rows.push(edited)
+  }
+  ({ rows, delimiter: self.delimiter, }, changed)
+}
+
+///|
+/// Apply several cell edits to one copied table. Coordinates are 1-based and
+/// must be unique; either every edit succeeds or the source table is unchanged.
+pub fn Table::set_cells_text(
+  self : Table,
+  edits : Array[(Int, Int, String)],
+) -> Table raise CsvError {
+  if edits.is_empty() {
+    return self
+  }
+  if edits.length() > 1_000 {
+    raise TooLarge
+  }
+  let seen : Map[Int, Bool] = Map([])
+  for (row, column, value) in edits {
+    if row < 1 || row > 10_000 || column < 1 || column > 256 {
+      raise InvalidCoordinates(row~, column~)
+    }
+    if value.length() > 32_768 {
+      raise TooLarge
+    }
+    let coordinate = (row - 1) * 256 + column
+    if seen.get(coordinate) is Some(_) {
+      raise InvalidCoordinates(row~, column~)
+    }
+    seen[coordinate] = true
+  }
+  let rows = self.rows.map(item => item.copy())
+  let mut cells = 0
+  let mut text_size = 0
+  for item in rows {
+    cells += item.length()
+    for value in item {
+      text_size += value.length()
+    }
+  }
+  for (row, column, value) in edits {
+    while rows.length() < row {
+      rows.push([""])
+      cells += 1
+      if cells > 100_000 {
+        raise TooLarge
+      }
+    }
+    let target = rows[row - 1]
+    if target.length() < column {
+      cells += column - target.length()
+      if cells > 100_000 {
+        raise TooLarge
+      }
+      while target.length() < column {
+        target.push("")
+      }
+    }
+    text_size += value.length() - target[column - 1].length()
+    if text_size > 2_000_000 {
+      raise TooLarge
+    }
+    target[column - 1] = value
   }
   { rows, delimiter: self.delimiter, }
 }

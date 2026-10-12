@@ -1,0 +1,9 @@
+{
+  "key_columns": [
+    "id"
+  ],
+  "edit_columns": [
+    "status",
+    "name"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "filters": [
+    {"column": "note", "mode": "text", "op": "ne", "value": "skip"},
+    {"column": "score", "mode": "number", "op": "ge", "value": 2}
+  ],
+  "sort": [
+    {"column": "team", "mode": "text", "direction": "asc", "blanks": "last"},
+    {"column": "score", "mode": "number", "direction": "desc", "blanks": "last"}
+  ],
+  "select": ["id", "score", "note"],
+  "limit": 3
+}

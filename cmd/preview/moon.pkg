@@ -5,6 +5,8 @@ import {
   "moonbitlang/core/string",
   "vectie/moonleaf",
   "vectie/moonleaf/csv",
+  "vectie/moonleaf/docx",
+  "vectie/moonleaf/opc",
   "vectie/moonleaf/pdf_text",
   "vectie/moonleaf/scene",
   "vectie/moonleaf/xlsx",
@@ -12,4 +14,12 @@ import {
 
 pkgtype(kind: "executable")
 
-supported_targets = "js"
+supported_targets = "js+native"
+
+options(
+  targets: {
+    "io_js.mbt": [ "js" ],
+    "io_native.mbt": [ "native" ],
+    "io_native_wbtest.mbt": [ "native" ],
+  },
+)

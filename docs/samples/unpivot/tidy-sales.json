@@ -1,0 +1,7 @@
+{
+  "id_columns": ["store", "region"],
+  "value_columns": ["Jan", "Feb", "Mar"],
+  "names_to": "month",
+  "values_to": "sales",
+  "drop_empty": true
+}

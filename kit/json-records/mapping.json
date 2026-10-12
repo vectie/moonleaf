@@ -1,0 +1,42 @@
+{
+  "record_path": [
+    "response",
+    "items"
+  ],
+  "fields": [
+    {
+      "name": "id",
+      "path": [
+        "id"
+      ],
+      "required": true
+    },
+    {
+      "name": "customer",
+      "path": [
+        "customer",
+        "name"
+      ]
+    },
+    {
+      "name": "net",
+      "path": [
+        "totals",
+        "net"
+      ]
+    },
+    {
+      "name": "active",
+      "path": [
+        "active"
+      ]
+    },
+    {
+      "name": "note",
+      "path": [
+        "note"
+      ],
+      "nulls": "empty"
+    }
+  ]
+}

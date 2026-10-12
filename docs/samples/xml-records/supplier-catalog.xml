@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<c:catalog xmlns:c="urn:moonleaf:catalog" xmlns:s="urn:moonleaf:supplier">
+  <!-- Synthetic records. No real supplier or pricing data. -->
+  <c:item sku="001" s:id="N01">
+    <c:name>東京 Green Tea 🍵</c:name>
+    <c:price currency="USD">12.50</c:price>
+    <c:stock>24</c:stock>
+    <c:barcode/>
+    <c:tag>tea</c:tag><c:tag>gift &amp; pantry</c:tag>
+  </c:item>
+  <c:item sku="002" s:id="N01">
+    <c:name>Café &amp; Cocoa</c:name>
+    <c:price currency="USD">8.00</c:price>
+    <c:stock>10</c:stock>
+    <c:tag>pantry</c:tag>
+  </c:item>
+  <c:item sku="003" s:id="N02">
+    <c:name><![CDATA[Glass <small>]]></c:name>
+    <c:price currency="USD">5.25</c:price>
+    <c:stock>6</c:stock>
+    <c:barcode>000000003</c:barcode>
+  </c:item>
+</c:catalog>

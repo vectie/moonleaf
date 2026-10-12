@@ -1,0 +1,4 @@
+"id","name","amount","active","serial","note"
+"001","Acme","12.50","true","60","=1+1"
+"003","東京 🐈","-3","true","","a,""b""
+next"
