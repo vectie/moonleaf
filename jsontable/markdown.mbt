@@ -41,7 +41,7 @@ fn markdown_cells(line : String) -> Array[String]? {
   }
   let text = line.trim(chars=" \t").to_owned()
   let cells : Array[String] = []
-  let mut cell = StringBuilder::new()
+  let mut cell = StringBuilder()
   let mut escaped = false
   let mut delimiter = false
   let mut last_pipe = false
@@ -58,7 +58,7 @@ fn markdown_cells(line : String) -> Array[String]? {
       last_pipe = false
     } else if c == '|' {
       cells.push(cell.to_string().trim(chars=" \t").to_owned())
-      cell = StringBuilder::new()
+      cell = StringBuilder()
       delimiter = true
       last_pipe = true
     } else {
