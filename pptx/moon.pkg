@@ -2,8 +2,8 @@ import {
   "vectie/moonleaf/opc",
   "vectie/moonleaf/scene",
   "vectie/moonleaf/xml",
-}
-
-import {
   "moonbitlang/core/encoding/utf8",
-} for "test"
+  "moonbitlang/core/encoding/base64",
+  "moonbitlang/core/debug",
+  "moonbitlang/pdflite/crypt_core" @digest,
+}

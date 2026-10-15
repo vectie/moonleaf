@@ -46,8 +46,7 @@ pub fn render_xlsx_proof_pdf(
           if cell.sheet_name == sheet.name &&
             cell.row == row &&
             cell.column == column {
-            guard cell.warnings.is_empty() &&
-              cell.display_kind != @xlsx.Unsupported else {
+            guard cell.warnings.is_empty() && cell.display_kind != Unsupported else {
               raise Unsupported("quote cell has unsupported number format")
             }
             if cell.formula is Some(_) && cell.cached_value is None {

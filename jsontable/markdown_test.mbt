@@ -24,13 +24,18 @@ test "markdown escaped pipes backslashes empty cells and inline syntax stay lite
     ["001", "`a|b` **bold** &amp; [x](url)", "C:\\tmp\\q", ""],
     ["=SUM(1)", "final|", "tail\\", ""],
   ])
-  assert_eq(table.rows[0][0], @scene.Text("001"))
-  assert_eq(table.rows[1][0], @scene.Text("=SUM(1)"))
+  assert_eq(table.rows[0][0], Text("001"))
+  assert_eq(table.rows[1][0], Text("=SUM(1)"))
   assert_true(
-    (try? @jsontable.parse_markdown_tables(
-      "| a | b |\n| --- | --- |\n| `a|b` | c |",
-    ))
-    is Err(_),
+    try
+      @jsontable.parse_markdown_tables(
+        "| a | b |\n| --- | --- |\n| `a|b` | c |",
+      )
+    catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
   )
 }
 
@@ -48,15 +53,15 @@ test "markdown selected data queries and exports preserve row provenance and lit
   assert_eq(result.source_rows.map(i => imported.source_lines[i - 1]), [5, 3])
   assert_eq(@jsontable.parse_delimited(result.table.export_csv()), result.table)
   assert_eq(@jsontable.parse(result.table.export_json()), result.table)
-  let package = @opc.open(result.table.export_xlsx())
+  let archive = @opc.open(result.table.export_xlsx())
   let reopened = @jsontable.extract_xlsx(
-    package,
+    archive,
     sheet_name="JSON data",
     range="A1:B3",
-    header=@jsontable.FirstRow,
+    header=FirstRow,
   )
   assert_eq(reopened.table, result.table)
-  result.table.rows[0][0] = @scene.Text("copy")
+  result.table.rows[0][0] = Text("copy")
   assert_eq(imported.table.export_json(), before)
 }
 
@@ -67,22 +72,36 @@ test "markdown rejects ambiguous headers and ragged selected or later rows" {
       "a | a\n--- | ---\nx | y", "| | a |\n| --- | --- |", "a | b\n--- | --- | ---",
       "a | b\n--- | ---\nx | y\nz | z | extra",
     ] {
-    assert_true((try? @jsontable.parse_markdown_tables(source)) is Err(_))
+    assert_true(
+      try @jsontable.parse_markdown_tables(source) catch {
+        _ => true
+      } noraise {
+        _ => false
+      },
+    )
   }
-  assert_eq(
-    try? @jsontable.parse_markdown_tables("a | b\n--- | ---\nx | y | z"),
-    Err(
-      @jsontable.InvalidMarkdownTable(
-        line=3,
-        reason="Ragged row: expected 2 cells, found 3",
-      ),
-    ),
-  )
+  try @jsontable.parse_markdown_tables("a | b\n--- | ---\nx | y | z") catch {
+    error =>
+      assert_eq(
+        error,
+        InvalidMarkdownTable(
+          line=3,
+          reason="Ragged row: expected 2 cells, found 3",
+        ),
+      )
+  } noraise {
+    _ => fail("expected operation to fail")
+  }
   assert_true(
-    (try? @jsontable.parse_markdown_tables(
-      "| good |\n| --- |\n| yes |\n\n| bad | bad |\n| --- | --- |",
-    ))
-    is Err(_),
+    try
+      @jsontable.parse_markdown_tables(
+        "| good |\n| --- |\n| yes |\n\n| bad | bad |\n| --- | --- |",
+      )
+    catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
   )
 }
 
@@ -103,24 +122,38 @@ test "markdown requires bounded cell and row counts and explicit line endings" {
     source in [
       "| a |\n| --- |\n| a\rb |", "| a |\r\r\n| --- |", "| a |\n| --- |\n| \u0000 |",
     ] {
-    assert_true((try? @jsontable.parse_markdown_tables(source)) is Err(_))
+    assert_true(
+      try @jsontable.parse_markdown_tables(source) catch {
+        _ => true
+      } noraise {
+        _ => false
+      },
+    )
   }
-  let large = StringBuilder::new()
+  let large = StringBuilder()
   large.write_string("| h |\n| --- |\n| ")
   for _ in 0..<16385 {
     large.write_char('x')
   }
   large.write_string(" |")
   assert_true(
-    (try? @jsontable.parse_markdown_tables(large.to_string())) is Err(_),
+    try @jsontable.parse_markdown_tables(large.to_string()) catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
   )
-  let rows = StringBuilder::new()
+  let rows = StringBuilder()
   rows.write_string("| h |\n| --- |\n")
   for _ in 0..<10001 {
     rows.write_string("| x |\n")
   }
   assert_true(
-    (try? @jsontable.parse_markdown_tables(rows.to_string())) is Err(_),
+    try @jsontable.parse_markdown_tables(rows.to_string()) catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
   )
 }
 

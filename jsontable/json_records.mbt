@@ -259,3 +259,27 @@ pub fn parse_json_records(
   }
   { columns: ["_record_row"] + spec.fields.map(field => field.name), rows, }
 }
+
+///|
+pub extend JsonRecordNulls with @debug.Debug::{to_repr}
+
+///|
+pub extend JsonRecordNulls with Eq::{not_equal, equal}
+
+///|
+pub extend JsonRecordField with @debug.Debug::{to_repr}
+
+///|
+pub extend JsonRecordField with Eq::{not_equal, equal}
+
+///|
+pub extend JsonRecordSpec with @debug.Debug::{to_repr}
+
+///|
+pub extend JsonRecordSpec with Eq::{not_equal, equal}
+
+///|
+pub extend JsonRecordError with @debug.Debug::{to_repr}
+
+///|
+pub extend JsonRecordError with Eq::{not_equal, equal}

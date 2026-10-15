@@ -57,11 +57,17 @@ pub(all) suberror ConsolidateError {
   InvalidConsolidateKey(row~ : Int, column~ : String)
   UnsupportedConsolidateValue(row~ : Int, column~ : String)
 } derive(Eq, @debug.Debug)
+pub fn ConsolidateError::equal(Self, Self) -> Bool
+pub fn ConsolidateError::not_equal(Self, Self) -> Bool
+pub fn ConsolidateError::to_repr(Self) -> @debug.Repr
 
 pub(all) suberror CorrectionError {
   InvalidCorrection(String)
   CorrectionConflict(edit~ : Int, row~ : Int, column~ : String)
 } derive(Eq, @debug.Debug)
+pub fn CorrectionError::equal(Self, Self) -> Bool
+pub fn CorrectionError::not_equal(Self, Self) -> Bool
+pub fn CorrectionError::to_repr(Self) -> @debug.Repr
 
 pub(all) suberror DocxTableError {
   InvalidDocxSelection(String)
@@ -74,18 +80,27 @@ pub(all) suberror FixedWidthError {
   InvalidFixedWidthSchema(String)
   InvalidFixedWidth(line~ : Int, reason~ : String)
 } derive(Eq, @debug.Debug)
+pub fn FixedWidthError::equal(Self, Self) -> Bool
+pub fn FixedWidthError::not_equal(Self, Self) -> Bool
+pub fn FixedWidthError::to_repr(Self) -> @debug.Repr
 
 pub(all) suberror JsonLineError {
   InvalidJsonLineSpec(String)
   InvalidJsonLines(String)
   JsonLineFieldError(parent_row~ : Int, item_row~ : Int?, column~ : String, reason~ : String)
 } derive(Eq, @debug.Debug)
+pub fn JsonLineError::equal(Self, Self) -> Bool
+pub fn JsonLineError::not_equal(Self, Self) -> Bool
+pub fn JsonLineError::to_repr(Self) -> @debug.Repr
 
 pub(all) suberror JsonRecordError {
   InvalidJsonRecordSpec(String)
   InvalidJsonRecords(String)
   JsonRecordFieldError(row~ : Int, column~ : String, reason~ : String)
 } derive(Eq, @debug.Debug)
+pub fn JsonRecordError::equal(Self, Self) -> Bool
+pub fn JsonRecordError::not_equal(Self, Self) -> Bool
+pub fn JsonRecordError::to_repr(Self) -> @debug.Repr
 
 pub(all) suberror LookupError {
   InvalidTable(String)
@@ -94,10 +109,16 @@ pub(all) suberror LookupError {
   InvalidKey(Int)
   InvalidDelimited(String)
 } derive(Eq, @debug.Debug)
+pub fn LookupError::equal(Self, Self) -> Bool
+pub fn LookupError::not_equal(Self, Self) -> Bool
+pub fn LookupError::to_repr(Self) -> @debug.Repr
 
 pub(all) suberror MarkdownTableError {
   InvalidMarkdownTable(line~ : Int, reason~ : String)
 } derive(Eq, @debug.Debug)
+pub fn MarkdownTableError::equal(Self, Self) -> Bool
+pub fn MarkdownTableError::not_equal(Self, Self) -> Bool
+pub fn MarkdownTableError::to_repr(Self) -> @debug.Repr
 
 pub(all) suberror PivotError {
   InvalidPivot(String)
@@ -106,6 +127,9 @@ pub(all) suberror PivotError {
   UnsupportedPivotValue(row~ : Int, column~ : String)
   DuplicatePivotCell(first_row~ : Int, row~ : Int, key~ : String)
 } derive(Eq, @debug.Debug)
+pub fn PivotError::equal(Self, Self) -> Bool
+pub fn PivotError::not_equal(Self, Self) -> Bool
+pub fn PivotError::to_repr(Self) -> @debug.Repr
 
 pub(all) suberror PptxTableError {
   InvalidPptxSelection(String)
@@ -117,6 +141,9 @@ pub fn PptxTableError::to_repr(Self) -> @debug.Repr
 pub(all) suberror QueryError {
   InvalidQuery(String)
 } derive(Eq, @debug.Debug)
+pub fn QueryError::equal(Self, Self) -> Bool
+pub fn QueryError::not_equal(Self, Self) -> Bool
+pub fn QueryError::to_repr(Self) -> @debug.Repr
 
 pub(all) suberror ReconcileError {
   InvalidReconcile(String)
@@ -124,10 +151,16 @@ pub(all) suberror ReconcileError {
   DuplicateReconcileKey(side~ : String, first_row~ : Int, row~ : Int)
   UnsupportedReconcileValue(side~ : String, row~ : Int, column~ : String)
 } derive(Eq, @debug.Debug)
+pub fn ReconcileError::equal(Self, Self) -> Bool
+pub fn ReconcileError::not_equal(Self, Self) -> Bool
+pub fn ReconcileError::to_repr(Self) -> @debug.Repr
 
 pub(all) suberror StackError {
   InvalidStack(String)
 } derive(Eq, @debug.Debug)
+pub fn StackError::equal(Self, Self) -> Bool
+pub fn StackError::not_equal(Self, Self) -> Bool
+pub fn StackError::to_repr(Self) -> @debug.Repr
 
 pub(all) suberror SummaryError {
   InvalidSummary(String)
@@ -136,6 +169,9 @@ pub(all) suberror SummaryError {
   SummaryOverflow(row~ : Int, column~ : String)
   UnsupportedGroupValue(row~ : Int, column~ : String)
 } derive(Eq, @debug.Debug)
+pub fn SummaryError::equal(Self, Self) -> Bool
+pub fn SummaryError::not_equal(Self, Self) -> Bool
+pub fn SummaryError::to_repr(Self) -> @debug.Repr
 
 pub(all) suberror TableError {
   InvalidJson(String)
@@ -143,22 +179,34 @@ pub(all) suberror TableError {
   ExpectedObject(Int)
   Export(String)
 } derive(Eq, @debug.Debug)
+pub fn TableError::equal(Self, Self) -> Bool
+pub fn TableError::not_equal(Self, Self) -> Bool
+pub fn TableError::to_repr(Self) -> @debug.Repr
 
 pub(all) suberror TypedDelimitedError {
   InvalidDelimitedSchema(String)
   InvalidTypedDelimited(String)
   DelimitedConversion(row~ : Int, column~ : String, reason~ : String)
 } derive(Eq, @debug.Debug)
+pub fn TypedDelimitedError::equal(Self, Self) -> Bool
+pub fn TypedDelimitedError::not_equal(Self, Self) -> Bool
+pub fn TypedDelimitedError::to_repr(Self) -> @debug.Repr
 
 pub(all) suberror UnpivotError {
   InvalidUnpivot(String)
   UnknownUnpivotColumn(String)
   UnsupportedUnpivotValue(row~ : Int, column~ : String)
 } derive(Eq, @debug.Debug)
+pub fn UnpivotError::equal(Self, Self) -> Bool
+pub fn UnpivotError::not_equal(Self, Self) -> Bool
+pub fn UnpivotError::to_repr(Self) -> @debug.Repr
 
 pub(all) suberror XlsxTableError {
   InvalidXlsxSelection(String)
 } derive(Eq, @debug.Debug)
+pub fn XlsxTableError::equal(Self, Self) -> Bool
+pub fn XlsxTableError::not_equal(Self, Self) -> Bool
+pub fn XlsxTableError::to_repr(Self) -> @debug.Repr
 
 pub(all) suberror XmlRecordError {
   InvalidXmlSpec(String)
@@ -167,12 +215,18 @@ pub(all) suberror XmlRecordError {
   RepeatedXmlField(row~ : Int, column~ : String)
   NonLeafXmlField(row~ : Int, column~ : String)
 } derive(Eq, @debug.Debug)
+pub fn XmlRecordError::equal(Self, Self) -> Bool
+pub fn XmlRecordError::not_equal(Self, Self) -> Bool
+pub fn XmlRecordError::to_repr(Self) -> @debug.Repr
 
 // Types and methods
 pub(all) struct Consolidation {
   kept : Table
   report : Table
 } derive(Eq, @debug.Debug)
+pub fn Consolidation::equal(Self, Self) -> Bool
+pub fn Consolidation::not_equal(Self, Self) -> Bool
+pub fn Consolidation::to_repr(Self) -> @debug.Repr
 
 pub struct CorrectionRecipe {
   // private fields
@@ -182,6 +236,9 @@ pub(all) struct CorrectionResult {
   table : Table
   report : Table
 } derive(Eq, @debug.Debug)
+pub fn CorrectionResult::equal(Self, Self) -> Bool
+pub fn CorrectionResult::not_equal(Self, Self) -> Bool
+pub fn CorrectionResult::to_repr(Self) -> @debug.Repr
 
 pub struct DelimitedSchema {
   // private fields
@@ -225,6 +282,9 @@ pub(all) struct FixedWidthTable {
   source_lines : Array[Int]
   skipped_lines : Array[Int]
 } derive(Eq, @debug.Debug)
+pub fn FixedWidthTable::equal(Self, Self) -> Bool
+pub fn FixedWidthTable::not_equal(Self, Self) -> Bool
+pub fn FixedWidthTable::to_repr(Self) -> @debug.Repr
 
 pub(all) struct JsonLineSpec {
   records_path : Array[String]
@@ -232,12 +292,18 @@ pub(all) struct JsonLineSpec {
   parent_fields : Array[JsonRecordField]
   item_fields : Array[JsonRecordField]
 } derive(Eq, @debug.Debug)
+pub fn JsonLineSpec::equal(Self, Self) -> Bool
+pub fn JsonLineSpec::not_equal(Self, Self) -> Bool
+pub fn JsonLineSpec::to_repr(Self) -> @debug.Repr
 
 pub(all) struct JsonLineTable {
   table : Table
   parent_count : Int
   empty_parent_rows : Array[Int]
 } derive(Eq, @debug.Debug)
+pub fn JsonLineTable::equal(Self, Self) -> Bool
+pub fn JsonLineTable::not_equal(Self, Self) -> Bool
+pub fn JsonLineTable::to_repr(Self) -> @debug.Repr
 
 pub(all) struct JsonRecordField {
   name : String
@@ -245,23 +311,35 @@ pub(all) struct JsonRecordField {
   required : Bool
   nulls : JsonRecordNulls
 } derive(Eq, @debug.Debug)
+pub fn JsonRecordField::equal(Self, Self) -> Bool
+pub fn JsonRecordField::not_equal(Self, Self) -> Bool
+pub fn JsonRecordField::to_repr(Self) -> @debug.Repr
 
 pub(all) enum JsonRecordNulls {
   RejectNull
   EmptyNull
   LiteralNull
 } derive(Eq, @debug.Debug)
+pub fn JsonRecordNulls::equal(Self, Self) -> Bool
+pub fn JsonRecordNulls::not_equal(Self, Self) -> Bool
+pub fn JsonRecordNulls::to_repr(Self) -> @debug.Repr
 
 pub(all) struct JsonRecordSpec {
   records_path : Array[String]
   fields : Array[JsonRecordField]
 } derive(Eq, @debug.Debug)
+pub fn JsonRecordSpec::equal(Self, Self) -> Bool
+pub fn JsonRecordSpec::not_equal(Self, Self) -> Bool
+pub fn JsonRecordSpec::to_repr(Self) -> @debug.Repr
 
 pub(all) struct LookupResult {
   table : Table
   source_rows : Array[Int]
   lookup_rows : Array[Int?]
 } derive(Eq, @debug.Debug)
+pub fn LookupResult::equal(Self, Self) -> Bool
+pub fn LookupResult::not_equal(Self, Self) -> Bool
+pub fn LookupResult::to_repr(Self) -> @debug.Repr
 
 pub(all) struct MarkdownTable {
   id : String
@@ -270,6 +348,9 @@ pub(all) struct MarkdownTable {
   source_lines : Array[Int]
   table : Table
 } derive(Eq, @debug.Debug)
+pub fn MarkdownTable::equal(Self, Self) -> Bool
+pub fn MarkdownTable::not_equal(Self, Self) -> Bool
+pub fn MarkdownTable::to_repr(Self) -> @debug.Repr
 
 pub(all) struct NamedXlsxTable {
   table : Table
@@ -277,12 +358,18 @@ pub(all) struct NamedXlsxTable {
   source_rows : Array[Int]
   warnings : Array[String]
 } derive(Eq, @debug.Debug)
+pub fn NamedXlsxTable::equal(Self, Self) -> Bool
+pub fn NamedXlsxTable::not_equal(Self, Self) -> Bool
+pub fn NamedXlsxTable::to_repr(Self) -> @debug.Repr
 
 pub(all) enum PivotDuplicates {
   Reject
   First
   Last
 } derive(Eq, @debug.Debug)
+pub fn PivotDuplicates::equal(Self, Self) -> Bool
+pub fn PivotDuplicates::not_equal(Self, Self) -> Bool
+pub fn PivotDuplicates::to_repr(Self) -> @debug.Repr
 
 pub(all) enum PptxHeader {
   FirstSlideTableRow
@@ -315,27 +402,42 @@ pub(all) struct QueryResult {
   source_rows : Array[Int]
   matched_rows : Int
 } derive(Eq, @debug.Debug)
+pub fn QueryResult::equal(Self, Self) -> Bool
+pub fn QueryResult::not_equal(Self, Self) -> Bool
+pub fn QueryResult::to_repr(Self) -> @debug.Repr
 
 pub(all) enum Retention {
   KeepFirst
   KeepLast
 } derive(Eq, @debug.Debug)
+pub fn Retention::equal(Self, Self) -> Bool
+pub fn Retention::not_equal(Self, Self) -> Bool
+pub fn Retention::to_repr(Self) -> @debug.Repr
 
 pub(all) enum StackMode {
   StrictHeaders
   UnionHeaders
 } derive(Eq, @debug.Debug)
+pub fn StackMode::equal(Self, Self) -> Bool
+pub fn StackMode::not_equal(Self, Self) -> Bool
+pub fn StackMode::to_repr(Self) -> @debug.Repr
 
 pub(all) struct SummaryMeasure {
   name : String
   operation : SummaryOperation
 } derive(Eq, @debug.Debug)
+pub fn SummaryMeasure::equal(Self, Self) -> Bool
+pub fn SummaryMeasure::not_equal(Self, Self) -> Bool
+pub fn SummaryMeasure::to_repr(Self) -> @debug.Repr
 
 pub(all) enum SummaryOperation {
   CountRows
   Sum(String)
   Mean(String)
 } derive(Eq, @debug.Debug)
+pub fn SummaryOperation::equal(Self, Self) -> Bool
+pub fn SummaryOperation::not_equal(Self, Self) -> Bool
+pub fn SummaryOperation::to_repr(Self) -> @debug.Repr
 
 pub(all) struct Table {
   columns : Array[String]
@@ -343,15 +445,19 @@ pub(all) struct Table {
 } derive(Eq, @debug.Debug)
 pub fn Table::consolidate(Self, key_columns~ : Array[String], retention~ : Retention) -> Consolidation raise ConsolidateError
 pub fn Table::correct(Self, CorrectionRecipe) -> CorrectionResult raise CorrectionError
+pub fn Table::equal(Self, Self) -> Bool
 pub fn Table::export_csv(Self) -> String
 pub fn Table::export_json(Self, omit_empty? : Bool) -> String raise TableError
 pub fn Table::export_xlsx(Self) -> FixedArray[Byte] raise TableError
 pub fn Table::lookup(Self, Self, source_key~ : String, lookup_key~ : String, columns~ : Array[String], prefix? : String, matched_only? : Bool) -> LookupResult raise LookupError
+pub fn Table::not_equal(Self, Self) -> Bool
 pub fn Table::pivot(Self, id_columns~ : Array[String], key_column~ : String, value_column~ : String, duplicates? : PivotDuplicates, prefix? : String) -> Self raise PivotError
+pub fn Table::pivot_summary(Self, row_columns~ : Array[String], column_column~ : String, operation~ : SummaryOperation) -> Self raise PivotError
 pub fn Table::query(Self, QueryRecipe) -> QueryResult raise QueryError
 pub fn Table::reconcile(Self, Self, key_columns~ : Array[String], include_unchanged? : Bool) -> Self raise ReconcileError
 pub fn Table::summarize(Self, group_by~ : Array[String], measures~ : Array[SummaryMeasure]) -> Self raise SummaryError
 pub fn Table::text_rows(Self) -> Array[Array[String]]
+pub fn Table::to_repr(Self) -> @debug.Repr
 pub fn Table::unpivot(Self, id_columns~ : Array[String], value_columns~ : Array[String], names_to? : String, values_to? : String, drop_empty? : Bool) -> Self raise UnpivotError
 pub fn Table::workbook(Self) -> @scene.Workbook
 
@@ -359,6 +465,9 @@ pub(all) enum XlsxHeader {
   FirstRow
   Columns(Array[String])
 } derive(Eq, @debug.Debug)
+pub fn XlsxHeader::equal(Self, Self) -> Bool
+pub fn XlsxHeader::not_equal(Self, Self) -> Bool
+pub fn XlsxHeader::to_repr(Self) -> @debug.Repr
 
 pub(all) struct XlsxTable {
   table : Table
@@ -367,6 +476,9 @@ pub(all) struct XlsxTable {
   source_rows : Array[Int]
   warnings : Array[String]
 } derive(Eq, @debug.Debug)
+pub fn XlsxTable::equal(Self, Self) -> Bool
+pub fn XlsxTable::not_equal(Self, Self) -> Bool
+pub fn XlsxTable::to_repr(Self) -> @debug.Repr
 
 pub(all) struct XmlField {
   name : String
@@ -374,16 +486,25 @@ pub(all) struct XmlField {
   attribute : String?
   repeated : XmlRepeated
 } derive(Eq, @debug.Debug)
+pub fn XmlField::equal(Self, Self) -> Bool
+pub fn XmlField::not_equal(Self, Self) -> Bool
+pub fn XmlField::to_repr(Self) -> @debug.Repr
 
 pub(all) struct XmlRecordSpec {
   record_path : Array[String]
   fields : Array[XmlField]
 } derive(Eq, @debug.Debug)
+pub fn XmlRecordSpec::equal(Self, Self) -> Bool
+pub fn XmlRecordSpec::not_equal(Self, Self) -> Bool
+pub fn XmlRecordSpec::to_repr(Self) -> @debug.Repr
 
 pub(all) enum XmlRepeated {
   RejectRepeated
   JoinRepeated(String)
 } derive(Eq, @debug.Debug)
+pub fn XmlRepeated::equal(Self, Self) -> Bool
+pub fn XmlRepeated::not_equal(Self, Self) -> Bool
+pub fn XmlRepeated::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 

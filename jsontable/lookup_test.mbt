@@ -26,15 +26,11 @@ test "lookup enriches JSON orders with CSV customers and reopens both exports" {
   )
   let workbook = @xlsx.read(@opc.open(result.table.export_xlsx()))
   assert_true(
-    workbook.sheets[0].cells.any(cell => cell.value == @scene.Number("42.5")),
+    workbook.sheets[0].cells.any(cell => cell.value == Number("42.5")),
   )
+  assert_true(workbook.sheets[0].cells.any(cell => cell.value == Text("001")))
   assert_true(
-    workbook.sheets[0].cells.any(cell => cell.value == @scene.Text("001")),
-  )
-  assert_true(
-    workbook.sheets[0].cells.any(cell => {
-      cell.value == @scene.Text("東京 🐈")
-    }),
+    workbook.sheets[0].cells.any(cell => cell.value == Text("東京 🐈")),
   )
   let matched = orders.lookup(
     customers,
@@ -47,7 +43,7 @@ test "lookup enriches JSON orders with CSV customers and reopens both exports" {
   assert_eq(matched.source_rows, [1, 2])
   assert_eq(matched.lookup_rows, [Some(2), Some(1)])
   assert_eq(matched.table.columns, ["order", "customer", "amount", "name"])
-  result.table.rows[0][0] = @scene.Text("changed")
+  result.table.rows[0][0] = Text("changed")
   assert_eq(orders.export_csv(), before)
 }
 
@@ -61,11 +57,7 @@ test "lookup retains repeated source keys and typed JSON lookup fields" {
     "price", "stock",
   ])
   assert_eq(result.lookup_rows, [Some(1), Some(1), Some(2)])
-  assert_eq(result.table.rows[0], [
-    @scene.Text("01"),
-    @scene.Number("3.5"),
-    @scene.Boolean(true),
-  ])
+  assert_eq(result.table.rows[0], [Text("01"), Number("3.5"), Boolean(true)])
   let tsv = @jsontable.parse_delimited(
     "id\tnote\n01\t\"hello\nworld\"\n",
     delimiter='\t',
@@ -78,50 +70,91 @@ test "lookup rejects ambiguous or malformed input without mutation" {
   let source = @jsontable.parse("[{\"id\":\"x\"}]")
   let duplicate = @jsontable.parse("[{\"id\":\"x\"},{\"id\":\"x\"}]")
   assert_true(
-    (try? source.lookup(duplicate, source_key="id", lookup_key="id", columns=[]))
-    is Err(@jsontable.DuplicateKey(1, 2)),
+    try
+      source.lookup(duplicate, source_key="id", lookup_key="id", columns=[])
+    catch {
+      value => value is DuplicateKey(1, 2)
+    } noraise {
+      _ => false
+    },
   )
   assert_true(
-    (try? source.lookup(source, source_key="no", lookup_key="id", columns=[]))
-    is Err(@jsontable.UnknownColumn("no")),
+    try
+      source.lookup(source, source_key="no", lookup_key="id", columns=[])
+    catch {
+      value => value is UnknownColumn("no")
+    } noraise {
+      _ => false
+    },
   )
   assert_true(
-    (try? source.lookup(
-      source,
-      source_key="id",
-      lookup_key="id",
-      columns=["id"],
-      prefix="",
-    ))
-    is Err(@jsontable.InvalidTable(_)),
+    try
+      source.lookup(
+        source,
+        source_key="id",
+        lookup_key="id",
+        columns=["id"],
+        prefix="",
+      )
+    catch {
+      value => value is InvalidTable(_)
+    } noraise {
+      _ => false
+    },
   )
   assert_true(
-    (try? source.lookup(source, source_key="id", lookup_key="id", columns=[
-      "id", "id",
-    ]))
-    is Err(@jsontable.InvalidTable(_)),
+    try
+      source.lookup(source, source_key="id", lookup_key="id", columns=[
+        "id", "id",
+      ])
+    catch {
+      value => value is InvalidTable(_)
+    } noraise {
+      _ => false
+    },
   )
   assert_true(
-    (try? @jsontable.parse_delimited("id,id\nx,y"))
-    is Err(@jsontable.InvalidTable(_)),
+    try @jsontable.parse_delimited("id,id\nx,y") catch {
+      value => value is InvalidTable(_)
+    } noraise {
+      _ => false
+    },
   )
   assert_true(
-    (try? @jsontable.parse_delimited("id,name\nx"))
-    is Err(@jsontable.InvalidTable(_)),
+    try @jsontable.parse_delimited("id,name\nx") catch {
+      value => value is InvalidTable(_)
+    } noraise {
+      _ => false
+    },
   )
   let numbers = @jsontable.parse("[{\"id\":1}]")
   assert_true(
-    (try? source.lookup(numbers, source_key="id", lookup_key="id", columns=[]))
-    is Err(@jsontable.InvalidKey(1)),
+    try
+      source.lookup(numbers, source_key="id", lookup_key="id", columns=[])
+    catch {
+      value => value is InvalidKey(1)
+    } noraise {
+      _ => false
+    },
   )
   assert_true(
-    (try? numbers.lookup(source, source_key="id", lookup_key="id", columns=[]))
-    is Err(@jsontable.InvalidKey(1)),
+    try
+      numbers.lookup(source, source_key="id", lookup_key="id", columns=[])
+    catch {
+      value => value is InvalidKey(1)
+    } noraise {
+      _ => false
+    },
   )
   let blank = @jsontable.parse_delimited("id\n\"\"\n")
   assert_true(
-    (try? source.lookup(blank, source_key="id", lookup_key="id", columns=[]))
-    is Err(@jsontable.InvalidKey(1)),
+    try
+      source.lookup(blank, source_key="id", lookup_key="id", columns=[])
+    catch {
+      value => value is InvalidKey(1)
+    } noraise {
+      _ => false
+    },
   )
   let empty = @jsontable.parse_delimited("id,name\n")
   let unmatched = source.lookup(empty, source_key="id", lookup_key="id", columns=[
@@ -156,7 +189,10 @@ test "lookup JSONL exact case and whitespace and empty matches" {
     ["key", "lookup.value"],
   ])
   assert_true(
-    (try? @jsontable.parse_delimited("id\n\"unfinished"))
-    is Err(@jsontable.InvalidDelimited(_)),
+    try @jsontable.parse_delimited("id\n\"unfinished") catch {
+      value => value is InvalidDelimited(_)
+    } noraise {
+      _ => false
+    },
   )
 }

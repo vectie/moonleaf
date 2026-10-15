@@ -20,7 +20,7 @@ fn text_with_preserved_space(
   if preserve && !found {
     attributes.push({ name: "xml:space", value: "preserve", })
   }
-  { name: element.name, attributes, children: [@xml.Text(value)], }
+  { name: element.name, attributes, children: [Text(value)], }
 }
 
 ///|

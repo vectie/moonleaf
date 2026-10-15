@@ -18,6 +18,8 @@ pub fn correct_text_cells(@opc.Package, Array[TextCellCorrection]) -> @opc.Packa
 
 pub fn create(Array[Array[@scene.CellValue]], sheet_name? : String) -> FixedArray[Byte] raise XlsxError
 
+pub fn create_workbook(Array[(String, Array[Array[@scene.CellValue]])]) -> FixedArray[Byte] raise XlsxError
+
 pub fn delete_sheet_columns(@opc.Package, String, Int, Int) -> (@opc.Package, Int) raise XlsxError
 
 pub fn delete_sheet_rows(@opc.Package, String, Int, Int) -> (@opc.Package, Int) raise XlsxError
@@ -44,15 +46,21 @@ pub fn number_format_cells(@opc.Package, String) -> Array[(Int, Int, String)] ra
 
 pub fn number_format_places_cells(@opc.Package, String) -> Array[(Int, Int, Int)] raise XlsxError
 
+pub fn numeric_formula_cells(@opc.Package, String) -> Array[(Int, Int)] raise XlsxError
+
 pub fn read(@opc.Package) -> @scene.Workbook raise XlsxError
 
 pub fn read_range(@opc.Package, sheet_name~ : String, range~ : String) -> RangeValues raise XlsxError
 
 pub fn recalculate(@opc.Package) -> @opc.Package raise XlsxError
 
+pub fn set_cell_formula(@opc.Package, String, Int, Int, String) -> @opc.Package raise XlsxError
+
 pub fn set_cell_number(@opc.Package, String, Int, Int, Double) -> @opc.Package raise XlsxError
 
 pub fn set_cell_text(@opc.Package, String, Int, Int, String) -> @opc.Package raise XlsxError
+
+pub fn set_cell_value(@opc.Package, String, Int, Int, String, String) -> @opc.Package raise XlsxError
 
 pub fn set_cells_text(@opc.Package, String, Array[(Int, Int, String)]) -> @opc.Package raise XlsxError
 
@@ -191,6 +199,9 @@ pub(all) struct NamedTable {
   data_rows : Int
   calculated_columns : Bool
 } derive(Eq, @debug.Debug)
+pub fn NamedTable::equal(Self, Self) -> Bool
+pub fn NamedTable::not_equal(Self, Self) -> Bool
+pub fn NamedTable::to_repr(Self) -> @debug.Repr
 
 pub(all) enum NumberFormatPreset {
   FormatGeneral
@@ -205,6 +216,9 @@ pub(all) struct RangeValues {
   rows : Array[Array[@scene.CellValue]]
   styled_cells : Int
 } derive(Eq, @debug.Debug)
+pub fn RangeValues::equal(Self, Self) -> Bool
+pub fn RangeValues::not_equal(Self, Self) -> Bool
+pub fn RangeValues::to_repr(Self) -> @debug.Repr
 
 pub(all) struct SheetDifference {
   name : String
@@ -227,6 +241,9 @@ pub(all) struct TextCellCorrection {
   expected : String
   replacement : String
 } derive(Eq, @debug.Debug)
+pub fn TextCellCorrection::equal(Self, Self) -> Bool
+pub fn TextCellCorrection::not_equal(Self, Self) -> Bool
+pub fn TextCellCorrection::to_repr(Self) -> @debug.Repr
 
 pub(all) struct TextCellTarget {
   sheet : String
@@ -234,6 +251,9 @@ pub(all) struct TextCellTarget {
   text : String
   style_id : Int?
 } derive(Eq, @debug.Debug)
+pub fn TextCellTarget::equal(Self, Self) -> Bool
+pub fn TextCellTarget::not_equal(Self, Self) -> Bool
+pub fn TextCellTarget::to_repr(Self) -> @debug.Repr
 
 pub(all) struct WorkbookComparison {
   before_sheets : Array[String]

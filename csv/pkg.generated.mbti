@@ -6,7 +6,13 @@ import {
 }
 
 // Values
+pub fn cell_text(@scene.CellValue) -> String
+
+pub fn create(Array[Array[@scene.CellValue]]) -> Result[FixedArray[Byte], String]
+
 pub fn parse(String, delimiter? : Char) -> Table raise CsvError
+
+pub fn safe_text(String) -> String
 
 // Errors
 pub(all) suberror CsvError {

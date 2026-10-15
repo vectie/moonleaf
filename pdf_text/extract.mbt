@@ -7,9 +7,29 @@ pub(all) suberror PdfTextError {
 } derive(Debug, Eq)
 
 ///|
+pub extend PdfTextError with @debug.Debug::{to_repr}
+
+///|
+pub extend PdfTextError with Eq::{equal, not_equal}
+
+///|
 /// Extract page-oriented Markdown from a bounded PDF without OCR.
-pub fn extract(content : FixedArray[Byte]) -> String raise PdfTextError {
-  if content.length() > 8_000_000 {
+pub fn extract(
+  content : FixedArray[Byte],
+  max_bytes? : Int = 8_000_000,
+) -> String raise PdfTextError {
+  extract_with_details(content, max_bytes~).text
+}
+
+///|
+/// Extract text with explicit source-checksum and page-limit metadata.
+pub fn extract_with_details(
+  content : FixedArray[Byte],
+  max_bytes? : Int = 8_000_000,
+) -> PdfTextResult raise PdfTextError {
+  if max_bytes < 1 ||
+    max_bytes > 32 * 1024 * 1024 ||
+    content.length() > max_bytes {
     raise TooLarge
   }
   let document = @pdflite.pdf_read_document_from_bytes(
@@ -20,6 +40,7 @@ pub fn extract(content : FixedArray[Byte]) -> String raise PdfTextError {
   if document.is_encrypted() {
     raise Encrypted
   }
+  let warnings = recover_document_text_streams(document)
   let page_count = document.pages_of_pagetree_quick() catch {
     error => raise InvalidPdf("\{Repr(error)}")
   }
@@ -51,5 +72,19 @@ pub fn extract(content : FixedArray[Byte]) -> String raise PdfTextError {
   if markdown.length() > 1_000_000 {
     raise TooLarge
   }
-  markdown
+  {
+    text: if warnings.is_empty() {
+      markdown
+    } else {
+      "> MoonLeaf source warning: one or more original PDF streams have an invalid or incomplete zlib checksum. Text was recovered only from fully completed DEFLATE bodies; source checksum remains unverified.\n\n" +
+      markdown
+    },
+    extraction_warnings: warnings,
+    checksum_verification: if warnings.is_empty() {
+      "verified_streams_only"
+    } else {
+      "unverified_recovered_streams"
+    },
+    truncated_pages: page_count > 100,
+  }
 }

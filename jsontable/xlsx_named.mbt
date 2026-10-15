@@ -54,3 +54,9 @@ pub fn extract_xlsx_named_table(
   )
   { table, definition, source_rows, warnings, }
 }
+
+///|
+pub extend NamedXlsxTable with @debug.Debug::{to_repr}
+
+///|
+pub extend NamedXlsxTable with Eq::{not_equal, equal}

@@ -18,20 +18,26 @@ test "atomic XLSX correction session increments once verifies copy and keeps fai
   assert_false(session.is_dirty())
   let copy = changed.save_as_copy()
   assert_false(copy.session().is_dirty())
-  let package = @opc.open(copy.bytes())
+  let archive = @opc.open(copy.bytes())
   assert_eq(
-    @xlsx.inspect_text_cell(package, sheet_name="Names", address="A1").text,
+    @xlsx.inspect_text_cell(archive, sheet_name="Names", address="A1").text,
     "Ada Lovelace",
   )
   assert_eq(
-    @xlsx.inspect_text_cell(package, sheet_name="Names", address="B1").text,
+    @xlsx.inspect_text_cell(archive, sheet_name="Names", address="B1").text,
     "Bo Li",
   )
   assert_eq(
     session.scene(),
     @moonleaf.open_session("original.xlsx", bytes).scene(),
   )
-  assert_true((try? changed.correct_xlsx_text_cells(edits)) is Err(_))
+  assert_true(
+    try changed.correct_xlsx_text_cells(edits) catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
+  )
   let noop = changed.correct_xlsx_text_cells([
     {
       sheet: "Names",

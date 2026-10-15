@@ -59,24 +59,37 @@ test "text correction validates every original expectation before returning and 
   let original = correction_fixture()
   let bytes = @opc.save(original)
   assert_true(
-    (try? @xlsx.correct_text_cells(original, [
-      correction("B1", "Ada", "changed"),
-      correction("B2", "stale", "replacement"),
-    ]))
-    is Err(_),
+    try
+      @xlsx.correct_text_cells(original, [
+        correction("B1", "Ada", "changed"),
+        correction("B2", "stale", "replacement"),
+      ])
+    catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
   )
   assert_true(
-    (try? @xlsx.correct_text_cells(original, [
-      correction("B1", "stale", "stale"),
-    ]))
-    is Err(_),
+    try
+      @xlsx.correct_text_cells(original, [correction("B1", "stale", "stale")])
+    catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
   )
   assert_true(
-    (try? @xlsx.correct_text_cells(original, [
-      correction("B1", "Ada", "changed"),
-      correction("B1", "changed", "again"),
-    ]))
-    is Err(_),
+    try
+      @xlsx.correct_text_cells(original, [
+        correction("B1", "Ada", "changed"),
+        correction("B1", "changed", "again"),
+      ])
+    catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
   )
   assert_eq(
     @xlsx.correct_text_cells(original, [correction("B1", "Ada", "Ada")]),
@@ -90,8 +103,13 @@ test "text correction refuses numbers absent cells noncanonical coordinates and 
   let original = correction_fixture()
   for address in ["C1", "D1", "B01", "b1", "B0", "XFE1", "B1:B2"] {
     assert_true(
-      (try? @xlsx.inspect_text_cell(original, sheet_name="Contacts", address~))
-      is Err(_),
+      try
+        @xlsx.inspect_text_cell(original, sheet_name="Contacts", address~)
+      catch {
+        _ => true
+      } noraise {
+        _ => false
+      },
     )
   }
   let xml = original.text("xl/worksheets/sheet1.xml")
@@ -103,16 +121,22 @@ test "text correction refuses numbers absent cells noncanonical coordinates and 
     ),
   )
   assert_true(
-    (try? @xlsx.inspect_text_cell(
-      duplicated,
-      sheet_name="Contacts",
-      address="B1",
-    ))
-    is Err(_),
+    try
+      @xlsx.inspect_text_cell(duplicated, sheet_name="Contacts", address="B1")
+    catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
   )
   assert_true(
-    (try? @xlsx.inspect_text_cell(original, sheet_name="contacts", address="B1"))
-    is Err(_),
+    try
+      @xlsx.inspect_text_cell(original, sheet_name="contacts", address="B1")
+    catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
   )
 }
 
@@ -129,8 +153,13 @@ test "text correction refuses formulas merged anchors and formula result ranges"
       xml.replace(old="</worksheet>", new=suffix + "</worksheet>"),
     )
     assert_true(
-      (try? @xlsx.inspect_text_cell(merged, sheet_name="Contacts", address="B1"))
-      is Err(_),
+      try
+        @xlsx.inspect_text_cell(merged, sheet_name="Contacts", address="B1")
+      catch {
+        _ => true
+      } noraise {
+        _ => false
+      },
     )
   }
   let formula = original.replace_text(
@@ -141,12 +170,22 @@ test "text correction refuses formulas merged anchors and formula result ranges"
     ),
   )
   assert_true(
-    (try? @xlsx.inspect_text_cell(formula, sheet_name="Contacts", address="B1"))
-    is Err(_),
+    try
+      @xlsx.inspect_text_cell(formula, sheet_name="Contacts", address="B1")
+    catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
   )
   assert_true(
-    (try? @xlsx.inspect_text_cell(formula, sheet_name="Contacts", address="C1"))
-    is Err(_),
+    try
+      @xlsx.inspect_text_cell(formula, sheet_name="Contacts", address="C1")
+    catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
   )
 }
 
@@ -164,14 +203,15 @@ test "text correction refuses rich text metadata and rebound namespaces" {
   ]
   for value in bad {
     assert_true(value != xml)
-    let package = original.replace_text("xl/worksheets/sheet1.xml", value)
+    let archive = original.replace_text("xl/worksheets/sheet1.xml", value)
     assert_true(
-      (try? @xlsx.inspect_text_cell(
-        package,
-        sheet_name="Contacts",
-        address="B1",
-      ))
-      is Err(_),
+      try
+        @xlsx.inspect_text_cell(archive, sheet_name="Contacts", address="B1")
+      catch {
+        _ => true
+      } noraise {
+        _ => false
+      },
     )
   }
 }
@@ -190,17 +230,33 @@ test "text correction accepts exact string boundaries and rejects escaped contro
   for
     value in [String::make(32768, 'x'), "bad\u0001", "_x0041_", "_x005F_x0041_"] {
     assert_true(
-      (try? @xlsx.correct_text_cells(original, [correction("B1", "Ada", value)]))
-      is Err(_),
+      try
+        @xlsx.correct_text_cells(original, [correction("B1", "Ada", value)])
+      catch {
+        _ => true
+      } noraise {
+        _ => false
+      },
     )
   }
-  assert_true((try? @xlsx.correct_text_cells(original, [])) is Err(_))
   assert_true(
-    (try? @xlsx.correct_text_cells(
-      original,
-      Array::make(101, correction("B1", "Ada", "Ada")),
-    ))
-    is Err(_),
+    try @xlsx.correct_text_cells(original, []) catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
+  )
+  assert_true(
+    try
+      @xlsx.correct_text_cells(
+        original,
+        Array::make(101, correction("B1", "Ada", "Ada")),
+      )
+    catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
   )
   let empty = @xlsx.correct_text_cells(original, [correction("B1", "Ada", "")])
   assert_eq(
@@ -212,7 +268,7 @@ test "text correction accepts exact string boundaries and rejects escaped contro
 ///|
 test "text correction accepts 100 distinct original targets and retains style identifiers" {
   let original = @opc.open(
-    @xlsx.create(Array::make(100, [@scene.Text("old")]), sheet_name="Contacts"),
+    @xlsx.create(Array::make(100, [Text("old")]), sheet_name="Contacts"),
   )
   let styled = original
   let edits = Array::makei(100, i => {

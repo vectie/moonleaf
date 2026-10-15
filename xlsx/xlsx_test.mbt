@@ -82,7 +82,7 @@ test "batch editing rejects formula cells without changing the package" {
     )
     false
   } catch {
-    @xlsx.XlsxError::InvalidWorkbook(_) => true
+    InvalidWorkbook(_) => true
     _ => false
   }
   assert_true(rejected)
@@ -96,7 +96,7 @@ test "read rejects a sharedStrings relationship type with a malicious suffix" {
     "xl/_rels/workbook.xml.rels", "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet1.xml\"/><Relationship Id=\"rId2\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings-malicious\" Target=\"sharedStrings.xml\"/></Relationships>",
   )
   let rejected = try @xlsx.read(source) catch {
-    @xlsx.InvalidSharedStringIndex(0) => true
+    InvalidSharedStringIndex(0) => true
     _ => false
   } noraise {
     _ => false
@@ -110,7 +110,7 @@ test "read ignores an external sharedStrings relationship" {
     "xl/_rels/workbook.xml.rels", "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet1.xml\"/><Relationship Id=\"rId2\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings\" Target=\"sharedStrings.xml\" TargetMode=\"External\"/></Relationships>",
   )
   let rejected = try @xlsx.read(source) catch {
-    @xlsx.InvalidSharedStringIndex(0) => true
+    InvalidSharedStringIndex(0) => true
     _ => false
   } noraise {
     _ => false
@@ -138,7 +138,7 @@ test "read reports a missing exact internal sharedStrings target" {
     "xl/_rels/workbook.xml.rels", "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet1.xml\"/><Relationship Id=\"rId2\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings\" Target=\"missing/sharedStrings.xml\"/></Relationships>",
   )
   let rejected = try @xlsx.read(source) catch {
-    @xlsx.PackageFailure(_) => true
+    PackageFailure(_) => true
     _ => false
   } noraise {
     _ => false
@@ -262,7 +262,7 @@ test "text edits reject XML control characters and preserve allowed whitespace" 
     ignore(@xlsx.set_cell_text(original, "Budget & Plan", 1, 1, "bad\u{0000}"))
     false
   } catch {
-    @xlsx.XlsxError::InvalidWorkbook(_) => true
+    InvalidWorkbook(_) => true
     _ => false
   }
   assert_true(single_rejected)
@@ -275,7 +275,7 @@ test "text edits reject XML control characters and preserve allowed whitespace" 
     )
     false
   } catch {
-    @xlsx.XlsxError::InvalidWorkbook(_) => true
+    InvalidWorkbook(_) => true
     _ => false
   }
   assert_true(batch_rejected)
@@ -363,10 +363,8 @@ test "inspect preserves implicit styled-cell semantics in one row" {
   assert_true(b1.formula is Some("60+1"))
   assert_true(b1.cached_value is Some("61"))
   assert_true(b1.date_time is Some(_))
-  assert_true(d1.display_kind == @xlsx.DisplayKind::General)
+  assert_true(d1.display_kind == General)
   assert_false(
-    d1.warnings.any(fn(warning) {
-      warning is @xlsx.InspectWarning::UnsupportedNumberFormat(_, _)
-    }),
+    d1.warnings.any(fn(warning) { warning is UnsupportedNumberFormat(_, _) }),
   )
 }

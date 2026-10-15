@@ -214,3 +214,15 @@ pub fn correct_text_cells(
   }
   result
 }
+
+///|
+pub extend TextCellCorrection with Eq::{equal, not_equal}
+
+///|
+pub extend TextCellCorrection with @debug.Debug::{to_repr}
+
+///|
+pub extend TextCellTarget with Eq::{equal, not_equal}
+
+///|
+pub extend TextCellTarget with @debug.Debug::{to_repr}

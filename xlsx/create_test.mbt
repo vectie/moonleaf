@@ -2,19 +2,19 @@
 test "create XLSX roundtrips Unicode, numbers, literal formulas and header style" {
   let bytes = @xlsx.create(
     [
-      [@scene.Text("标题"), @scene.Text("序号")],
-      [@scene.Text("债券 & 公司"), @scene.Number("12")],
-      [@scene.Text("=1+1"), @scene.Text("换行\n测试")],
+      [Text("标题"), Text("序号")],
+      [Text("债券 & 公司"), Number("12")],
+      [Text("=1+1"), Text("换行\n测试")],
     ],
     sheet_name="研究证据",
   )
   let workbook = @xlsx.read(@opc.open(bytes))
   assert_eq(workbook.sheets.length(), 1)
   assert_eq(workbook.sheets[0].name, "研究证据")
-  assert_eq(workbook.sheets[0].cells[2].value, @scene.Text("债券 & 公司"))
-  assert_eq(workbook.sheets[0].cells[3].value, @scene.Number("12"))
-  assert_eq(workbook.sheets[0].cells[4].value, @scene.Text("=1+1"))
-  assert_eq(workbook.sheets[0].cells[5].value, @scene.Text("换行\n测试"))
+  assert_eq(workbook.sheets[0].cells[2].value, Text("债券 & 公司"))
+  assert_eq(workbook.sheets[0].cells[3].value, Number("12"))
+  assert_eq(workbook.sheets[0].cells[4].value, Text("=1+1"))
+  assert_eq(workbook.sheets[0].cells[5].value, Text("换行\n测试"))
   assert_eq(workbook.sheets[0].cells[0].style_id, Some(1))
 }
 
@@ -25,12 +25,12 @@ test "created XLSX preserves CR CRLF and valid XML character edges" {
     "\u{20}\u{D7FF}\u{E000}\u{FFFD}\u{10000}\u{10FFFF}",
   ]
   let sheet_name = "Line\r\nTab\t"
-  let bytes = @xlsx.create(values.map(text => [@scene.Text(text)]), sheet_name~)
+  let bytes = @xlsx.create(values.map(text => [Text(text)]), sheet_name~)
   let pkg = @opc.open(bytes)
   let workbook = @xlsx.read(pkg)
   assert_eq(workbook.sheets[0].name, sheet_name)
   for i, text in values {
-    assert_eq(workbook.sheets[0].cells[i].value, @scene.Text(text))
+    assert_eq(workbook.sheets[0].cells[i].value, Text(text))
   }
   let worksheet = pkg.text("xl/worksheets/sheet1.xml")
   assert_true(worksheet.contains("before&#13;after"))
@@ -52,22 +52,22 @@ test "created XLSX rejects every XML forbidden control and noncharacter boundary
   invalid.push("\u{FFFF}")
   for text in invalid {
     let cells : Array[@scene.CellValue] = [
-      @scene.Text(text),
-      @scene.Error(text),
-      @scene.Number(text),
-      @scene.Formula(expression=text, cached=None),
-      @scene.Formula(expression="1+1", cached=Some(text)),
+      Text(text),
+      Error(text),
+      Number(text),
+      Formula(expression=text, cached=None),
+      Formula(expression="1+1", cached=Some(text)),
     ]
     for value in cells {
-      try @xlsx.create([[@scene.Text("valid")], [value]]) catch {
-        @xlsx.InvalidWorkbook(_) => ()
+      try @xlsx.create([[Text("valid")], [value]]) catch {
+        InvalidWorkbook(_) => ()
         error => fail("Unexpected error: \{Repr(error)}")
       } noraise {
         _ => fail("Expected invalid XML cell refusal")
       }
     }
-    try @xlsx.create([[@scene.Text("valid")]], sheet_name="a" + text) catch {
-      @xlsx.InvalidWorkbook(_) => ()
+    try @xlsx.create([[Text("valid")]], sheet_name="a" + text) catch {
+      InvalidWorkbook(_) => ()
       error => fail("Unexpected error: \{Repr(error)}")
     } noraise {
       _ => fail("Expected invalid XML attribute refusal")
@@ -86,7 +86,7 @@ test "XLSX sheet names count characters rather than UTF-8 bytes" {
     ignore(@xlsx.create([[Text("内容")]], sheet_name=name + "二"))
     false
   } catch {
-    @xlsx.XlsxError::InvalidWorkbook(_) => true
+    InvalidWorkbook(_) => true
     _ => false
   }
   assert_true(too_long)
@@ -94,7 +94,7 @@ test "XLSX sheet names count characters rather than UTF-8 bytes" {
     ignore(@xlsx.create([[Text("内容")]], sheet_name="'研究"))
     false
   } catch {
-    @xlsx.XlsxError::InvalidWorkbook(_) => true
+    InvalidWorkbook(_) => true
     _ => false
   }
   assert_true(leading_apostrophe)
@@ -106,7 +106,7 @@ test "XLSX creation rejects XML control characters in cells" {
     ignore(@xlsx.create([[Text("安全\u{0000}失败")]]))
     false
   } catch {
-    @xlsx.XlsxError::InvalidWorkbook(_) => true
+    InvalidWorkbook(_) => true
     _ => false
   }
   assert_true(rejected)

@@ -121,16 +121,8 @@ test "DocumentSession format filename capabilities and open parity" {
       document_session_docx_fixture(),
       @moonleaf.DocumentFormat::Docx,
     ),
-    (
-      "BOOK.XLSX",
-      document_session_xlsx_fixture(),
-      @moonleaf.DocumentFormat::Xlsx,
-    ),
-    (
-      "DECK.PPTX",
-      document_session_pptx_fixture(),
-      @moonleaf.DocumentFormat::Pptx,
-    ),
+    ("BOOK.XLSX", document_session_xlsx_fixture(), Xlsx),
+    ("DECK.PPTX", document_session_pptx_fixture(), Pptx),
   ]
   cases.each(item => {
     let session = @moonleaf.open_session(item.0, item.1)
@@ -138,14 +130,12 @@ test "DocumentSession format filename capabilities and open parity" {
     assert_true(session.format() == item.2)
     assert_true(session.scene() == @moonleaf.open(item.0, item.1))
     match item.2 {
-      @moonleaf.DocumentFormat::Docx =>
-        assert_true(scene_has_text(session.scene(), "Hello fixture"))
-      @moonleaf.DocumentFormat::Xlsx => {
+      Docx => assert_true(scene_has_text(session.scene(), "Hello fixture"))
+      Xlsx => {
         assert_true(scene_has_text(session.scene(), "Hello sheet"))
         assert_true(scene_cell_is_text(session.scene(), 1, 1, "Hello sheet"))
       }
-      @moonleaf.DocumentFormat::Pptx =>
-        assert_true(scene_has_text(session.scene(), "Hello slide"))
+      Pptx => assert_true(scene_has_text(session.scene(), "Hello slide"))
     }
     assert_eq(session.revision(), 0)
     assert_false(session.is_dirty())
@@ -162,13 +152,13 @@ test "DocumentSession format filename capabilities and open parity" {
 ///|
 test "DocumentSession rejects unsupported and malformed input" {
   try @moonleaf.open_session("bad.odt", []) catch {
-    @moonleaf.DocumentSessionError::UnsupportedFormat("bad.odt") => ()
+    UnsupportedFormat("bad.odt") => ()
     _ => fail("expected unsupported format")
   } noraise {
     _ => fail("expected unsupported format")
   }
   try @moonleaf.open_session("bad.docx", [0x00, 0xff, 0x80]) catch {
-    @moonleaf.DocumentSessionError::Package(_) => ()
+    Package(_) => ()
     _ => fail("expected malformed package")
   } noraise {
     _ => fail("expected malformed package")
@@ -182,9 +172,9 @@ test "DocumentSession rejects format-operation mismatches and empty find" {
     document_session_xlsx_fixture(),
   )
   try xlsx.replace_text("Hello", "Goodbye") catch {
-    @moonleaf.DocumentSessionError::OperationNotSupported(operation~, format~) => {
+    OperationNotSupported(operation~, format~) => {
       assert_eq(operation, "replace_text")
-      assert_true(format == @moonleaf.DocumentFormat::Xlsx)
+      assert_true(format == Xlsx)
     }
     _ => fail("expected mismatch")
   } noraise {
@@ -201,14 +191,13 @@ test "DocumentSession rejects format-operation mismatches and empty find" {
   }
   let docx = @moonleaf.open_session("doc.docx", document_session_docx_fixture())
   try docx.set_cell_text("Sheet1", 1, 1, "x") catch {
-    @moonleaf.DocumentSessionError::OperationNotSupported(_) => ()
+    OperationNotSupported(_) => ()
     _ => fail("expected mismatch")
   } noraise {
     _ => fail("expected mismatch")
   }
   try docx.replace_text("", "x") catch {
-    @moonleaf.DocumentSessionError::InvalidFind(message) =>
-      assert_eq(message, "find text must not be empty")
+    InvalidFind(message) => assert_eq(message, "find text must not be empty")
     _ => fail("expected empty-find failure")
   } noraise {
     _ => fail("expected empty-find failure")
@@ -255,27 +244,27 @@ test "XLSX A1 edit, no-op, coordinates, formula, and merge rules" {
   assert_eq(changed.revision(), 1)
   assert_true(changed.is_dirty())
   try session.set_cell_text("Missing", 1, 1, "x") catch {
-    @moonleaf.DocumentSessionError::SheetNotFound("Missing") => ()
+    SheetNotFound("Missing") => ()
     _ => fail("expected missing sheet")
   } noraise {
     _ => fail("expected missing sheet")
   }
   for coord in [(0, 1), (1, 0), (1048577, 1), (1, 16385)] {
     try session.set_cell_text("Sheet1", coord.0, coord.1, "x") catch {
-      @moonleaf.DocumentSessionError::InvalidCoordinates(_) => ()
+      InvalidCoordinates(_) => ()
       _ => fail("expected invalid coordinates")
     } noraise {
       _ => fail("expected invalid coordinates")
     }
   }
   try session.set_cell_text("Sheet1", 1, 2, "x") catch {
-    @moonleaf.DocumentSessionError::FormulaCell(_) => ()
+    FormulaCell(_) => ()
     _ => fail("expected formula-cell failure")
   } noraise {
     _ => fail("expected formula-cell failure")
   }
   try session.set_cell_text("Sheet1", 2, 2, "x") catch {
-    @moonleaf.DocumentSessionError::MergedCellNotAnchor(_) => ()
+    MergedCellNotAnchor(_) => ()
     _ => fail("expected merged non-anchor failure")
   } noraise {
     _ => fail("expected merged non-anchor failure")
@@ -305,7 +294,7 @@ test "XLSX batch edit verifies multiple cells and rejects formula changes" {
   try
     session.set_cells_text("Sheet1", [(1, 1, "Safe"), (1, 2, "Formula")])
   catch {
-    @moonleaf.DocumentSessionError::FormulaCell(_) => ()
+    FormulaCell(_) => ()
     _ => fail("expected formula-cell failure")
   } noraise {
     _ => fail("expected formula-cell failure")

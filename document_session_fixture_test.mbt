@@ -98,10 +98,10 @@ fn document_session_pptx_fixture() -> FixedArray[Byte] {
 ///|
 test "DocumentSession fixture is a valid DOCX package" {
   guard @moonleaf.open("fixture.docx", document_session_docx_fixture())
-    is @scene.Document::TextDocument(document) else {
+    is TextDocument(document) else {
     fail("expected DOCX text scene")
   }
-  guard document.blocks is [@scene.TextBlock::Paragraph([run])] else {
+  guard document.blocks is [Paragraph([run])] else {
     fail("expected one paragraph")
   }
   assert_eq(run.text, "Hello fixture")
@@ -110,7 +110,7 @@ test "DocumentSession fixture is a valid DOCX package" {
 ///|
 test "DocumentSession fixture is a valid XLSX package" {
   guard @moonleaf.open("fixture.xlsx", document_session_xlsx_fixture())
-    is @scene.Document::WorkbookDocument(workbook) else {
+    is WorkbookDocument(workbook) else {
     fail("expected XLSX workbook scene")
   }
   guard workbook.sheets is [sheet] else { fail("expected one worksheet") }
@@ -120,7 +120,7 @@ test "DocumentSession fixture is a valid XLSX package" {
 ///|
 test "DocumentSession fixture is a valid PPTX package" {
   guard @moonleaf.open("fixture.pptx", document_session_pptx_fixture())
-    is @scene.Document::PresentationDocument(presentation) else {
+    is PresentationDocument(presentation) else {
     fail("expected PPTX presentation scene")
   }
   guard presentation.slides is [slide] else { fail("expected one slide") }

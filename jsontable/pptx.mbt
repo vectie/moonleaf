@@ -62,7 +62,7 @@ pub fn extract_pptx(
     .map(row => {
       row.map(text => {
         units += text.length()
-        @scene.Text(text)
+        Text(text)
       })
     })
   if units > 2_000_000 {

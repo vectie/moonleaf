@@ -111,7 +111,7 @@ test "inspect rejects suffix worksheet type despite present decoy worksheet" {
     [],
   )
   ignore(@xlsx.inspect(fixture)) catch {
-    @xlsx.XlsxError::MissingWorksheet(_) => return
+    MissingWorksheet(_) => return
     _ => fail("expected MissingWorksheet")
   }
   fail("expected MissingWorksheet")
@@ -139,7 +139,7 @@ test "inspect rejects above-root official worksheet target even when part exists
     [],
   )
   ignore(@xlsx.inspect(fixture)) catch {
-    @xlsx.XlsxError::PackageFailure(_) => return
+    PackageFailure(_) => return
     _ => fail("expected PackageFailure")
   }
   fail("expected PackageFailure")
@@ -163,7 +163,7 @@ test "inspect rejects duplicate exact internal metadata relationships" {
       "<c r=\"A1\"><v>1</v></c>",
     )
     ignore(@xlsx.inspect(fixture)) catch {
-      @xlsx.XlsxError::PackageFailure(_) => continue
+      PackageFailure(_) => continue
       _ => fail("expected PackageFailure for " + label)
     }
     fail("expected PackageFailure for " + label)
@@ -208,7 +208,7 @@ test "inspect ignores external exact metadata despite local decoys" {
   let got = @xlsx.inspect(fixture)
   assert_true(got[0].resolved_text is None)
   assert_true(got[0].number_format is None)
-  assert_true(got[0].warnings is [@xlsx.MissingStylesPart])
+  assert_true(got[0].warnings is [MissingStylesPart])
 }
 
 ///|
@@ -247,7 +247,7 @@ test "inspect rejects suffix spoof relationship types" {
   )
   let got = @xlsx.inspect(fixture)
   assert_true(got[0].resolved_text is None)
-  assert_true(got[0].warnings is [@xlsx.MissingStylesPart])
+  assert_true(got[0].warnings is [MissingStylesPart])
 }
 
 ///|
@@ -302,7 +302,7 @@ test "inspect reports an exact missing styles relationship target" {
     }),
   }
   let rejected = try @xlsx.inspect(fixture) catch {
-    @xlsx.PackageFailure(_) => true
+    PackageFailure(_) => true
     _ => false
   } noraise {
     _ => false
@@ -326,7 +326,7 @@ test "inspect reports an exact missing sharedStrings relationship target" {
     }),
   }
   let rejected = try @xlsx.inspect(fixture) catch {
-    @xlsx.PackageFailure(_) => true
+    PackageFailure(_) => true
     _ => false
   } noraise {
     _ => false
@@ -460,17 +460,17 @@ test "inspect audited custom number-format classifier cases" {
   ]
   let expected = [
     @xlsx.Date,
-    @xlsx.Time,
-    @xlsx.Time,
-    @xlsx.Time,
-    @xlsx.Number,
-    @xlsx.Number,
-    @xlsx.Date,
-    @xlsx.Date,
-    @xlsx.Unsupported,
-    @xlsx.Unsupported,
-    @xlsx.Unsupported,
-    @xlsx.Unsupported,
+    Time,
+    Time,
+    Time,
+    Number,
+    Number,
+    Date,
+    Date,
+    Unsupported,
+    Unsupported,
+    Unsupported,
+    Unsupported,
   ]
   let mut num_fmts = ""
   let mut xfs = ""
@@ -506,7 +506,7 @@ test "inspect audited custom number-format classifier cases" {
   assert_eq(got.length(), expected.length())
   for i, want in expected {
     assert_true(got[i].display_kind == want)
-    if want == @xlsx.Unsupported {
+    if want == Unsupported {
       assert_eq(got[i].warnings.length(), 1)
     }
   }

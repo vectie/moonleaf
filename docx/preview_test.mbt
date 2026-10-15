@@ -109,3 +109,19 @@ test "preview keeps a leading page break before its paragraph text" {
   assert_eq(spacer.runs[0].text, "")
   assert_eq(heading.runs.map(run => run.text).join(""), "文件4")
 }
+
+///|
+test "preview retains soft line breaks and tabs within runs" {
+  let archive : @opc.Package = { parts: [], }
+  let archive = archive.replace_text(
+    "word/document.xml", "<w:document xmlns:w=\"urn:w\"><w:body><w:p><w:r><w:t>first</w:t><w:tab/><w:t>column</w:t><w:br/><w:t>second</w:t></w:r></w:p></w:body></w:document>",
+  )
+  let preview = @docx.preview_document(archive)
+  guard preview.blocks is [FlowParagraph(paragraph)] else {
+    fail("expected one paragraph with inline breaks")
+  }
+  assert_eq(
+    paragraph.runs.map(run => run.text).join(""),
+    "first\tcolumn\nsecond",
+  )
+}

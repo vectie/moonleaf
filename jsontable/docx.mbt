@@ -86,7 +86,7 @@ fn docx_selected_properties(
       "w:gridSpan", "w:vMerge", "w:hMerge", "w:gridBefore", "w:gridAfter", "w:vanish",
       "w:webHidden", "w:specVanish",
     ].contains(element.name) ||
-    element.name.ends_with("Change") {
+    element.name.has_suffix("Change") {
     raise InvalidDocxSelection(
       "unsupported selected table property: " + element.name,
     )
@@ -249,23 +249,23 @@ pub fn list_docx_tables(
 ) -> Array[DocxTableCandidate] raise DocxTableError {
   docx_body_tables(archive).mapi((index, table) => {
     let id = "body/table:" + (index + 1).to_string()
-    let parsed = try? docx_table_rows(table)
-    match parsed {
-      Ok(rows) =>
-        {
-          id,
-          rows: rows.length(),
-          columns: rows[0].length(),
-          first_row: rows[0],
-          refusal: None,
-        }
-      Err(InvalidDocxSelection(reason)) =>
+    try docx_table_rows(table) catch {
+      InvalidDocxSelection(reason) =>
         {
           id,
           rows: table.child_elements().filter(e => e.name == "w:tr").length(),
           columns: 0,
           first_row: [],
           refusal: Some(reason),
+        }
+    } noraise {
+      rows =>
+        {
+          id,
+          rows: rows.length(),
+          columns: rows[0].length(),
+          first_row: rows[0],
+          refusal: None,
         }
     }
   })
@@ -312,7 +312,7 @@ pub fn extract_docx(
     .map(row => {
       row.map(text => {
         units += text.length()
-        @scene.Text(text)
+        Text(text)
       })
     })
   if rows.length() > 10000 || units > 4000000 {

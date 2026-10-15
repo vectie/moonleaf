@@ -1,0 +1,7 @@
+supported_targets = "js"
+
+import {
+  "vectie/moonleaf/image_preview",
+}
+
+pkgtype(kind: "executable")

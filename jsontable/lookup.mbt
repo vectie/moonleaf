@@ -23,21 +23,18 @@ pub fn parse_delimited(
   delimiter? : Char = ',',
 ) -> Table raise LookupError {
   let parsed = @csv.parse(text, delimiter~) catch {
-    @csv.InvalidDelimiter =>
+    InvalidDelimiter =>
       raise InvalidDelimited("Expected comma or tab delimiter")
-    @csv.InvalidQuote(row~, column~) =>
+    InvalidQuote(row~, column~) =>
       raise InvalidDelimited("Invalid quote at row \{row}, column \{column}")
-    @csv.UnterminatedQuote => raise InvalidDelimited("Unterminated quote")
-    @csv.TooLarge =>
-      raise InvalidDelimited("CSV/TSV parser size limit exceeded")
+    UnterminatedQuote => raise InvalidDelimited("Unterminated quote")
+    TooLarge => raise InvalidDelimited("CSV/TSV parser size limit exceeded")
     _ => raise InvalidDelimited("Invalid delimited input")
   }
   guard parsed.rows.length() > 0 else { raise InvalidTable("Missing header") }
   let table : Table = {
     columns: parsed.rows[0].copy(),
-    rows: parsed.rows[1:]
-    .to_array()
-    .map(row => row.map(value => @scene.Text(value))),
+    rows: parsed.rows[1:].to_owned().map(row => row.map(value => Text(value))),
   }
   validate_lookup_table(table)
   table
@@ -45,7 +42,7 @@ pub fn parse_delimited(
 
 ///|
 fn validate_lookup_table(table : Table) -> Unit raise LookupError {
-  let names : Map[String, Bool] = {}
+  let names : Map[String, Bool] = Map([])
   for name in table.columns {
     if name == "" || names.contains(name) {
       raise InvalidTable("Empty or duplicate column: " + name)
@@ -109,7 +106,7 @@ pub fn Table::lookup(
     }
     names.push(output_name)
   }
-  let index : Map[String, Int] = {}
+  let index : Map[String, Int] = Map([])
   for i, row in other.rows {
     let key = lookup_key_value(row[right_key], i + 1)
     match index.get(key) {
@@ -132,7 +129,7 @@ pub fn Table::lookup(
         output.push(
           match found {
             Some(j) => other.rows[j][column]
-            None => @scene.Empty
+            None => Empty
           },
         )
       }
@@ -154,3 +151,15 @@ fn lookup_key_value(
     None => raise InvalidKey(row)
   }
 }
+
+///|
+pub extend LookupError with @debug.Debug::{to_repr}
+
+///|
+pub extend LookupError with Eq::{not_equal, equal}
+
+///|
+pub extend LookupResult with @debug.Debug::{to_repr}
+
+///|
+pub extend LookupResult with Eq::{not_equal, equal}

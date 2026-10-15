@@ -51,11 +51,11 @@ test "named Excel Table resolves metadata and imports data excluding totals" {
   assert_eq(imported.table.columns, ["id", "amount"])
   assert_eq(imported.source_rows, [4, 5])
   assert_eq(imported.table.rows, [
-    [@scene.Text("001"), @scene.Number("12.50")],
-    [@scene.Text("002"), @scene.Number("8")],
+    [Text("001"), Number("12.50")],
+    [Text("002"), Number("8")],
   ])
   imported.table.columns[0] = "changed"
-  imported.table.rows[0][0] = @scene.Text("changed")
+  imported.table.rows[0][0] = Text("changed")
   assert_eq(imported.definition.columns, ["id", "amount"])
   assert_eq(@opc.save(source), original)
   named_refuses(source, name="orderstable")
@@ -73,7 +73,7 @@ test "named Excel Table headerless data uses metadata and current range" {
   )
   assert_eq(imported.source_rows, [4, 5])
   assert_eq(imported.table.columns, ["id", "amount"])
-  assert_eq(imported.table.rows[0], [@scene.Text("001"), @scene.Number("12.50")])
+  assert_eq(imported.table.rows[0], [Text("001"), Number("12.50")])
   let smaller = table_xml.replace(old="B4:C6", new="B4:C5")
   assert_eq(
     @jsontable.extract_xlsx_named_table(

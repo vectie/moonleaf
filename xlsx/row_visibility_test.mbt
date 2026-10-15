@@ -1,11 +1,7 @@
 ///|
 test "hide and show rows preserve cells, styles and original package" {
   let source = @opc.open(
-    @xlsx.create([
-      [@scene.Text("Header")],
-      [@scene.Text("Alpha")],
-      [@scene.Text("Beta")],
-    ]),
+    @xlsx.create([[Text("Header")], [Text("Alpha")], [Text("Beta")]]),
   ).replace_text("custom/operator-note.txt", "unchanged")
   let original = source.text("xl/worksheets/sheet1.xml")
   let (hidden, changed) = @xlsx.hide_sheet_rows(source, "研究证据", 2, 2)
@@ -76,7 +72,7 @@ test "row visibility rejects malformed row order and anchored workbook features"
     ignore(@xlsx.hide_sheet_rows(malformed, "研究证据", 1, 1))
     false
   } catch {
-    @xlsx.InvalidWorkbook(_) => true
+    InvalidWorkbook(_) => true
     _ => false
   }
   assert_true(order_rejected)
@@ -87,7 +83,7 @@ test "row visibility rejects malformed row order and anchored workbook features"
     ignore(@xlsx.hide_sheet_rows(anchored, "研究证据", 1, 1))
     false
   } catch {
-    @xlsx.InvalidWorkbook(_) => true
+    InvalidWorkbook(_) => true
     _ => false
   }
   assert_true(feature_rejected)

@@ -120,10 +120,10 @@ pub fn parse_query_recipe(text : String) -> QueryRecipe raise QueryError {
       @scene.CellValue::Empty
     } else {
       let value : @scene.CellValue = match f["value"] {
-        String(v) => @scene.Text(v)
-        Number(_) => @scene.Number(f["value"].stringify())
-        True => @scene.Boolean(true)
-        False => @scene.Boolean(false)
+        String(v) => Text(v)
+        Number(_) => Number(f["value"].stringify())
+        True => Boolean(true)
+        False => Boolean(false)
         _ =>
           raise InvalidQuery(
             "Comparison value must be scalar text, number or boolean",
@@ -178,7 +178,7 @@ pub fn parse_query_recipe(text : String) -> QueryRecipe raise QueryError {
 
 ///|
 fn query_blank(value : @scene.CellValue) -> Bool {
-  value == @scene.Empty || value == @scene.Text("")
+  value == Empty || value == Text("")
 }
 
 ///|
@@ -374,7 +374,7 @@ pub fn Table::query(
     a.compare(b)
   })
   let count = Int::min(indices.length(), recipe.limit)
-  let selected = indices[:count].to_array()
+  let selected = indices[:count].to_owned()
   {
     table: {
       columns: recipe.select.copy(),
@@ -384,3 +384,15 @@ pub fn Table::query(
     matched_rows: indices.length(),
   }
 }
+
+///|
+pub extend QueryError with @debug.Debug::{to_repr}
+
+///|
+pub extend QueryError with Eq::{not_equal, equal}
+
+///|
+pub extend QueryResult with @debug.Debug::{to_repr}
+
+///|
+pub extend QueryResult with Eq::{not_equal, equal}

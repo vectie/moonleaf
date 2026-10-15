@@ -2,9 +2,9 @@
 test "number formats preserve numeric values, formulas, wrap and alignment" {
   let source = @opc.open(
     @xlsx.create([
-      [@scene.Text("Price"), @scene.Text("Rate")],
-      [@scene.Number("12.345"), @scene.Number("0.257")],
-      [@scene.Formula(expression="A2*2", cached=Some("24.69")), @scene.Empty],
+      [Text("Price"), Text("Rate")],
+      [Number("12.345"), Number("0.257")],
+      [Formula(expression="A2*2", cached=Some("24.69")), Empty],
     ]),
   )
   let (wrapped, _) = @xlsx.set_wrap_text_range(
@@ -17,7 +17,7 @@ test "number formats preserve numeric values, formulas, wrap and alignment" {
     1,
     2,
     1,
-    @xlsx.Right,
+    Right,
   )
   let (number, number_count) = @xlsx.set_number_format_range(
     right,
@@ -26,7 +26,7 @@ test "number formats preserve numeric values, formulas, wrap and alignment" {
     1,
     2,
     1,
-    @xlsx.FormatNumber,
+    FormatNumber,
   )
   assert_eq(number_count, 1)
   let (percent, percent_count) = @xlsx.set_number_format_range(
@@ -36,7 +36,7 @@ test "number formats preserve numeric values, formulas, wrap and alignment" {
     2,
     2,
     2,
-    @xlsx.FormatPercent,
+    FormatPercent,
   )
   assert_eq(percent_count, 1)
   assert_eq(@xlsx.number_format_cells(percent, "研究证据"), [
@@ -48,13 +48,10 @@ test "number formats preserve numeric values, formulas, wrap and alignment" {
     (2, 1, "right"),
   ])
   let cells = @xlsx.read(percent).sheets[0].cells
-  assert_eq(cells[2].value, @scene.Number("12.345"))
-  assert_eq(cells[3].value, @scene.Number("0.257"))
-  assert_eq(
-    cells[4].value,
-    @scene.Formula(expression="A2*2", cached=Some("24.69")),
-  )
-  assert_eq(@xlsx.font_decoration_cells(percent, "研究证据", @xlsx.Bold), [
+  assert_eq(cells[2].value, Number("12.345"))
+  assert_eq(cells[3].value, Number("0.257"))
+  assert_eq(cells[4].value, Formula(expression="A2*2", cached=Some("24.69")))
+  assert_eq(@xlsx.font_decoration_cells(percent, "研究证据", Bold), [
     (1, 1),
     (1, 2),
   ])
@@ -65,7 +62,7 @@ test "number formats preserve numeric values, formulas, wrap and alignment" {
     1,
     2,
     1,
-    @xlsx.FormatNumber,
+    FormatNumber,
   )
   assert_eq(unchanged, 0)
   assert_eq(again.text("xl/styles.xml"), percent.text("xl/styles.xml"))
@@ -76,7 +73,7 @@ test "number formats preserve numeric values, formulas, wrap and alignment" {
     1,
     2,
     1,
-    @xlsx.FormatGeneral,
+    FormatGeneral,
   )
   assert_eq(reset, 1)
   assert_eq(@xlsx.number_format_cells(general, "研究证据"), [
@@ -89,12 +86,9 @@ test "number formats preserve numeric values, formulas, wrap and alignment" {
 test "explicit decimal places reuse XLSX formats and keep values and styles" {
   let source = @opc.open(
     @xlsx.create([
-      [@scene.Text("Amount"), @scene.Text("Rate")],
-      [@scene.Number("1234.5678"), @scene.Number("0.125")],
-      [
-        @scene.Formula(expression="A2*2", cached=Some("2469.1356")),
-        @scene.Empty,
-      ],
+      [Text("Amount"), Text("Rate")],
+      [Number("1234.5678"), Number("0.125")],
+      [Formula(expression="A2*2", cached=Some("2469.1356")), Empty],
     ]),
   )
   let (wrapped, _) = @xlsx.set_wrap_text_range(
@@ -107,7 +101,7 @@ test "explicit decimal places reuse XLSX formats and keep values and styles" {
     1,
     2,
     1,
-    @xlsx.FormatNumber,
+    FormatNumber,
     3,
   )
   assert_eq(changed, 1)
@@ -118,7 +112,7 @@ test "explicit decimal places reuse XLSX formats and keep values and styles" {
     2,
     2,
     2,
-    @xlsx.FormatPercent,
+    FormatPercent,
     1,
   )
   assert_eq(rate_changed, 1)
@@ -129,7 +123,7 @@ test "explicit decimal places reuse XLSX formats and keep values and styles" {
     1,
     3,
     1,
-    @xlsx.FormatCurrency,
+    FormatCurrency,
     0,
   )
   assert_eq(currency_changed, 1)
@@ -154,11 +148,11 @@ test "explicit decimal places reuse XLSX formats and keep values and styles" {
   )
   assert_eq(@xlsx.wrapped_cells(currency, "研究证据"), [(2, 1)])
   let cells = @xlsx.read(currency).sheets[0].cells
-  assert_eq(cells[2].value, @scene.Number("1234.5678"))
-  assert_eq(cells[3].value, @scene.Number("0.125"))
+  assert_eq(cells[2].value, Number("1234.5678"))
+  assert_eq(cells[3].value, Number("0.125"))
   assert_eq(
     cells[4].value,
-    @scene.Formula(expression="A2*2", cached=Some("2469.1356")),
+    Formula(expression="A2*2", cached=Some("2469.1356")),
   )
   let (again, unchanged) = @xlsx.set_number_format_places_range(
     currency,
@@ -167,7 +161,7 @@ test "explicit decimal places reuse XLSX formats and keep values and styles" {
     1,
     2,
     1,
-    @xlsx.FormatNumber,
+    FormatNumber,
     3,
   )
   assert_eq(unchanged, 0)
@@ -179,7 +173,7 @@ test "explicit decimal places reuse XLSX formats and keep values and styles" {
     2,
     2,
     2,
-    @xlsx.FormatNumber,
+    FormatNumber,
     3,
   )
   assert_eq(new_cell, 1)
@@ -200,13 +194,13 @@ test "explicit decimal places reuse XLSX formats and keep values and styles" {
         1,
         2,
         1,
-        @xlsx.FormatGeneral,
+        FormatGeneral,
         2,
       ),
     )
     false
   } catch {
-    @xlsx.InvalidWorkbook(_) => true
+    InvalidWorkbook(_) => true
     _ => false
   }
   assert_true(invalid_general)
@@ -219,13 +213,13 @@ test "explicit decimal places reuse XLSX formats and keep values and styles" {
         1,
         2,
         1,
-        @xlsx.FormatNumber,
+        FormatNumber,
         7,
       ),
     )
     false
   } catch {
-    @xlsx.InvalidWorkbook(_) => true
+    InvalidWorkbook(_) => true
     _ => false
   }
   assert_true(invalid_places)
@@ -236,7 +230,7 @@ test "explicit decimal places reuse XLSX formats and keep values and styles" {
     2,
     2,
     2,
-    @xlsx.FormatPercent,
+    FormatPercent,
   )
   let (adjusted_percent, _) = @xlsx.set_number_format_places_range(
     builtin_percent,
@@ -245,7 +239,7 @@ test "explicit decimal places reuse XLSX formats and keep values and styles" {
     2,
     2,
     2,
-    @xlsx.FormatPercent,
+    FormatPercent,
     3,
   )
   assert_eq(@xlsx.number_format_cells(adjusted_percent, "研究证据"), [
@@ -256,11 +250,7 @@ test "explicit decimal places reuse XLSX formats and keep values and styles" {
 ///|
 test "currency adds a valid custom format and reuses it across cells" {
   let source = @opc.open(
-    @xlsx.create([
-      [@scene.Text("Amount")],
-      [@scene.Number("1234.5")],
-      [@scene.Number("-5.25")],
-    ]),
+    @xlsx.create([[Text("Amount")], [Number("1234.5")], [Number("-5.25")]]),
   )
   let (first, count) = @xlsx.set_number_format_range(
     source,
@@ -269,7 +259,7 @@ test "currency adds a valid custom format and reuses it across cells" {
     1,
     2,
     1,
-    @xlsx.FormatCurrency,
+    FormatCurrency,
   )
   assert_eq(count, 1)
   let (second, more) = @xlsx.set_number_format_range(
@@ -279,7 +269,7 @@ test "currency adds a valid custom format and reuses it across cells" {
     1,
     3,
     1,
-    @xlsx.FormatCurrency,
+    FormatCurrency,
   )
   assert_eq(more, 1)
   assert_eq(@xlsx.number_format_cells(second, "研究证据"), [
@@ -306,7 +296,7 @@ test "currency adds a valid custom format and reuses it across cells" {
     1,
     3,
     1,
-    @xlsx.FormatCurrency,
+    FormatCurrency,
   )
   assert_eq(unchanged, 0)
   assert_eq(again.text("xl/styles.xml"), second.text("xl/styles.xml"))
@@ -317,7 +307,7 @@ test "currency adds a valid custom format and reuses it across cells" {
     1,
     3,
     1,
-    @xlsx.FormatGeneral,
+    FormatGeneral,
   )
   assert_eq(reset, 2)
   assert_eq(@xlsx.number_format_cells(general, "研究证据"), [])
@@ -325,9 +315,7 @@ test "currency adds a valid custom format and reuses it across cells" {
 
 ///|
 test "currency avoids existing custom IDs and range limits are enforced" {
-  let source = @opc.open(
-    @xlsx.create([[@scene.Text("Amount")], [@scene.Number("7")]]),
-  )
+  let source = @opc.open(@xlsx.create([[Text("Amount")], [Number("7")]]))
   let occupied = source.replace_text(
     "xl/styles.xml",
     source
@@ -344,7 +332,7 @@ test "currency avoids existing custom IDs and range limits are enforced" {
     1,
     2,
     1,
-    @xlsx.FormatCurrency,
+    FormatCurrency,
   )
   assert_eq(count, 1)
   let formats = @xml.parse(formatted.text("xl/styles.xml"))
@@ -363,12 +351,12 @@ test "currency avoids existing custom IDs and range limits are enforced" {
         1,
         100,
         11,
-        @xlsx.FormatNumber,
+        FormatNumber,
       ),
     )
     false
   } catch {
-    @xlsx.InvalidWorkbook(_) => true
+    InvalidWorkbook(_) => true
     _ => false
   }
   assert_true(oversized)

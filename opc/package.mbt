@@ -50,7 +50,7 @@ pub fn resolve_target(
   if target.has_prefix("/") {
     let resolved = normalize_part_name(target)
     if resolved == ".." || resolved.has_prefix("../") {
-      raise PackageError::InvalidPackage(
+      raise InvalidPackage(
         "relationship target traverses above package root: " + target,
       )
     }
@@ -63,7 +63,7 @@ pub fn resolve_target(
   }
   let resolved = normalize_part_name(directory + target)
   if resolved == ".." || resolved.has_prefix("../") {
-    raise PackageError::InvalidPackage(
+    raise InvalidPackage(
       "relationship target traverses above package root: " + target,
     )
   }
@@ -73,7 +73,7 @@ pub fn resolve_target(
 ///|
 fn parse_relationships(text : String) -> Array[Relationship] raise PackageError {
   let root = @xml.parse(text) catch {
-    _ => raise PackageError::InvalidPackage("invalid relationships XML")
+    _ => raise InvalidPackage("invalid relationships XML")
   }
   let relationships : Array[Relationship] = []
   for element in root.children_named("Relationship") {
@@ -81,13 +81,11 @@ fn parse_relationships(text : String) -> Array[Relationship] raise PackageError 
     let relationship_type = element.attribute("Type").unwrap_or("")
     let target = element.attribute("Target").unwrap_or("")
     if id == "" || relationship_type == "" || target == "" {
-      raise PackageError::InvalidPackage(
-        "relationship is missing Id, Type, or Target",
-      )
+      raise InvalidPackage("relationship is missing Id, Type, or Target")
     }
     for existing in relationships {
       if existing.id == id {
-        raise PackageError::InvalidPackage("duplicate relationship Id: " + id)
+        raise InvalidPackage("duplicate relationship Id: " + id)
       }
     }
     relationships.push({
@@ -124,7 +122,7 @@ fn open_package_with_policy(
   for entry in entries {
     let (name, part_content) = entry
     if unsafe_archive_name(name) {
-      raise PackageError::InvalidPackage("unsafe ZIP entry path: " + name)
+      raise InvalidPackage("unsafe ZIP entry path: " + name)
     }
     let normalized = normalize_part_name(name)
     if normalized == "" || name.has_suffix("/") {
@@ -132,14 +130,14 @@ fn open_package_with_policy(
     }
     for existing in parts {
       if existing.name == normalized {
-        raise PackageError::InvalidPackage("duplicate part: " + normalized)
+        raise InvalidPackage("duplicate part: " + normalized)
       }
     }
     parts.push({ name: normalized, content: part_content, })
   }
   let archive : Package = { parts, }
   if !archive.has_part("[Content_Types].xml") {
-    raise PackageError::InvalidPackage("missing [Content_Types].xml")
+    raise InvalidPackage("missing [Content_Types].xml")
   }
   archive
 }
@@ -147,12 +145,12 @@ fn open_package_with_policy(
 ///|
 fn save_package(archive : Package) -> FixedArray[Byte] raise PackageError {
   if !archive.has_part("[Content_Types].xml") {
-    raise PackageError::InvalidPackage("missing [Content_Types].xml")
+    raise InvalidPackage("missing [Content_Types].xml")
   }
   let entries = []
   for part in archive.parts {
     if unsafe_archive_name(part.name) || normalize_part_name(part.name) == "" {
-      raise PackageError::InvalidPackage("invalid part path: " + part.name)
+      raise InvalidPackage("invalid part path: " + part.name)
     }
     entries.push((normalize_part_name(part.name), part.content))
   }

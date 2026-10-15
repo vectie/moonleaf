@@ -38,7 +38,7 @@ test "coordinate edits reject only duplicate targets and preserve the original" 
   let original_copy = original.save_as_copy().bytes()
   let before = original.scene()
   try original.set_cell_text("Sheet1", 1, 1, "ambiguous") catch {
-    @moonleaf.DocumentSessionError::Render(message) =>
+    Render(message) =>
       assert_true(message.contains("duplicate target cell: A1"))
     _ => fail("expected a duplicate-target diagnostic")
   } noraise {

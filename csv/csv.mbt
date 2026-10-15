@@ -20,31 +20,24 @@ pub fn parse(text : String, delimiter? : Char = ',') -> Table raise CsvError {
   if delimiter != ',' && delimiter != '\t' {
     raise InvalidDelimiter
   }
-  if text.length() > 2_097_152 {
+  if text.length() > 8_388_608 {
     raise TooLarge
   }
-  let chars : Array[Char] = []
-  for char in text.iter() {
-    chars.push(char)
-  }
+  let delimiter_unit = delimiter.to_int().to_uint16()
   let rows : Array[Array[String]] = []
   let mut row : Array[String] = []
   let mut field = StringBuilder()
   let mut quoted = false
   let mut closed_quote = false
   let mut at_field_start = true
-  let mut index = if chars.length() > 0 && chars[0] == '\u{FEFF}' {
-    1
-  } else {
-    0
-  }
+  let mut index = if text.length() > 0 && text[0] == '\u{FEFF}' { 1 } else { 0 }
   let mut row_number = 1
   let mut cells = 0
-  for ; index < chars.length(); {
-    let char = chars[index]
+  for ; index < text.length(); {
+    let char = text[index]
     if quoted {
       if char == '"' {
-        if index + 1 < chars.length() && chars[index + 1] == '"' {
+        if index + 1 < text.length() && text[index + 1] == '"' {
           field.write_char('"')
           index += 2
         } else {
@@ -53,8 +46,11 @@ pub fn parse(text : String, delimiter? : Char = ',') -> Table raise CsvError {
           index += 1
         }
       } else {
-        field.write_char(char)
-        index += 1
+        let start = index
+        while index < text.length() && text[index] != '"' {
+          index += 1
+        }
+        field.write_string(text[start:index].to_owned())
       }
     } else if char == '"' {
       if !at_field_start {
@@ -63,27 +59,25 @@ pub fn parse(text : String, delimiter? : Char = ',') -> Table raise CsvError {
       quoted = true
       at_field_start = false
       index += 1
-    } else if char == delimiter || char == '\n' || char == '\r' {
+    } else if char == delimiter_unit || char == '\n' || char == '\r' {
       row.push(field.to_string())
       cells += 1
-      if cells > 100_000 || row.length() > 256 {
+      if cells > 500_000 || row.length() > 256 {
         raise TooLarge
       }
       field = StringBuilder()
       at_field_start = true
       closed_quote = false
-      if char == delimiter {
+      if char == delimiter_unit {
         index += 1
       } else {
         rows.push(row)
-        if rows.length() > 10_000 {
+        if rows.length() > 50_000 {
           raise TooLarge
         }
         row = []
         row_number += 1
-        if char == '\r' &&
-          index + 1 < chars.length() &&
-          chars[index + 1] == '\n' {
+        if char == '\r' && index + 1 < text.length() && text[index + 1] == '\n' {
           index += 2
         } else {
           index += 1
@@ -93,9 +87,16 @@ pub fn parse(text : String, delimiter? : Char = ',') -> Table raise CsvError {
       if closed_quote {
         raise InvalidQuote(row=row_number, column=row.length() + 1)
       }
-      field.write_char(char)
+      let start = index
+      while index < text.length() &&
+            text[index] != delimiter_unit &&
+            text[index] != '\n' &&
+            text[index] != '\r' &&
+            text[index] != '"' {
+        index += 1
+      }
+      field.write_string(text[start:index].to_owned())
       at_field_start = false
-      index += 1
     }
   }
   if quoted {
@@ -103,10 +104,10 @@ pub fn parse(text : String, delimiter? : Char = ',') -> Table raise CsvError {
   }
   if row.length() > 0 ||
     !at_field_start ||
-    (chars.length() > 0 && chars[chars.length() - 1] == delimiter) {
+    (text.length() > 0 && text[text.length() - 1] == delimiter_unit) {
     row.push(field.to_string())
     cells += 1
-    if cells > 100_000 || row.length() > 256 || rows.length() >= 10_000 {
+    if cells > 500_000 || row.length() > 256 || rows.length() >= 50_000 {
       raise TooLarge
     }
     rows.push(row)
@@ -142,12 +143,7 @@ pub fn Table::serialize(self : Table) -> String {
       if escape {
         output.write_char('"')
       }
-      for char in value.iter() {
-        if char == '"' {
-          output.write_char('"')
-        }
-        output.write_char(char)
-      }
+      write_csv_span(output, value, escape)
       if escape {
         output.write_char('"')
       }
@@ -169,16 +165,28 @@ pub fn Table::serialize_quoted(self : Table) -> String {
         output.write_char(self.delimiter)
       }
       output.write_char('"')
-      for char in value.iter() {
-        if char == '"' {
-          output.write_char('"')
-        }
-        output.write_char(char)
-      }
+      write_csv_span(output, value, true)
       output.write_char('"')
     }
   }
   output.to_string()
+}
+
+///|
+/// Write unchanged spans in bulk; only literal quotation marks need doubling.
+fn write_csv_span(output : StringBuilder, value : String, quote : Bool) -> Unit {
+  if !quote {
+    output.write_string(value)
+    return
+  }
+  let mut first = true
+  for span in value.split("\"") {
+    if !first {
+      output.write_string("\"\"")
+    }
+    output.write_string(span.to_owned())
+    first = false
+  }
 }
 
 ///|
@@ -212,7 +220,7 @@ pub fn Table::set_cell_text(
       text_size += cell.length()
     }
   }
-  if cells > 100_000 || text_size > 2_000_000 {
+  if cells > 100_000 || text_size > 8_388_608 {
     raise TooLarge
   }
   { rows, delimiter: self.delimiter, }
@@ -420,7 +428,7 @@ pub fn Table::set_cells_text(
       }
     }
     text_size += value.length() - target[column - 1].length()
-    if text_size > 2_000_000 {
+    if text_size > 8_388_608 {
       raise TooLarge
     }
     target[column - 1] = value
@@ -441,9 +449,9 @@ pub fn Table::workbook(
         row: row_index + 1,
         column: column_index + 1,
         value: if value == "" {
-          @scene.Empty
+          Empty
         } else {
-          @scene.Text(value)
+          Text(value)
         },
         style_id: None,
       })

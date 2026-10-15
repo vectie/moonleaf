@@ -6,7 +6,14 @@ fn parse_part(
   let source = xlsx_package.text(part_name) catch {
     error => raise PackageFailure(part=part_name, message="\{Repr(error)}")
   }
-  @xml.parse(source) catch {
+  // Public exchange workbooks can contain a full securities directory whose
+  // worksheet XML is larger than the general XML parser's 16 MiB default.
+  // Keep the structural limits and bound each XLSX part to 32 MiB.
+  @xml.parse_with_options(source, {
+    ..@xml.ParseOptions::safe_defaults(),
+    max_input_utf16: 32 * 1024 * 1024,
+    max_total_decoded_text: 32 * 1024 * 1024,
+  }) catch {
     error => raise InvalidXml(part=part_name, message="\{Repr(error)}")
   }
 }

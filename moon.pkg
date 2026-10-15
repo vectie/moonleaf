@@ -7,6 +7,7 @@ import {
   "vectie/moonleaf/pptx",
   "vectie/moonleaf/scene",
   "vectie/moonleaf/xlsx",
+  "vectie/moonleaf/xls",
 }
 
 import {

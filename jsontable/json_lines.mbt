@@ -241,3 +241,21 @@ pub fn parse_json_lines(
     empty_parent_rows,
   }
 }
+
+///|
+pub extend JsonLineSpec with @debug.Debug::{to_repr}
+
+///|
+pub extend JsonLineSpec with Eq::{not_equal, equal}
+
+///|
+pub extend JsonLineTable with @debug.Debug::{to_repr}
+
+///|
+pub extend JsonLineTable with Eq::{not_equal, equal}
+
+///|
+pub extend JsonLineError with @debug.Debug::{to_repr}
+
+///|
+pub extend JsonLineError with Eq::{not_equal, equal}

@@ -169,15 +169,15 @@ fn convert_delimited_cell(
     original
   }
   if field.nulls.contains(text) {
-    return @scene.Empty
+    return Empty
   }
   match field.kind {
-    TextKind => @scene.Text(text)
+    TextKind => Text(text)
     BooleanKind(yes, no) =>
       if text == yes {
-        @scene.Boolean(true)
+        Boolean(true)
       } else if text == no {
-        @scene.Boolean(false)
+        Boolean(false)
       } else {
         raise DelimitedConversion(
           row~,
@@ -210,7 +210,7 @@ fn convert_delimited_cell(
           reason="Expected finite JSON-number text",
         )
       }
-      @scene.Number(text)
+      Number(text)
     }
   }
 }
@@ -262,3 +262,9 @@ pub fn parse_typed_delimited(
   }
   { columns: schema.fields.map(field => field.name), rows, }
 }
+
+///|
+pub extend TypedDelimitedError with @debug.Debug::{to_repr}
+
+///|
+pub extend TypedDelimitedError with Eq::{not_equal, equal}

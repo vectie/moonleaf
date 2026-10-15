@@ -24,46 +24,51 @@ pub fn open_with_policy(
   policy : ArchivePolicy,
 ) -> @scene.Document raise MoonLeafError {
   let lower = filename.to_lower()
+  if lower.has_suffix(".xls") {
+    return WorkbookDocument(@xls.read(content)) catch {
+      error => raise Document("\{Repr(error)}")
+    }
+  }
   if lower.has_suffix(".json") ||
     lower.has_suffix(".jsonl") ||
     lower.has_suffix(".ndjson") {
     let text = @utf8.decode(Bytes::from_array(content)) catch {
-      _ => raise MoonLeafError::Document("invalid UTF-8")
+      _ => raise Document("invalid UTF-8")
     }
     let table = @jsontable.parse(text, jsonl=!lower.has_suffix(".json")) catch {
-      error => raise MoonLeafError::Document("\{Repr(error)}")
+      error => raise Document("\{Repr(error)}")
     }
-    return @scene.Document::WorkbookDocument(table.workbook())
+    return WorkbookDocument(table.workbook())
   }
   if lower.has_suffix(".csv") || lower.has_suffix(".tsv") {
     let text = @utf8.decode(Bytes::from_array(content)) catch {
-      _ => raise MoonLeafError::Document("invalid UTF-8")
+      _ => raise Document("invalid UTF-8")
     }
     let delimiter = if lower.has_suffix(".tsv") { '\t' } else { ',' }
     let table = @csv.parse(text, delimiter~) catch {
-      _ => raise MoonLeafError::Document("invalid delimited table")
+      _ => raise Document("invalid delimited table")
     }
-    return @scene.Document::WorkbookDocument(table.workbook())
+    return WorkbookDocument(table.workbook())
   }
   if !lower.has_suffix(".docx") &&
     !lower.has_suffix(".xlsx") &&
     !lower.has_suffix(".pptx") {
-    raise MoonLeafError::UnsupportedExtension(filename)
+    raise UnsupportedExtension(filename)
   }
   let archive = @opc.open_with_policy(content, policy) catch {
-    error => raise MoonLeafError::Package(error.to_string())
+    error => raise Package(error.to_string())
   }
   if lower.has_suffix(".docx") {
-    @scene.Document::TextDocument(@docx.read(archive)) catch {
-      error => raise MoonLeafError::Document("\{Repr(error)}")
+    TextDocument(@docx.read(archive)) catch {
+      error => raise Document("\{Repr(error)}")
     }
   } else if lower.has_suffix(".xlsx") {
-    @scene.Document::WorkbookDocument(@xlsx.read(archive)) catch {
-      error => raise MoonLeafError::Document("\{Repr(error)}")
+    WorkbookDocument(@xlsx.read(archive)) catch {
+      error => raise Document("\{Repr(error)}")
     }
   } else {
-    @scene.Document::PresentationDocument(@pptx.read(archive)) catch {
-      error => raise MoonLeafError::Document("\{Repr(error)}")
+    PresentationDocument(@pptx.read(archive)) catch {
+      error => raise Document("\{Repr(error)}")
     }
   }
 }

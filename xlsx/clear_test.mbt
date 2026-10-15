@@ -26,7 +26,7 @@ test "clear range rejects too-large rectangle without changing source" {
     ignore(@xlsx.clear_sheet_range(source, "Budget & Plan", 1, 1, 100, 20))
     false
   } catch {
-    @xlsx.XlsxError::InvalidWorkbook(_) => true
+    InvalidWorkbook(_) => true
     _ => false
   }
   assert_true(rejected)

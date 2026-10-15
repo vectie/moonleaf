@@ -3,7 +3,7 @@ test "truncated and invalid font tables fail closed without panics" {
   for n in 0..<64 {
     let bytes = Bytes::make(n, 0)
     try font_face({ family: "test", bytes, }) catch {
-      PdfError::InvalidFont(_) => ()
+      InvalidFont(_) => ()
       _ => fail("unexpected error")
     } noraise {
       _ => fail("invalid font accepted")
@@ -11,7 +11,7 @@ test "truncated and invalid font tables fail closed without panics" {
   }
   let bytes : Bytes = b"\x00\x01\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00"
   try font_face({ family: "test", bytes, }) catch {
-    PdfError::InvalidFont(_) => ()
+    InvalidFont(_) => ()
     _ => fail("unexpected error")
   } noraise {
     _ => fail("truncated table accepted")

@@ -27,11 +27,24 @@ fn validate_created_xml(text : String) -> Unit raise XlsxError {
 }
 
 ///|
-/// References preserve CR through XML end-of-line normalization. Escaping '&'
-/// first keeps a user's literal "&#13;" distinct from an actual carriage return.
-fn created_xml_text(text : String) -> String raise XlsxError {
+/// Append escaped cell text directly to the sheet builder. Large source tables
+/// do not allocate a complete escaped string and cell XML string for each cell.
+/// References preserve CR through XML end-of-line normalization; literal '&'
+/// is escaped so a user's "&#13;" remains distinct from a carriage return.
+fn write_created_xml_text(
+  output : StringBuilder,
+  text : String,
+) -> Unit raise XlsxError {
   validate_created_xml(text)
-  @xml.escape_text(text).replace_all(old="\r", new="&#13;")
+  for character in text.iter() {
+    match character {
+      '&' => output.write_string("&amp;")
+      '<' => output.write_string("&lt;")
+      '>' => output.write_string("&gt;")
+      '\r' => output.write_string("&#13;")
+      _ => output.write_char(character)
+    }
+  }
 }
 
 ///|

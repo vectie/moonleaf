@@ -21,7 +21,7 @@ test "TSV and malformed quotes" {
     ignore(@csv.parse("a,b\"c"))
     false
   } catch {
-    @csv.CsvError::InvalidQuote(..) => true
+    InvalidQuote(..) => true
     _ => false
   }
   assert_true(invalid)
@@ -29,7 +29,7 @@ test "TSV and malformed quotes" {
     ignore(@csv.parse("\"open"))
     false
   } catch {
-    @csv.CsvError::UnterminatedQuote => true
+    UnterminatedQuote => true
     _ => false
   }
   assert_true(unterminated)
@@ -37,7 +37,7 @@ test "TSV and malformed quotes" {
     ignore(@csv.parse("\"a\"b"))
     false
   } catch {
-    @csv.CsvError::InvalidQuote(..) => true
+    InvalidQuote(..) => true
     _ => false
   }
   assert_true(after_quote)
@@ -55,7 +55,7 @@ test "cell edit returns a copy with blank intermediate cells" {
     ignore(original.set_cell_text(0, 1, "bad"))
     false
   } catch {
-    @csv.CsvError::InvalidCoordinates(..) => true
+    InvalidCoordinates(..) => true
     _ => false
   }
   assert_true(invalid)
@@ -90,7 +90,7 @@ test "batch paste expands CSV once and rejects duplicate coordinates" {
     ignore(original.set_cells_text([(1, 1, "x"), (1, 1, "y")]))
     false
   } catch {
-    @csv.CsvError::InvalidCoordinates(..) => true
+    InvalidCoordinates(..) => true
     _ => false
   }
   assert_true(duplicate)
@@ -102,7 +102,7 @@ test "batch paste expands CSV once and rejects duplicate coordinates" {
     ignore(original.set_cells_text(oversized))
     false
   } catch {
-    @csv.CsvError::TooLarge => true
+    TooLarge => true
     _ => false
   }
   assert_true(overflow)
@@ -152,7 +152,7 @@ test "column operations keep CSV limits and surviving blank rows" {
     ignore(source.insert_columns(256, 2))
     false
   } catch {
-    @csv.CsvError::InvalidCoordinates(..) => true
+    InvalidCoordinates(..) => true
     _ => false
   }
   assert_true(invalid)
@@ -165,7 +165,7 @@ test "column operations keep CSV limits and surviving blank rows" {
     ignore(wide.insert_columns(1, 1))
     false
   } catch {
-    @csv.CsvError::TooLarge => true
+    TooLarge => true
     _ => false
   }
   assert_true(overflow)

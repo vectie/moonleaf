@@ -86,7 +86,7 @@ fn format_from_filename(
   } else if lower.has_suffix(".pptx") {
     Pptx
   } else {
-    raise DocumentSessionError::UnsupportedFormat(filename)
+    raise UnsupportedFormat(filename)
   }
 }
 
@@ -97,16 +97,16 @@ fn render_archive(
 ) -> @scene.Document raise DocumentSessionError {
   match format {
     Docx =>
-      @scene.Document::TextDocument(@docx.read(archive)) catch {
-        error => raise DocumentSessionError::Render("\{Repr(error)}")
+      TextDocument(@docx.read(archive)) catch {
+        error => raise Render("\{Repr(error)}")
       }
     Xlsx =>
-      @scene.Document::WorkbookDocument(@xlsx.read(archive)) catch {
-        error => raise DocumentSessionError::Render("\{Repr(error)}")
+      WorkbookDocument(@xlsx.read(archive)) catch {
+        error => raise Render("\{Repr(error)}")
       }
     Pptx =>
-      @scene.Document::PresentationDocument(@pptx.read(archive)) catch {
-        error => raise DocumentSessionError::Render("\{Repr(error)}")
+      PresentationDocument(@pptx.read(archive)) catch {
+        error => raise Render("\{Repr(error)}")
       }
   }
 }
@@ -143,7 +143,7 @@ pub fn open_session_with_policy(
 ) -> DocumentSession raise DocumentSessionError {
   let format = format_from_filename(filename)
   let archive = @opc.open_with_policy(content, policy) catch {
-    error => raise DocumentSessionError::Package(error.to_string())
+    error => raise Package(error.to_string())
   }
   let scene = render_archive(archive, format)
   {
@@ -290,7 +290,7 @@ pub fn DocumentSession::replace_text(
   replacement : String,
 ) -> DocumentSession raise DocumentSessionError {
   if find == "" {
-    raise DocumentSessionError::InvalidFind("find text must not be empty")
+    raise InvalidFind("find text must not be empty")
   }
   match self.format {
     Xlsx =>
@@ -303,17 +303,14 @@ pub fn DocumentSession::replace_text(
   let candidate = match self.format {
     Docx =>
       @docx.replace_text(self.source_archive, find, replacement) catch {
-        error => raise DocumentSessionError::Render("\{Repr(error)}")
+        error => raise Render("\{Repr(error)}")
       }
     Pptx =>
       @pptx.replace_text(self.source_archive, find, replacement) catch {
-        error => raise DocumentSessionError::Render("\{Repr(error)}")
+        error => raise Render("\{Repr(error)}")
       }
     Xlsx =>
-      raise DocumentSessionError::OperationNotSupported(
-        operation="replace_text",
-        format=self.format,
-      )
+      raise OperationNotSupported(operation="replace_text", format=self.format)
   }
   self.commit_candidate(candidate)
 }
@@ -326,15 +323,12 @@ fn DocumentSession::validate_xlsx_cell(
   column : Int,
 ) -> Unit raise DocumentSessionError {
   if row < 1 || row > 1048576 || column < 1 || column > 16384 {
-    raise DocumentSessionError::InvalidCoordinates(row~, column~)
+    raise InvalidCoordinates(row~, column~)
   }
   let workbook = match self.scene {
     WorkbookDocument(workbook) => workbook
     _ =>
-      raise DocumentSessionError::OperationNotSupported(
-        operation="set_cell_text",
-        format=self.format,
-      )
+      raise OperationNotSupported(operation="set_cell_text", format=self.format)
   }
   let mut matched : @scene.Sheet? = None
   for candidate in workbook.sheets {
@@ -344,18 +338,11 @@ fn DocumentSession::validate_xlsx_cell(
     }
   }
   let sheet = matched
-  guard sheet is Some(sheet) else {
-    raise DocumentSessionError::SheetNotFound(sheet_name)
-  }
+  guard sheet is Some(sheet) else { raise SheetNotFound(sheet_name) }
   for cell in sheet.cells {
     if cell.row == row && cell.column == column {
       match cell.value {
-        Formula(..) =>
-          raise DocumentSessionError::FormulaCell(
-            sheet=sheet_name,
-            row~,
-            column~,
-          )
+        Formula(..) => raise FormulaCell(sheet=sheet_name, row~, column~)
         _ => ()
       }
     }
@@ -366,11 +353,7 @@ fn DocumentSession::validate_xlsx_cell(
       column >= range.start_column &&
       column <= range.end_column &&
       (row != range.start_row || column != range.start_column) {
-      raise DocumentSessionError::MergedCellNotAnchor(
-        sheet=sheet_name,
-        row~,
-        column~,
-      )
+      raise MergedCellNotAnchor(sheet=sheet_name, row~, column~)
     }
   }
 }
@@ -408,10 +391,7 @@ pub fn DocumentSession::set_cell_text(
   text : String,
 ) -> DocumentSession raise DocumentSessionError {
   if self.format != Xlsx {
-    raise DocumentSessionError::OperationNotSupported(
-      operation="set_cell_text",
-      format=self.format,
-    )
+    raise OperationNotSupported(operation="set_cell_text", format=self.format)
   }
   self.validate_xlsx_cell(sheet, row, column)
   if self.cell_text_equals(sheet, row, column, text) {
@@ -424,7 +404,7 @@ pub fn DocumentSession::set_cell_text(
     column,
     text,
   ) catch {
-    error => raise DocumentSessionError::Render("\{Repr(error)}")
+    error => raise Render("\{Repr(error)}")
   }
   self.commit_candidate(candidate)
 }
@@ -437,10 +417,7 @@ pub fn DocumentSession::set_cells_text(
   edits : Array[(Int, Int, String)],
 ) -> DocumentSession raise DocumentSessionError {
   if self.format != Xlsx {
-    raise DocumentSessionError::OperationNotSupported(
-      operation="set_cells_text",
-      format=self.format,
-    )
+    raise OperationNotSupported(operation="set_cells_text", format=self.format)
   }
   if edits.is_empty() {
     return self
@@ -448,11 +425,11 @@ pub fn DocumentSession::set_cells_text(
   for (row, column, text) in edits {
     self.validate_xlsx_cell(sheet, row, column)
     if text.length() > 32_768 {
-      raise DocumentSessionError::Render("cell text exceeds limit")
+      raise Render("cell text exceeds limit")
     }
   }
   let candidate = @xlsx.set_cells_text(self.source_archive, sheet, edits) catch {
-    error => raise DocumentSessionError::Render("\{Repr(error)}")
+    error => raise Render("\{Repr(error)}")
   }
   self.commit_candidate(candidate)
 }
@@ -475,21 +452,17 @@ pub fn DocumentSession::save_as_copy(
   self : DocumentSession,
 ) -> VerifiedDocumentCopy raise DocumentSessionError {
   let bytes = @opc.save(self.source_archive) catch {
-    error => raise DocumentSessionError::Package(error.to_string())
+    error => raise Package(error.to_string())
   }
   let reopened_package = @opc.open_with_policy(bytes, self.archive_policy) catch {
-    error => raise DocumentSessionError::SaveVerification(error.to_string())
+    error => raise SaveVerification(error.to_string())
   }
   let reopened_scene = render_archive(reopened_package, self.format)
   if reopened_scene != self.scene {
-    raise DocumentSessionError::SaveVerification(
-      "semantic scene changed after reopen",
-    )
+    raise SaveVerification("semantic scene changed after reopen")
   }
   if !same_parts(self.source_archive, reopened_package) {
-    raise DocumentSessionError::SaveVerification(
-      "OPC part names or payloads changed after reopen",
-    )
+    raise SaveVerification("OPC part names or payloads changed after reopen")
   }
   {
     bytes,

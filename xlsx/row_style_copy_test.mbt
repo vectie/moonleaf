@@ -2,9 +2,9 @@
 test "row style copy preserves destination values and copies effective cell formats" {
   let source = @opc.open(
     @xlsx.create([
-      [@scene.Text("Name"), @scene.Text("Amount"), @scene.Text("Note")],
-      [@scene.Text("Alpha"), @scene.Number("12.5"), @scene.Text("Long")],
-      [@scene.Text("Beta"), @scene.Number("34.5"), @scene.Text("Keep")],
+      [Text("Name"), Text("Amount"), Text("Note")],
+      [Text("Alpha"), Number("12.5"), Text("Long")],
+      [Text("Beta"), Number("34.5"), Text("Keep")],
     ]),
   ).replace_text("custom/operator-note.txt", "untouched")
   let (bold, _) = @xlsx.set_font_decoration_range(
@@ -14,7 +14,7 @@ test "row style copy preserves destination values and copies effective cell form
     1,
     2,
     1,
-    @xlsx.Bold,
+    Bold,
     true,
   )
   let (wrapped, _) = @xlsx.set_wrap_text_range(
@@ -27,7 +27,7 @@ test "row style copy preserves destination values and copies effective cell form
     3,
     2,
     3,
-    @xlsx.Right,
+    Right,
   )
   let (number, _) = @xlsx.set_number_format_range(
     aligned,
@@ -36,7 +36,7 @@ test "row style copy preserves destination values and copies effective cell form
     2,
     2,
     2,
-    @xlsx.FormatNumber,
+    FormatNumber,
   )
   let (old_target, _) = @xlsx.set_font_decoration_range(
     number,
@@ -45,7 +45,7 @@ test "row style copy preserves destination values and copies effective cell form
     3,
     3,
     3,
-    @xlsx.Italic,
+    Italic,
     true,
   )
   let original_styles = old_target.text("xl/styles.xml")
@@ -67,9 +67,7 @@ test "row style copy preserves destination values and copies effective cell form
   assert_eq(cells[4].style_id, cells[7].style_id)
   assert_eq(cells[5].style_id, cells[8].style_id)
   assert_true(
-    @xlsx.font_decoration_cells(copied, "研究证据", @xlsx.Bold).contains(
-      (3, 1),
-    ),
+    @xlsx.font_decoration_cells(copied, "研究证据", Bold).contains((3, 1)),
   )
   assert_true(@xlsx.wrapped_cells(copied, "研究证据").contains((3, 3)))
   assert_true(
@@ -81,7 +79,7 @@ test "row style copy preserves destination values and copies effective cell form
     @xlsx.number_format_cells(copied, "研究证据").contains((3, 2, "number")),
   )
   assert_true(
-    !@xlsx.font_decoration_cells(copied, "研究证据", @xlsx.Italic).contains(
+    !@xlsx.font_decoration_cells(copied, "研究证据", Italic).contains(
       (3, 3),
     ),
   )
@@ -102,9 +100,9 @@ test "row style copy preserves destination values and copies effective cell form
 test "row style copy adds styled blank cells and rejects invalid row requests" {
   let source = @opc.open(
     @xlsx.create([
-      [@scene.Text("Heading"), @scene.Text("Extra")],
-      [@scene.Text("Source")],
-      [@scene.Text("Destination")],
+      [Text("Heading"), Text("Extra")],
+      [Text("Source")],
+      [Text("Destination")],
     ]),
   )
   let (styled, _) = @xlsx.set_wrap_text_range(
@@ -116,16 +114,14 @@ test "row style copy adds styled blank cells and rejects invalid row requests" {
   assert_eq(changed, 1)
   let cells = @xlsx.read(copied).sheets[0].cells
   assert_true(
-    cells.any(cell => {
-      cell.row == 3 && cell.column == 2 && cell.value == @scene.Empty
-    }),
+    cells.any(cell => cell.row == 3 && cell.column == 2 && cell.value == Empty),
   )
   assert_true(@xlsx.wrapped_cells(copied, "研究证据").contains((3, 2)))
   let invalid = try {
     ignore(@xlsx.copy_sheet_row_styles(styled, "研究证据", 2, 4))
     false
   } catch {
-    @xlsx.InvalidWorkbook(_) => true
+    InvalidWorkbook(_) => true
     _ => false
   }
   assert_true(invalid)
@@ -135,9 +131,9 @@ test "row style copy adds styled blank cells and rejects invalid row requests" {
 test "row style copy clears unmatched destination styles and copies row style" {
   let source = @opc.open(
     @xlsx.create([
-      [@scene.Text("Header"), @scene.Text("Other")],
-      [@scene.Text("Source"), @scene.Text("Plain")],
-      [@scene.Text("Destination"), @scene.Text("Styled")],
+      [Text("Header"), Text("Other")],
+      [Text("Source"), Text("Plain")],
+      [Text("Destination"), Text("Styled")],
     ]),
   )
   let (styled, _) = @xlsx.set_font_decoration_range(
@@ -147,22 +143,33 @@ test "row style copy clears unmatched destination styles and copies row style" {
     2,
     3,
     2,
-    @xlsx.Italic,
+    Italic,
     true,
   )
+  let worksheet = @xml.parse(styled.text("xl/worksheets/sheet1.xml"))
+  let source_row = worksheet
+    .first_child("sheetData")
+    .unwrap()
+    .children_named("row")
+    .iter()
+    .find_first(row => row.attribute("r") == Some("2"))
+    .unwrap()
+  source_row.attributes.push({ name: "s", value: "1", })
+  source_row.attributes.push({ name: "customFormat", value: "1", })
+  // Set up an unstyled source cell independently of XML attribute order.
+  for index, node in source_row.children {
+    if node is Element(cell) && cell.attribute("r") == Some("B2") {
+      source_row.children[index] = Element({
+        ..cell,
+        attributes: cell.attributes.filter(item => item.name != "s"),
+      })
+    }
+  }
   let with_row_style = styled.replace_text(
     "xl/worksheets/sheet1.xml",
-    styled
-    .text("xl/worksheets/sheet1.xml")
-    .replace(
-      old="<row r=\"2\">",
-      new="<row r=\"2\" s=\"1\" customFormat=\"1\">",
-    )
-    .replace(
-      old="<c r=\"B2\" t=\"inlineStr\" s=\"0\">",
-      new="<c r=\"B2\" t=\"inlineStr\">",
-    ),
+    @xml.serialize(worksheet),
   )
+  assert_eq(@xlsx.read(with_row_style).sheets[0].cells[3].style_id, None)
   let (copied, changed) = @xlsx.copy_sheet_row_styles(
     with_row_style, "研究证据", 2, 3,
   )
@@ -170,10 +177,10 @@ test "row style copy clears unmatched destination styles and copies row style" {
   let xml = copied.text("xl/worksheets/sheet1.xml")
   assert_true(xml.contains("<row r=\"3\" s=\"1\" customFormat=\"1\">"))
   let cells = @xlsx.read(copied).sheets[0].cells
-  assert_eq(cells[5].value, @scene.Text("Styled"))
+  assert_eq(cells[5].value, Text("Styled"))
   assert_eq(cells[5].style_id, None)
   assert_true(
-    !@xlsx.font_decoration_cells(copied, "研究证据", @xlsx.Italic).contains(
+    !@xlsx.font_decoration_cells(copied, "研究证据", Italic).contains(
       (3, 2),
     ),
   )

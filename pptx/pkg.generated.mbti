@@ -8,6 +8,14 @@ import {
 }
 
 // Values
+pub fn create(Json) -> FixedArray[Byte] raise PptxError
+
+pub fn edit_copy(FixedArray[Byte], Json) -> (FixedArray[Byte], Json) raise PptxError
+
+pub fn plain_text(@opc.Package) -> String raise PptxError
+
+pub fn preview_json(@opc.Package, String) -> Json raise PptxError
+
 pub fn read(@opc.Package) -> @scene.Presentation raise PptxError
 
 pub fn read_outline(@opc.Package) -> PresentationOutline raise PptxError
@@ -17,6 +25,8 @@ pub fn read_tables(@opc.Package) -> Array[SlideTable] raise PptxError
 pub fn replace_text(@opc.Package, String, String) -> @opc.Package raise PptxError
 
 pub fn set_target_text(@opc.Package, String, String, String) -> @opc.Package raise PptxError
+
+pub fn source_sha256(FixedArray[Byte]) -> String
 
 pub fn text_targets(@opc.Package) -> Array[TextTarget] raise PptxError
 

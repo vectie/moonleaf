@@ -176,7 +176,7 @@ pub fn Table::summarize(
     )
   }
   let groups : Array[SummaryGroup] = []
-  let indices : Map[String, Int] = Map::new()
+  let indices : Map[String, Int] = Map([])
   if group_by.is_empty() {
     groups.push(new_summary_group([], measures.length()))
     indices["[]"] = 0
@@ -225,16 +225,14 @@ pub fn Table::summarize(
       let accumulator = group.measures[i]
       row.push(
         match measure.operation {
-          CountRows => @scene.Number(accumulator.count.to_string())
+          CountRows => Number(accumulator.count.to_string())
           Sum(_) =>
-            @scene.Number(
-              (accumulator.sum + accumulator.correction).to_string(),
-            )
+            Number((accumulator.sum + accumulator.correction).to_string())
           Mean(_) =>
             if accumulator.count == 0 {
-              @scene.Empty
+              Empty
             } else {
-              @scene.Number(
+              Number(
                 ((accumulator.sum + accumulator.correction) /
                 accumulator.count.to_double()).to_string(),
               )
@@ -246,3 +244,21 @@ pub fn Table::summarize(
   })
   { columns, rows, }
 }
+
+///|
+pub extend SummaryOperation with @debug.Debug::{to_repr}
+
+///|
+pub extend SummaryOperation with Eq::{not_equal, equal}
+
+///|
+pub extend SummaryMeasure with @debug.Debug::{to_repr}
+
+///|
+pub extend SummaryMeasure with Eq::{not_equal, equal}
+
+///|
+pub extend SummaryError with @debug.Debug::{to_repr}
+
+///|
+pub extend SummaryError with Eq::{not_equal, equal}

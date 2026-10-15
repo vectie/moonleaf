@@ -49,14 +49,22 @@ test "targeted DOCX omits unsupported wrappers and does not cross run boundaries
   let targets = @docx.text_targets(source)
   assert_eq(targets.map(t => t.text), ["one", "two"])
   assert_true(
-    (try? @docx.set_target_text(source, targets[0].id, "onetwo", "joined"))
-    is Err(_),
+    try @docx.set_target_text(source, targets[0].id, "onetwo", "joined") catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
   )
   assert_true(
-    (try? @docx.set_target_text(
-      source, "body/sdt:2/p:1/r:1/t:1", "wrapped", "changed",
-    ))
-    is Err(_),
+    try
+      @docx.set_target_text(
+        source, "body/sdt:2/p:1/r:1/t:1", "wrapped", "changed",
+      )
+    catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
   )
 }
 
@@ -68,10 +76,18 @@ test "targeted DOCX validates exact text including same-value requests" {
   assert_eq(same, source)
   assert_eq(same.text("word/document.xml"), source.text("word/document.xml"))
   assert_true(
-    (try? @docx.set_target_text(source, id, "stale", "stale")) is Err(_),
+    try @docx.set_target_text(source, id, "stale", "stale") catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
   )
   assert_true(
-    (try? @docx.set_target_text(source, "missing", "AB", "AB")) is Err(_),
+    try @docx.set_target_text(source, "missing", "AB", "AB") catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
   )
 }
 
@@ -99,13 +115,23 @@ test "targeted DOCX refuses fields namespace ambiguity malformed targets and inv
       "<w:p><w:r><w:instrText>PAGE</w:instrText></w:r></w:p>", "<w:p xmlns:w=\"urn:other\"><w:r><w:t>wrong</w:t></w:r></w:p>",
       "<w:p><w:r><w:t><w:t>nested</w:t></w:t></w:r></w:p>",
     ] {
-    assert_true((try? @docx.text_targets(target_package(body))) is Err(_))
+    assert_true(
+      try @docx.text_targets(target_package(body)) catch {
+        _ => true
+      } noraise {
+        _ => false
+      },
+    )
   }
   let source = target_package("<w:p><w:r><w:t>valid</w:t></w:r></w:p>")
   let id = @docx.text_targets(source)[0].id
   for replacement in ["\u{0000}", "\u{0001}", "\u{FFFF}", "x".repeat(32_769)] {
     assert_true(
-      (try? @docx.set_target_text(source, id, "valid", replacement)) is Err(_),
+      try @docx.set_target_text(source, id, "valid", replacement) catch {
+        _ => true
+      } noraise {
+        _ => false
+      },
     )
   }
   assert_eq(@docx.text_targets(source)[0].text, "valid")
@@ -125,10 +151,15 @@ test "targeted DOCX preserves target-count limit and absence" {
     10_000,
   )
   assert_true(
-    (try? @docx.text_targets(
-      target_package("<w:p>" + row.repeat(10_001) + "</w:p>"),
-    ))
-    is Err(_),
+    try
+      @docx.text_targets(
+        target_package("<w:p>" + row.repeat(10_001) + "</w:p>"),
+      )
+    catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
   )
   assert_eq(@docx.text_targets(target_package("<w:p/>")), [])
 }

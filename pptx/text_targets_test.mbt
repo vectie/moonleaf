@@ -69,11 +69,18 @@ test "PPTX noops and empty targets retain identity and validate expected values"
   let erased = @pptx.set_target_text(filled, targets[3].id, "new", "")
   assert_eq(@pptx.text_targets(erased).map(t => t.id), targets.map(t => t.id))
   assert_true(
-    (try? @pptx.set_target_text(source, targets[0].id, "stale", "stale"))
-    is Err(_),
+    try @pptx.set_target_text(source, targets[0].id, "stale", "stale") catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
   )
   assert_true(
-    (try? @pptx.set_target_text(source, "unknown", "Acme", "new")) is Err(_),
+    try @pptx.set_target_text(source, "unknown", "Acme", "new") catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
   )
 }
 
@@ -83,7 +90,11 @@ test "PPTX target replacement validates text boundaries" {
   let id = @pptx.text_targets(source)[0].id
   for text in ["a\u0000b", "a\u0001b", "\uFFFF", "x".repeat(32769)] {
     assert_true(
-      (try? @pptx.set_target_text(source, id, "Acme", text)) is Err(_),
+      try @pptx.set_target_text(source, id, "Acme", text) catch {
+        _ => true
+      } noraise {
+        _ => false
+      },
     )
   }
   let changed = @pptx.set_target_text(source, id, "Acme", "x".repeat(32768))
@@ -110,7 +121,11 @@ test "PPTX targets reject unsupported namespace and malformed shape tree" {
       xml.replace_all(old="<a:t>Acme</a:t>", new="<a:t><a:bogus/></a:t>"),
     ] {
     assert_true(
-      (try? @pptx.text_targets(source.replace_text(part, updated))) is Err(_),
+      try @pptx.text_targets(source.replace_text(part, updated)) catch {
+        _ => true
+      } noraise {
+        _ => false
+      },
     )
   }
 }
@@ -125,5 +140,11 @@ test "PPTX target discovery refuses duplicate slide parts" {
     .text(part)
     .replace_all(old="slides/slide1.xml", new="slides/slide2.xml"),
   )
-  assert_true((try? @pptx.text_targets(duplicated)) is Err(_))
+  assert_true(
+    try @pptx.text_targets(duplicated) catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
+  )
 }

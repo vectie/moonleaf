@@ -27,9 +27,9 @@ test "batch text edits preserve CR CRLF and untouched text through verified save
   let reopened = @moonleaf.open_session("batch-cr.xlsx", copy.bytes())
   let expected = before.map(cell => {
     if cell.row == 1 && cell.column == 1 {
-      { ..cell, value: @scene.CellValue::Text(cr), }
+      { ..cell, value: Text(cr), }
     } else if cell.row == 1 && cell.column == 2 {
-      { ..cell, value: @scene.CellValue::Text(crlf), }
+      { ..cell, value: Text(crlf), }
     } else {
       cell
     }

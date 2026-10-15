@@ -115,7 +115,7 @@ fn record_element(
   element : @xml.Element,
   parent_scope : Map[String, String],
 ) -> RecordElement raise XmlRecordError {
-  let scope = parent_scope.clone()
+  let scope = parent_scope.copy()
   for attribute in element.attributes {
     let prefix = if attribute.name == "xmlns" {
       Some("")
@@ -143,7 +143,7 @@ fn record_element(
     }
   }
   let name = expanded_record_name(element.name, scope, false)
-  let attributes : Map[String, String] = Map::new()
+  let attributes : Map[String, String] = Map([])
   for attribute in element.attributes {
     if attribute.name != "xmlns" && !attribute.name.has_prefix("xmlns:") {
       let key = expanded_record_name(attribute.name, scope, true)

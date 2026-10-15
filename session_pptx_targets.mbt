@@ -10,7 +10,7 @@ pub fn DocumentSession::pptx_text_targets(
     )
   }
   @pptx.text_targets(self.source_archive) catch {
-    error => raise DocumentSessionError::Render("\{Repr(error)}")
+    error => raise Render("\{Repr(error)}")
   }
 }
 
@@ -35,7 +35,7 @@ pub fn DocumentSession::set_pptx_target_text(
     expected,
     replacement,
   ) catch {
-    error => raise DocumentSessionError::Render("\{Repr(error)}")
+    error => raise Render("\{Repr(error)}")
   }
   self.commit_candidate(candidate)
 }

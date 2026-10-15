@@ -1,6 +1,6 @@
 name = "vectie/moonleaf"
 
-version = "0.1.35"
+version = "0.1.49"
 
 readme = "README.mbt.md"
 
@@ -15,4 +15,5 @@ description = "A pure MoonBit, cross-platform document viewer and lightweight ed
 import {
   "hustcer/fzip@0.8.5",
   "moonbitlang/pdflite@0.3.6",
+  "moonbit-community/flate@0.8.5",
 }

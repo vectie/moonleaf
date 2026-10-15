@@ -11,6 +11,7 @@ documents and making deliberately small OOXML edits.
 | --- | --- | --- |
 | `.docx` | Paragraphs, headings, lists, tables, basic run styles | Exact text replacement inside `w:t` |
 | `.xlsx` | Sheets, common cell values, formulas, styles, merged ranges | Cell text, bounded row and column edits |
+| `.xls` | Bounded unencrypted BIFF8 scalar worksheets, shared strings and cached numeric formulas | Read only; export selected sheet to CSV |
 | `.csv`, `.tsv` | Bounded UTF-8 tables with quoted fields and line breaks | Parse and serialize tables |
 | `.pptx` | Slide order and size, text, shapes, pictures, transforms | Exact text replacement inside `a:t` |
 | `.pdf` | Bounded text extraction to page-oriented Markdown | None |
@@ -248,3 +249,11 @@ their current data through the query pipeline. Headerless tables are supported,
 totals are excluded, and the report retains original worksheet rows and source
 hashes. See [named Excel Tables](docs/NAMED_XLSX_TABLES.md) and the retained
 `kit/xlsx-named-table` example. Outputs are fresh extracted datasets.
+
+## Extract PDF text with source warnings
+
+`pdf_text.extract_with_details` and `preview extract-pdf` preserve structured
+source checksum warnings and page-limit metadata. Complete DEFLATE bodies with
+damaged source trailers can be recovered for text extraction with an explicit
+unverified-checksum notice; the normal PDF decoder remains strict. See
+[PDF text extraction](docs/PDF_TEXT_EXTRACTION.md).

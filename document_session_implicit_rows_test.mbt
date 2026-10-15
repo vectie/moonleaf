@@ -34,7 +34,7 @@ test "DocumentSession edits an initial implicit row without duplicate coordinate
   let after = implicit_rows_cells(reopened)
   let expected = before.map(cell => {
     if cell.row == 1 && cell.column == 1 {
-      { ..cell, value: @scene.CellValue::Text("changed first"), }
+      { ..cell, value: Text("changed first"), }
     } else {
       cell
     }
@@ -59,7 +59,7 @@ test "DocumentSession edits implicit rows after an explicit gap without shifting
   let reopened = @moonleaf.open_session("implicit.xlsx", copy.bytes())
   let expected = before.map(cell => {
     if cell.row == 5 && cell.column == 1 {
-      { ..cell, value: @scene.CellValue::Text("changed fifth"), }
+      { ..cell, value: Text("changed fifth"), }
     } else {
       cell
     }
@@ -88,7 +88,7 @@ test "DocumentSession edits implicit rows after an explicit gap without shifting
   }
   assert_eq(source_package.parts.length(), saved_package.parts.length())
   try original.set_cell_text("Sheet1", 5, 3, "cannot overwrite formula") catch {
-    @moonleaf.DocumentSessionError::FormulaCell(_) => ()
+    FormulaCell(_) => ()
     _ => fail("expected formula-cell refusal")
   } noraise {
     _ => fail("expected formula-cell refusal")

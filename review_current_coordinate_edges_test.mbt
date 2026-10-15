@@ -14,8 +14,7 @@ test "independent duplicate target cannot bypass refusal through same value fast
       ignore(original.set_cell_text("Sheet1", 1, 1, text))
       false
     } catch {
-      @moonleaf.DocumentSessionError::Render(message) =>
-        message.contains("duplicate target cell: A1")
+      Render(message) => message.contains("duplicate target cell: A1")
       _ => false
     }
     assert_true(original.scene() == before)
@@ -37,14 +36,14 @@ test "independent raw setters reject aliased duplicate target without changing a
   let original = @opc.open(bytes)
   let saved = @opc.save(original)
   try @xlsx.set_cell_text(original, "Sheet1", 1, 1, "one") catch {
-    @xlsx.InvalidWorkbook(message) =>
+    InvalidWorkbook(message) =>
       assert_true(message.contains("duplicate target cell: A1"))
     _ => fail("unexpected text error")
   } noraise {
     _ => fail("ambiguous raw text target accepted")
   }
   try @xlsx.set_cell_number(original, "Sheet1", 1, 1, 1.0) catch {
-    @xlsx.InvalidWorkbook(message) =>
+    InvalidWorkbook(message) =>
       assert_true(message.contains("duplicate target cell: A1"))
     _ => fail("unexpected numeric error")
   } noraise {

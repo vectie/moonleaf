@@ -71,7 +71,7 @@ fn correction_scalar(value : @scene.CellValue) -> Unit raise CorrectionError {
       guard json is Number(number, ..) &&
         !number.is_inf() &&
         !number.is_nan() &&
-        text == text.trim().to_string() else {
+        text == text.trim().to_owned() else {
         raise InvalidCorrection(
           "Expected a finite JSON number without surrounding whitespace",
         )
@@ -139,7 +139,7 @@ pub fn parse_correction_recipe(
   }
   let object = correction_object(value, ["key_columns", "edits"])
   let key_columns = correction_strings(object.get("key_columns"))
-  let names : Map[String, Bool] = {}
+  let names : Map[String, Bool] = Map([])
   for name in key_columns {
     if names.contains(name) {
       raise InvalidCorrection("Duplicate key column: " + name)
@@ -215,7 +215,7 @@ pub fn Table::correct(
       },
     )
   }
-  let index : Map[String, Int] = {}
+  let index : Map[String, Int] = Map([])
   let mut units = 0
   for name in self.columns {
     units += name.length()
@@ -249,7 +249,7 @@ pub fn Table::correct(
     }
     index[identity] = r
   }
-  let targets : Map[String, Bool] = {}
+  let targets : Map[String, Bool] = Map([])
   let coordinates : Array[(Int, Int)] = []
   let reports : Array[Array[@scene.CellValue]] = []
   for i, edit in recipe.edits {
@@ -297,3 +297,15 @@ pub fn Table::correct(
     },
   }
 }
+
+///|
+pub extend CorrectionError with @debug.Debug::{to_repr}
+
+///|
+pub extend CorrectionError with Eq::{not_equal, equal}
+
+///|
+pub extend CorrectionResult with @debug.Debug::{to_repr}
+
+///|
+pub extend CorrectionResult with Eq::{not_equal, equal}

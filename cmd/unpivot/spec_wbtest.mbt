@@ -43,6 +43,12 @@ test "unpivot spec requires correctly typed selection fields" {
         #|{"id_columns":[],"value_columns":["Jan"],"drop_blank":true}
       ),
     ] {
-    assert_true((try? parse_spec(input)) is Err(_))
+    assert_true(
+      try parse_spec(input) catch {
+        _ => true
+      } noraise {
+        _ => false
+      },
+    )
   }
 }

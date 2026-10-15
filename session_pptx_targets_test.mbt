@@ -28,8 +28,11 @@ test "targeted PPTX session saves one corrected copy without source mutation" {
   assert_eq(noop.revision(), 1)
   assert_true(noop.is_dirty())
   assert_true(
-    (try? edited.set_pptx_target_text(target.id, "Hello slide", "wrong"))
-    is Err(_),
+    try edited.set_pptx_target_text(target.id, "Hello slide", "wrong") catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
   )
 }
 
@@ -39,6 +42,18 @@ test "targeted PPTX operations reject other document formats" {
     "sheet.xlsx",
     document_session_xlsx_fixture(),
   )
-  assert_true((try? session.pptx_text_targets()) is Err(_))
-  assert_true((try? session.set_pptx_target_text("x", "y", "z")) is Err(_))
+  assert_true(
+    try session.pptx_text_targets() catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
+  )
+  assert_true(
+    try session.set_pptx_target_text("x", "y", "z") catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
+  )
 }

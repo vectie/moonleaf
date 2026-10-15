@@ -22,31 +22,27 @@ test "order lines keep parent metadata exact positions duplicates and typed valu
     "_parent_row", "_item_row", "order", "sku", "qty", "active", "note",
   ])
   assert_eq(table.rows[0], [
-    @scene.Number("1"),
-    @scene.Number("1"),
-    @scene.Text("001"),
-    @scene.Text("雪😀"),
-    @scene.Number("2"),
-    @scene.Boolean(false),
-    @scene.Text("=1+1"),
+    Number("1"),
+    Number("1"),
+    Text("001"),
+    Text("雪😀"),
+    Number("2"),
+    Boolean(false),
+    Text("=1+1"),
   ])
-  assert_eq(table.rows[1][1], @scene.Number("2"))
+  assert_eq(table.rows[1][1], Number("2"))
   assert_eq(table.text_rows()[2], ["3", "1", "003", "0004", "", "", ""])
   // Each expanded row owns its own cells, even when parent metadata repeats.
-  table.rows[0][2] = @scene.Text("changed")
-  assert_eq(table.rows[1][2], @scene.Text("001"))
+  table.rows[0][2] = Text("changed")
+  assert_eq(table.rows[1][2], Text("001"))
   assert_eq(
     @csv.parse(table.export_csv()).rows,
     [table.columns] + table.text_rows(),
   )
   assert_eq(@jsontable.parse(table.export_json(omit_empty=true)), table)
   let book = @xlsx.read(@opc.open(table.export_xlsx()))
-  assert_true(
-    book.sheets[0].cells.any(cell => cell.value == @scene.Text("=1+1")),
-  )
-  assert_true(
-    book.sheets[0].cells.any(cell => cell.value == @scene.Boolean(false)),
-  )
+  assert_true(book.sheets[0].cells.any(cell => cell.value == Text("=1+1")))
+  assert_true(book.sheets[0].cells.any(cell => cell.value == Boolean(false)))
 }
 
 ///|
@@ -65,14 +61,8 @@ test "line queries retain source locators when filtered sorted and projected" {
   let selected = imported.table.query(query)
   assert_eq(selected.table.text_rows(), [["c1"], ["a2"]])
   assert_eq(selected.source_rows, [3, 2])
-  assert_eq(
-    imported.table.rows[selected.source_rows[0] - 1][0],
-    @scene.Number("3"),
-  )
-  assert_eq(
-    imported.table.rows[selected.source_rows[1] - 1][1],
-    @scene.Number("2"),
-  )
+  assert_eq(imported.table.rows[selected.source_rows[0] - 1][0], Number("3"))
+  assert_eq(imported.table.rows[selected.source_rows[1] - 1][1], Number("2"))
 }
 
 ///|
@@ -95,7 +85,13 @@ test "empty arrays skip explicitly while null missing malformed lists refuse" {
       "{\"orders\":[{\"lines\":[]}]}", "{\"orders\":[null]}", "{\"orders\":{}}",
       "{}", "[]", "bad",
     ] {
-    assert_true((try? @jsontable.parse_json_lines(input, spec)) is Err(_))
+    assert_true(
+      try @jsontable.parse_json_lines(input, spec) catch {
+        _ => true
+      } noraise {
+        _ => false
+      },
+    )
   }
 }
 
@@ -105,23 +101,31 @@ test "selected field refusals report precise parent item and column before retry
   let bad =
     #|{"orders":[{"id":"a","lines":[]},{"id":"b","lines":[{"sku":"ok"},{"qty":2}]}]}
   assert_true(
-    (try? @jsontable.parse_json_lines(bad, spec))
-    is Err(
-      @jsontable.JsonLineFieldError(
-        parent_row=2,
-        item_row=Some(2),
-        column="sku",
-        reason="Required field is missing"
-      )
-    ),
+    try @jsontable.parse_json_lines(bad, spec) catch {
+      value =>
+        value
+        is JsonLineFieldError(
+          parent_row=2,
+          item_row=Some(2),
+          column="sku",
+          reason="Required field is missing"
+        )
+    } noraise {
+      _ => false
+    },
   )
   for value in ["null", "[]", "{}", "1e999"] {
     assert_true(
-      (try? @jsontable.parse_json_lines(
-        "{\"orders\":[{\"id\":\"a\",\"lines\":[{\"sku\":" + value + "}]}]}",
-        spec,
-      ))
-      is Err(_),
+      try
+        @jsontable.parse_json_lines(
+          "{\"orders\":[{\"id\":\"a\",\"lines\":[{\"sku\":" + value + "}]}]}",
+          spec,
+        )
+      catch {
+        _ => true
+      } noraise {
+        _ => false
+      },
     )
   }
   let retry = @jsontable.parse_json_lines(
@@ -144,7 +148,13 @@ test "exact nested object paths and explicit null policies" {
     [["1", "1", "null"]],
   )
   for input in ["[{\"a.b\":null}]", "[{\"a.b\":{\"0\":[{\"\":null}]}}]"] {
-    assert_true((try? @jsontable.parse_json_lines(input, spec)) is Err(_))
+    assert_true(
+      try @jsontable.parse_json_lines(input, spec) catch {
+        _ => true
+      } noraise {
+        _ => false
+      },
+    )
   }
 }
 
@@ -161,8 +171,13 @@ test "line spec rejects ambiguous names paths options and unsupported empty poli
       { ..spec.item_fields[0], path: Array::make(17, "a"), },
     ] {
     assert_true(
-      (try? @jsontable.parse_json_lines("[]", { ..spec, item_fields: [field], }))
-      is Err(_),
+      try
+        @jsontable.parse_json_lines("[]", { ..spec, item_fields: [field], })
+      catch {
+        _ => true
+      } noraise {
+        _ => false
+      },
     )
   }
   for
@@ -182,7 +197,13 @@ test "line spec rejects ambiguous names paths options and unsupported empty poli
         #|{"version":1,"record_path":[],"items_path":["lines"],"parent_fields":[],"item_fields":[{"name":"a","path":["a"],"typo":true}],"empty_items":"skip"}
       ),
     ] {
-    assert_true((try? @jsontable.parse_json_line_spec(mapping)) is Err(_))
+    assert_true(
+      try @jsontable.parse_json_line_spec(mapping) catch {
+        _ => true
+      } noraise {
+        _ => false
+      },
+    )
   }
 }
 
@@ -192,7 +213,7 @@ test "expanded row and cell budgets apply across parents before output" {
     name: "v",
     path: ["v"],
     required: false,
-    nulls: @jsontable.RejectNull,
+    nulls: RejectNull,
   }
   let spec : @jsontable.JsonLineSpec = {
     records_path: [],
@@ -205,20 +226,37 @@ test "expanded row and cell budgets apply across parents before output" {
   let overflow = "[{\"lines\":[{}]},{\"lines\":[" +
     Array::make(10000, "{}").join(",") +
     "]}]"
-  assert_true((try? @jsontable.parse_json_lines(overflow, spec)) is Err(_))
+  assert_true(
+    try @jsontable.parse_json_lines(overflow, spec) catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
+  )
   let wide : @jsontable.JsonLineSpec = {
     ..spec,
     item_fields: Array::makei(8, i => { ..field, name: "v\{i}", }),
   }
-  assert_true((try? @jsontable.parse_json_lines(many, wide)) is Err(_))
+  assert_true(
+    try @jsontable.parse_json_lines(many, wide) catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
+  )
   let exact = "[{\"lines\":[" + Array::make(9999, "{}").join(",") + "]}]"
   assert_eq(@jsontable.parse_json_lines(exact, wide).table.rows.length(), 9999)
   assert_true(
-    (try? @jsontable.parse_json_lines(
-      "[" + Array::make(10001, "{\"lines\":[]}").join(",") + "]",
-      spec,
-    ))
-    is Err(_),
+    try
+      @jsontable.parse_json_lines(
+        "[" + Array::make(10001, "{\"lines\":[]}").join(",") + "]",
+        spec,
+      )
+    catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
   )
 }
 
@@ -228,7 +266,7 @@ test "parent text amplification refuses before serialization" {
     name: "memo",
     path: ["memo"],
     required: false,
-    nulls: @jsontable.RejectNull,
+    nulls: RejectNull,
   }
   let spec : @jsontable.JsonLineSpec = {
     records_path: [],
@@ -242,11 +280,14 @@ test "parent text amplification refuses before serialization" {
     Array::make(40, "{}").join(",") +
     "]}]"
   assert_true(
-    (try? @jsontable.parse_json_lines(input, spec))
-    is Err(
-      @jsontable.InvalidJsonLines(
-        "Expanded scalar text exceeds 4000000 UTF-16 units including headers"
-      )
-    ),
+    try @jsontable.parse_json_lines(input, spec) catch {
+      value =>
+        value
+        is InvalidJsonLines(
+          "Expanded scalar text exceeds 4000000 UTF-16 units including headers"
+        )
+    } noraise {
+      _ => false
+    },
   )
 }

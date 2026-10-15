@@ -14,7 +14,7 @@ test "serialize escapes content" {
   let element : @xml.Element = {
     name: "x",
     attributes: [{ name: "a", value: "\"&", }],
-    children: [@xml.Node::Text("<ok>")],
+    children: [Text("<ok>")],
   }
   assert_eq(@xml.serialize(element), "<x a=\"&quot;&amp;\">&lt;ok&gt;</x>")
 }
@@ -22,7 +22,7 @@ test "serialize escapes content" {
 ///|
 test "reject mismatched closing element" {
   try @xml.parse("<a></b>") catch {
-    @xml.XmlError::InvalidXml(offset=_, message~) =>
+    InvalidXml(offset=_, message~) =>
       assert_eq(message, "mismatched closing element b")
   } noraise {
     _ => fail("expected invalid XML")
@@ -41,7 +41,7 @@ fn expect_limit(
   options : @xml.ParseOptions,
 ) -> Unit raise Failure {
   try @xml.parse_with_options(source, options) catch {
-    @xml.XmlError::InvalidXml(offset=_, message=_) => ()
+    InvalidXml(offset=_, message=_) => ()
   } noraise {
     _ => fail("expected resource-limit rejection")
   }
@@ -60,12 +60,12 @@ test "parse resource limits" {
 ///|
 test "reject DTD and undeclared entities" {
   try @xml.parse("<!DOCTYPE a><a/>") catch {
-    @xml.XmlError::InvalidXml(offset=_, message=_) => ()
+    InvalidXml(offset=_, message=_) => ()
   } noraise {
     _ => fail("expected DTD rejection")
   }
   try @xml.parse("<a>&declared;</a>") catch {
-    @xml.XmlError::InvalidXml(offset=_, message=_) => ()
+    InvalidXml(offset=_, message=_) => ()
   } noraise {
     _ => fail("expected entity rejection")
   }
@@ -81,7 +81,7 @@ test "accept processing instructions around root" {
 ///|
 fn expect_invalid_entity(source : String) -> Unit raise Failure {
   try @xml.parse(source) catch {
-    @xml.XmlError::InvalidXml(offset=_, message=_) => ()
+    InvalidXml(offset=_, message=_) => ()
   } noraise {
     _ => fail("expected invalid numeric entity")
   }

@@ -4,26 +4,38 @@ fn create_part(name : String, content : String) -> @opc.Part {
 }
 
 ///|
-fn created_cell(
+fn write_created_cell(
+  output : StringBuilder,
   value : @scene.CellValue,
   reference : String,
   header : Bool,
-) -> String raise XlsxError {
+) -> Unit raise XlsxError {
   let style = if header { "1" } else { "0" }
+  output <+ "<c r=\"\{reference}\" s=\"\{style}\""
   match value {
-    Empty => "<c r=\"\{reference}\" s=\"\{style}\"/>"
-    Number(number) =>
-      "<c r=\"\{reference}\" s=\"\{style}\"><v>\{created_xml_text(number)}</v></c>"
+    Empty => output <+ "/>"
+    Number(number) => {
+      output <+ "><v>"
+      write_created_xml_text(output, number)
+      output <+ "</v></c>"
+    }
     Boolean(flag) =>
-      "<c r=\"\{reference}\" t=\"b\" s=\"\{style}\"><v>\{if flag { "1" } else { "0" }}</v></c>"
-    Text(text) | Error(text) =>
-      "<c r=\"\{reference}\" t=\"inlineStr\" s=\"\{style}\"><is><t xml:space=\"preserve\">\{created_xml_text(text)}</t></is></c>"
+      output <+ " t=\"b\"><v>\{if flag { "1" } else { "0" }}</v></c>"
+    Text(text) | Error(text) => {
+      output <+ " t=\"inlineStr\"><is><t xml:space=\"preserve\">"
+      write_created_xml_text(output, text)
+      output <+ "</t></is></c>"
+    }
     Formula(expression~, cached~) => {
-      let cache = match cached {
-        Some(value) => "<v>\{created_xml_text(value)}</v>"
-        None => ""
+      output <+ "><f>"
+      write_created_xml_text(output, expression)
+      output <+ "</f>"
+      if cached is Some(value) {
+        output <+ "<v>"
+        write_created_xml_text(output, value)
+        output <+ "</v>"
       }
-      "<c r=\"\{reference}\" s=\"\{style}\"><f>\{created_xml_text(expression)}</f>\{cache}</c>"
+      output <+ "</c>"
     }
   }
 }
@@ -88,7 +100,14 @@ pub fn create(
     for column_index, value in row {
       let valid = match value {
         Empty | Boolean(_) => true
-        Text(text) | Number(text) | Error(text) => valid_xml_cell_text(text)
+        Text(text) | Number(text) | Error(text) => {
+          if text.length() > 32767 {
+            raise InvalidWorkbook(
+              "XLSX cell exceeds Excel's 32767 character limit",
+            )
+          }
+          valid_xml_cell_text(text)
+        }
         Formula(expression~, cached~) =>
           valid_xml_cell_text(expression) &&
           valid_xml_cell_text(cached.unwrap_or(""))
@@ -102,15 +121,14 @@ pub fn create(
         Formula(expression~, cached~) =>
           expression.length() + cached.unwrap_or("").length()
       }
-      if total_text > 2_000_000 {
-        raise InvalidWorkbook("XLSX exceeds 2 MB of cell text")
+      if total_text > 8_388_608 {
+        raise InvalidWorkbook("XLSX exceeds 8 Mi UTF-16 units of cell text")
       }
-      sheet.write_string(
-        created_cell(
-          value,
-          cell_reference(row_index + 1, column_index + 1),
-          row_index == 0,
-        ),
+      write_created_cell(
+        sheet,
+        value,
+        cell_reference(row_index + 1, column_index + 1),
+        row_index == 0,
       )
     }
     sheet.write_string("</row>")
@@ -137,5 +155,101 @@ pub fn create(
   ]
   @opc.save({ parts, }) catch {
     error => raise PackageFailure(part="xlsx", message="\{Repr(error)}")
+  }
+}
+
+///|
+/// Create a bounded workbook with distinct named sheets using the existing
+/// single-sheet cell writer. Strings remain literal and numeric cells remain
+/// numeric. The total cell/text budgets apply across the entire workbook.
+pub fn create_workbook(
+  sheets : Array[(String, Array[Array[@scene.CellValue]])],
+) -> FixedArray[Byte] raise XlsxError {
+  guard sheets.length() >= 1 && sheets.length() <= 20 else {
+    raise InvalidWorkbook("XLSX workbook needs 1..20 sheets")
+  }
+  let names : Array[String] = []
+  let parts : Array[@opc.Part] = []
+  let content_types = StringBuilder()
+  let workbook = StringBuilder()
+  let relationships = StringBuilder()
+  content_types <+
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"><Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/><Default Extension=\"xml\" ContentType=\"application/xml\"/><Override PartName=\"/xl/workbook.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml\"/><Override PartName=\"/xl/styles.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml\"/>"
+  workbook <+
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?><workbook xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\"><sheets>"
+  relationships <+
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">"
+  let mut total_cells = 0
+  let mut total_text = 0
+  for index, (name, rows) in sheets {
+    let folded = name.to_lower()
+    guard !names.contains(folded) else {
+      raise InvalidWorkbook("XLSX sheet names must be distinct ignoring case")
+    }
+    names.push(folded)
+    for row in rows {
+      total_cells += row.length()
+      for value in row {
+        total_text += match value {
+          Empty | Boolean(_) => 0
+          Text(text) | Number(text) | Error(text) => text.length()
+          Formula(expression~, cached~) =>
+            expression.length() + cached.unwrap_or("").length()
+        }
+      }
+    }
+    guard total_cells <= 100000 && total_text <= 8388608 else {
+      raise InvalidWorkbook("XLSX workbook exceeds total cell/text budget")
+    }
+    let archive = @opc.open(create(rows, sheet_name=name)) catch {
+      error => raise PackageFailure(part="xlsx", message="\{Repr(error)}")
+    }
+    let number = index + 1
+    let path = "xl/worksheets/sheet\{number}.xml"
+    parts.push(
+      create_part(
+        path,
+        created_package_text(archive, "xl/worksheets/sheet1.xml"),
+      ),
+    )
+    if index == 0 {
+      parts.push(
+        create_part(
+          "xl/styles.xml",
+          created_package_text(archive, "xl/styles.xml"),
+        ),
+      )
+      parts.push(
+        create_part("_rels/.rels", created_package_text(archive, "_rels/.rels")),
+      )
+    }
+    content_types <+
+      "<Override PartName=\"/\{path}\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml\"/>"
+    workbook <+
+      "<sheet name=\"\{created_xml_attribute(name)}\" sheetId=\"\{number}\" r:id=\"rId\{number}\"/>"
+    relationships <+
+      "<Relationship Id=\"rId\{number}\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet\{number}.xml\"/>"
+  }
+  content_types <+ "</Types>"
+  workbook <+ "</sheets></workbook>"
+  relationships <+
+    "<Relationship Id=\"rId\{sheets.length() + 1}\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles\" Target=\"styles.xml\"/></Relationships>"
+  parts.push(create_part("[Content_Types].xml", content_types.to_string()))
+  parts.push(create_part("xl/workbook.xml", workbook.to_string()))
+  parts.push(
+    create_part("xl/_rels/workbook.xml.rels", relationships.to_string()),
+  )
+  @opc.save({ parts, }) catch {
+    error => raise PackageFailure(part="xlsx", message="\{Repr(error)}")
+  }
+}
+
+///|
+fn created_package_text(
+  archive : @opc.Package,
+  name : String,
+) -> String raise XlsxError {
+  archive.text(name) catch {
+    error => raise PackageFailure(part=name, message="\{Repr(error)}")
   }
 }

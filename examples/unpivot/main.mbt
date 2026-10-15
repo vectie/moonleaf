@@ -22,8 +22,8 @@ fn main raise {
     println(@base64.encode(Bytes::from_array(tidy.export_xlsx())))
   } else if args.contains("--summary") {
     let totals = tidy.summarize(group_by=["month"], measures=[
-      { name: "reported_stores", operation: @jsontable.CountRows, },
-      { name: "total", operation: @jsontable.Sum("sales"), },
+      { name: "reported_stores", operation: CountRows, },
+      { name: "total", operation: Sum("sales"), },
     ])
     println(totals.export_json())
   } else {

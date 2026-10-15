@@ -60,7 +60,7 @@ fn validate_xml_spec(spec : XmlRecordSpec) -> Unit raise XmlRecordError {
   if spec.fields.is_empty() || spec.fields.length() > 128 {
     raise InvalidXmlSpec("Expected 1–128 fields")
   }
-  let seen : Map[String, Bool] = Map::new()
+  let seen : Map[String, Bool] = Map([])
   for field in spec.fields {
     if field.name.trim().is_empty() ||
       field.name.length() > 256 ||
@@ -185,7 +185,7 @@ fn xml_field_cell(
 ) -> @scene.CellValue raise XmlRecordError {
   let selected = xml_walk_path([record], field.path)
   if selected.is_empty() {
-    return @scene.Empty
+    return Empty
   }
   if selected.length() > 1 && field.repeated == RejectRepeated {
     raise RepeatedXmlField(row~, column=field.name)
@@ -214,7 +214,7 @@ fn xml_field_cell(
     values.push(text)
   }
   if !present {
-    return @scene.Empty
+    return Empty
   }
   let separator = match field.repeated {
     RejectRepeated => ""
@@ -223,7 +223,7 @@ fn xml_field_cell(
   if length + separator.length() * (values.length() - 1) > 65536 {
     raise XmlRecordLimit("Joined field exceeds 65536 UTF-16 units")
   }
-  @scene.Text(values.join(separator))
+  Text(values.join(separator))
 }
 
 ///|
@@ -282,3 +282,27 @@ pub fn parse_xml_records(
   }
   { columns: spec.fields.map(field => field.name), rows, }
 }
+
+///|
+pub extend XmlField with @debug.Debug::{to_repr}
+
+///|
+pub extend XmlField with Eq::{not_equal, equal}
+
+///|
+pub extend XmlRepeated with @debug.Debug::{to_repr}
+
+///|
+pub extend XmlRepeated with Eq::{not_equal, equal}
+
+///|
+pub extend XmlRecordSpec with @debug.Debug::{to_repr}
+
+///|
+pub extend XmlRecordSpec with Eq::{not_equal, equal}
+
+///|
+pub extend XmlRecordError with @debug.Debug::{to_repr}
+
+///|
+pub extend XmlRecordError with Eq::{not_equal, equal}

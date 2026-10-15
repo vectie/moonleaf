@@ -1,0 +1,7 @@
+import {
+  "vectie/moonleaf/table_exports" @exports,
+}
+
+supported_targets = "js"
+
+pkgtype(kind: "executable")

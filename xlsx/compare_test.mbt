@@ -142,7 +142,11 @@ test "workbook comparison refuses ambiguous coordinates types and payloads befor
   ]
   for cells in cases {
     assert_true(
-      (try? @xlsx.compare_workbooks(valid, comparison_fixture(cells))) is Err(_),
+      try @xlsx.compare_workbooks(valid, comparison_fixture(cells)) catch {
+        _ => true
+      } noraise {
+        _ => false
+      },
     )
   }
   assert_eq(@xlsx.compare_workbooks(valid, valid).sheets, [])

@@ -57,7 +57,7 @@ pub fn read_range(
     raise InvalidWorkbook("ambiguous worksheet name: " + sheet_name)
   }
   let relationships = workbook_relationships(archive)
-  let ids : Map[String, Bool] = {}
+  let ids : Map[String, Bool] = Map([])
   for relationship in relationships {
     if ids.contains(relationship.id) {
       raise InvalidWorkbook(
@@ -88,7 +88,7 @@ pub fn read_range(
   let rows = Array::makei(height, _ => {
     Array::make(width, @scene.CellValue::Empty)
   })
-  let seen : Map[String, Bool] = {}
+  let seen : Map[String, Bool] = Map([])
   let mut styled_cells = 0
   let mut units = 0
   let mut previous_row = 0
@@ -168,7 +168,7 @@ pub fn read_range(
         }
         let value = parse_cell_value(cell, strings)
         match value {
-          @scene.Number(text) => {
+          Number(text) => {
             let parsed = @json.parse(text) catch {
               _ =>
                 raise InvalidWorkbook("invalid selected number at " + reference)
@@ -176,14 +176,14 @@ pub fn read_range(
             guard parsed is Number(number, ..) &&
               !number.is_inf() &&
               !number.is_nan() &&
-              text == text.trim().to_string() else {
+              text == text.trim().to_owned() else {
               raise InvalidWorkbook(
                 "expected finite JSON number at " + reference,
               )
             }
             units += text.length()
           }
-          @scene.Text(text) => units += text.length()
+          Text(text) => units += text.length()
           _ => ()
         }
         if units > 4000000 {
@@ -198,3 +198,9 @@ pub fn read_range(
   }
   { sheet_name, range: bounds, rows, styled_cells, }
 }
+
+///|
+pub extend RangeValues with Eq::{equal, not_equal}
+
+///|
+pub extend RangeValues with @debug.Debug::{to_repr}

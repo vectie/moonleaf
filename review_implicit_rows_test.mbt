@@ -46,7 +46,7 @@ fn review_one_edit(
   let after = review_cells(@moonleaf.open_session("review.xlsx", saved.bytes()))
   let expected = before.map(c => {
     if c.row == row && c.column == column {
-      { ..c, value: @scene.CellValue::Text("new & < > 🌓"), }
+      { ..c, value: Text("new & < > 🌓"), }
     } else {
       c
     }
@@ -83,7 +83,7 @@ test "review ordered implicit rows survive eight edit save reopen cycles" {
     assert_eq(current.revision(), 0)
     let expected = before.map(c => {
       if c.row == 6 && c.column == 1 {
-        { ..c, value: @scene.CellValue::Text(value), }
+        { ..c, value: Text(value), }
       } else {
         c
       }
@@ -273,7 +273,7 @@ test "review 128 ordered row and cell coordinate mixtures preserve every neighbo
         current = @moonleaf.open_session("matrix.xlsx", saved.bytes())
         let expected = before.map(c => {
           if c.row == row && c.column == column {
-            { ..c, value: @scene.CellValue::Text(text), }
+            { ..c, value: Text(text), }
           } else {
             c
           }

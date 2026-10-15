@@ -10,6 +10,8 @@ import {
 // Values
 pub fn audit_layout_equivalence(@opc.Package, @opc.Package) -> LayoutAudit raise DocxError
 
+pub fn edit_body_paragraph(@opc.Package, Json) -> @opc.Package raise DocxError
+
 pub fn inspect_document(@opc.Package) -> DocxDocument raise DocxError
 
 pub fn layout_audit_contract_version() -> String
@@ -113,6 +115,9 @@ pub(all) struct ListInfo {
   label_template : String
   start : Int
 } derive(Eq, @debug.Debug)
+pub fn ListInfo::equal(Self, Self) -> Bool
+pub fn ListInfo::not_equal(Self, Self) -> Bool
+pub fn ListInfo::to_repr(Self) -> @debug.Repr
 
 pub(all) struct PagedDocxDocument {
   pages : Array[DocxPage]

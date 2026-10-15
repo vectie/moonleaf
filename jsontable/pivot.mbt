@@ -103,8 +103,8 @@ pub fn Table::pivot(
   let value_index = pivot_column(self, value_column)
   let columns = id_columns.copy()
   let key_names : Array[String] = []
-  let seen_keys : Map[String, Bool] = {}
-  let group_indices : Map[String, Int] = {}
+  let seen_keys : Map[String, Bool] = Map([])
+  let group_indices : Map[String, Int] = Map([])
   let groups : Array[PivotGroup] = []
   for row_index, row in self.rows {
     let data_row = row_index + 1
@@ -156,7 +156,7 @@ pub fn Table::pivot(
       output.push(
         match group.cells.get(key) {
           Some((_, value)) => value
-          None => @scene.Empty
+          None => Empty
         },
       )
     }
@@ -164,3 +164,15 @@ pub fn Table::pivot(
   })
   { columns, rows, }
 }
+
+///|
+pub extend PivotDuplicates with @debug.Debug::{to_repr}
+
+///|
+pub extend PivotDuplicates with Eq::{not_equal, equal}
+
+///|
+pub extend PivotError with @debug.Debug::{to_repr}
+
+///|
+pub extend PivotError with Eq::{not_equal, equal}

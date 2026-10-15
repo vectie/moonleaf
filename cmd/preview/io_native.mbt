@@ -5,11 +5,18 @@
 extern "c" fn posix_open(path : Bytes, flags : Int, mode : Int) -> Int = "open"
 
 ///|
-#borrow(path, mode)
-extern "c" fn exclusive_fopen(path : Bytes, mode : Bytes) -> Int64 = "fopen"
+#external
+priv type NativeFile
 
 ///|
-extern "c" fn file_descriptor(file : Int64) -> Int = "fileno"
+#borrow(path, mode)
+extern "c" fn exclusive_fopen(path : Bytes, mode : Bytes) -> NativeFile = "moonleaf_preview_fopen"
+
+///|
+extern "c" fn file_is_null(file : NativeFile) -> Bool = "moonleaf_preview_file_is_null"
+
+///|
+extern "c" fn file_descriptor(file : NativeFile) -> Int = "moonleaf_preview_fileno"
 
 ///|
 extern "c" fn set_file_mode(fd : Int, mode : Int) -> Int = "fchmod"
@@ -18,7 +25,7 @@ extern "c" fn set_file_mode(fd : Int, mode : Int) -> Int = "fchmod"
 extern "c" fn set_umask(mask : Int) -> Int = "umask"
 
 ///|
-extern "c" fn close_file(file : Int64) -> Int = "fclose"
+extern "c" fn close_file(file : NativeFile) -> Int = "moonleaf_preview_fclose"
 
 ///|
 #borrow(buffer)
@@ -94,7 +101,7 @@ fn write_file(path : String, bytes : FixedArray[Byte]) -> Unit {
   let previous_umask = set_umask(0o077)
   let file = exclusive_fopen(c_path(path), c_path("wbx"))
   ignore(set_umask(previous_umask))
-  if file == 0 {
+  if file_is_null(file) {
     abort("MoonLeaf cannot create output file")
   }
   let fd = file_descriptor(file)

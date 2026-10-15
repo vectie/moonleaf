@@ -10,7 +10,7 @@ fn xlsx_selection_fixture(xml : String) -> @opc.Package raise {
 fn extract_range(
   archive : @opc.Package,
   range : String,
-  header? : @jsontable.XlsxHeader = @jsontable.FirstRow,
+  header? : @jsontable.XlsxHeader = FirstRow,
 ) -> @jsontable.XlsxTable raise {
   @jsontable.extract_xlsx(archive, sheet_name="Sheet1", range~, header~)
 }
@@ -36,23 +36,15 @@ test "xlsx non-A1 dense typed positions and exact headers" {
   assert_eq(imported.table.columns, ["id", "amount", "active", "note"])
   assert_eq(imported.source_rows, [4, 5, 6, 7])
   assert_eq(imported.table.rows, [
-    [
-      @scene.Text("001"),
-      @scene.Number("12.50"),
-      @scene.Boolean(true),
-      @scene.Text(""),
-    ],
-    [@scene.Empty, @scene.Empty, @scene.Empty, @scene.Empty],
-    [@scene.Text("002"), @scene.Empty, @scene.Boolean(false), @scene.Empty],
-    [@scene.Empty, @scene.Empty, @scene.Empty, @scene.Empty],
+    [Text("001"), Number("12.50"), Boolean(true), Text("")],
+    [Empty, Empty, Empty, Empty],
+    [Text("002"), Empty, Boolean(false), Empty],
+    [Empty, Empty, Empty, Empty],
   ])
   assert_true(imported.warnings[2].contains("1"))
-  imported.table.rows[0][0] = @scene.Text("changed")
+  imported.table.rows[0][0] = Text("changed")
   assert_eq(@opc.save(archive), before)
-  assert_eq(
-    extract_range(archive, "B3:E7").table.rows[0][0],
-    @scene.Text("001"),
-  )
+  assert_eq(extract_range(archive, "B3:E7").table.rows[0][0], Text("001"))
 }
 
 ///|
@@ -61,16 +53,16 @@ test "xlsx supplied headers preserve first row and isolated arrays" {
     "<row r=\"5\"><c r=\"D5\"><v>60</v></c><c r=\"E5\" t=\"str\"><v>=1+1</v></c></row>",
   )
   let names = ["serial", "literal"]
-  let value = extract_range(archive, "D5:E6", header=@jsontable.Columns(names))
+  let value = extract_range(archive, "D5:E6", header=Columns(names))
   names[0] = "changed"
   assert_eq(value.table.columns, ["serial", "literal"])
   assert_eq(value.source_rows, [5, 6])
-  assert_eq(value.table.rows[0], [@scene.Number("60"), @scene.Text("=1+1")])
+  assert_eq(value.table.rows[0], [Number("60"), Text("=1+1")])
   let reopened = @jsontable.extract_xlsx(
     @opc.open(value.table.export_xlsx()),
     sheet_name="JSON data",
     range="A1:B3",
-    header=@jsontable.FirstRow,
+    header=FirstRow,
   )
   assert_eq(reopened.table, value.table)
 }
@@ -89,8 +81,8 @@ test "xlsx selected formulas errors unknown values refused but outside ignored" 
     )
     refuses_range(archive, "A1:A2")
     assert_eq(
-      extract_range(archive, "C1", header=@jsontable.Columns(["empty"])).table.rows,
-      [[@scene.Empty]],
+      extract_range(archive, "C1", header=Columns(["empty"])).table.rows,
+      [[Empty]],
     )
   }
   for kind in ["e", "d", "unsupported"] {
@@ -109,19 +101,18 @@ test "xlsx intersecting merge and external array formula anchor refused" {
   let merged = archive.replace_text(
     "xl/worksheets/sheet1.xml", "<worksheet><mergeCells><mergeCell ref=\"A1:C4\"/></mergeCells></worksheet>",
   )
-  try extract_range(merged, "B2", header=@jsontable.Columns(["x"])) catch {
+  try extract_range(merged, "B2", header=Columns(["x"])) catch {
     _ => ()
   } noraise {
     _ => fail("merge intersection accepted")
   }
-  assert_eq(
-    extract_range(merged, "D2", header=@jsontable.Columns(["x"])).table.rows,
-    [[@scene.Empty]],
-  )
+  assert_eq(extract_range(merged, "D2", header=Columns(["x"])).table.rows, [
+    [Empty],
+  ])
   let formula = xlsx_selection_fixture(
     "<row><c r=\"A1\"><f t=\"array\" ref=\"A1:C4\">1</f><v>1</v></c><c r=\"B2\"><v>1</v></c></row>",
   )
-  try extract_range(formula, "B2", header=@jsontable.Columns(["x"])) catch {
+  try extract_range(formula, "B2", header=Columns(["x"])) catch {
     _ => ()
   } noraise {
     _ => fail("array follower accepted")
@@ -133,14 +124,10 @@ test "xlsx coordinates match sparse unsorted explicit and implicit cells" {
   let archive = xlsx_selection_fixture(
     "<row r=\"8\"><c r=\"D4\" t=\"str\"><v>a</v></c><c t=\"b\"><v>0</v></c></row><row r=\"3\"><c r=\"E3\"><v>9</v></c></row>",
   )
-  let result = extract_range(
-    archive,
-    "D3:E8",
-    header=@jsontable.Columns(["a", "b"]),
-  )
-  assert_eq(result.table.rows[0], [@scene.Empty, @scene.Number("9")])
-  assert_eq(result.table.rows[1], [@scene.Text("a"), @scene.Empty])
-  assert_eq(result.table.rows[5], [@scene.Empty, @scene.Boolean(false)])
+  let result = extract_range(archive, "D3:E8", header=Columns(["a", "b"]))
+  assert_eq(result.table.rows[0], [Empty, Number("9")])
+  assert_eq(result.table.rows[1], [Text("a"), Empty])
+  assert_eq(result.table.rows[5], [Empty, Boolean(false)])
   for
     xml in [
       "<row r=\"0\"/>", "<row r=\"x\"/>", "<row><c r=\"a1\"/></row>", "<row><c r=\"XFE1\"/></row>",
@@ -195,7 +182,7 @@ test "xlsx 128 column bound and extraction text bound" {
     extract_range(
       empty,
       "A1:DX1",
-      header=@jsontable.Columns(Array::makei(128, i => i.to_string())),
+      header=Columns(Array::makei(128, i => i.to_string())),
     ).table.columns.length(),
     128,
   )
@@ -205,7 +192,7 @@ test "xlsx 128 column bound and extraction text bound" {
     data +
     "</v></c></row>",
   )
-  assert_eq(extract_range(archive, "A1:A2").table.rows[0][0], @scene.Text(data))
+  assert_eq(extract_range(archive, "A1:A2").table.rows[0][0], Text(data))
   let over = xlsx_selection_fixture(
     "<row><c r=\"A1\" t=\"str\"><v>hh</v></c></row><row><c r=\"A2\" t=\"str\"><v>" +
     data +
@@ -226,31 +213,29 @@ test "xlsx header policy and selection bounds" {
   }
   refuses_range(empty, "A1")
   for names in [[""], ["x", "x"], [], ["x", "y", "z"]] {
-    try extract_range(empty, "A1:B1", header=@jsontable.Columns(names)) catch {
+    try extract_range(empty, "A1:B1", header=Columns(names)) catch {
       _ => ()
     } noraise {
       _ => fail("bad headers accepted")
     }
   }
   assert_eq(
-    extract_range(empty, "A1:A10000", header=@jsontable.Columns(["x"])).table.rows.length(),
+    extract_range(empty, "A1:A10000", header=Columns(["x"])).table.rows.length(),
     10000,
   )
   assert_eq(
     extract_range(
       empty,
       "A1:CV1000",
-      header=@jsontable.Columns(Array::makei(100, i => i.to_string())),
+      header=Columns(Array::makei(100, i => i.to_string())),
     ).table.rows.length(),
     1000,
   )
   assert_eq(
-    extract_range(empty, "XFD1048576", header=@jsontable.Columns(["x"])).source_rows,
+    extract_range(empty, "XFD1048576", header=Columns(["x"])).source_rows,
     [1048576],
   )
-  try
-    extract_range(empty, "A1:A10001", header=@jsontable.Columns(["x"]))
-  catch {
+  try extract_range(empty, "A1:A10001", header=Columns(["x"])) catch {
     _ => ()
   } noraise {
     _ => fail("too many data rows")
@@ -267,12 +252,10 @@ test "xlsx selected text bound includes supplied headers" {
   let empty = xlsx_selection_fixture("")
   let name = "x".repeat(4000000)
   assert_eq(
-    extract_range(empty, "A1", header=@jsontable.Columns([name])).table.columns[0].length(),
+    extract_range(empty, "A1", header=Columns([name])).table.columns[0].length(),
     4000000,
   )
-  try
-    extract_range(empty, "A1", header=@jsontable.Columns([name + "x"]))
-  catch {
+  try extract_range(empty, "A1", header=Columns([name + "x"])) catch {
     _ => ()
   } noraise {
     _ => fail("too much header text")

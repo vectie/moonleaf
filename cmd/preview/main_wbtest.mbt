@@ -24,16 +24,16 @@ test "paste request keeps ragged rows and checks placement" {
 
 ///|
 test "CSV preserves negative numeric values while protecting text formulas" {
-  assert_eq(csv_cell_text(@scene.Number("-0.05")), "-0.05")
-  assert_eq(csv_cell_text(@scene.Text("-0.05")), "'-0.05")
-  assert_eq(csv_cell_text(@scene.Text("=1+1")), "'=1+1")
+  assert_eq(@csv.cell_text(Number("-0.05")), "-0.05")
+  assert_eq(@csv.cell_text(Text("-0.05")), "'-0.05")
+  assert_eq(@csv.cell_text(Text("=1+1")), "'=1+1")
 }
 
 ///|
 test "CSV creation is readable and protects spreadsheet formula text" {
   let result = created_csv_bytes([
-    [@scene.Text("标题"), @scene.Text("摘录")],
-    [@scene.Text("=1+1"), @scene.Text("债券,\"公司\"\n下一行")],
+    [Text("标题"), Text("摘录")],
+    [Text("=1+1"), Text("债券,\"公司\"\n下一行")],
   ]).unwrap()
   let output = @utf8.decode(Bytes::from_array(result))
   assert_true(output.has_prefix("\u{FEFF}"))
@@ -43,12 +43,18 @@ test "CSV creation is readable and protects spreadsheet formula text" {
 }
 
 ///|
-test "CSV creation rejects quoted output beyond its reader limit" {
-  let long_text = "\"".repeat(1_100_000)
-  let result = created_csv_bytes([[@scene.Text(long_text)]])
+test "CSV creation enforces its 8 MiB quoted output boundary" {
+  let limit = 8_388_608
+  // BOM, field quotes and CRLF take seven bytes; embedded quotes double.
+  let text = "\"".repeat((limit - 7) / 2)
+  let accepted = created_csv_bytes([[Text(text)]]).unwrap()
+  assert_eq(accepted.length(), limit - 1)
+  let reopened = @csv.parse(@utf8.decode(Bytes::from_array(accepted)))
+  assert_true(reopened.rows == [[text]])
+  let result = created_csv_bytes([[Text(text + "\"")]])
   assert_eq(
     result.unwrap_err(),
-    "CSV export exceeds MoonLeaf's 2 MiB reader limit",
+    "CSV export exceeds MoonLeaf's 8 MiB reader limit",
   )
 }
 
@@ -65,14 +71,14 @@ test "XLSX sheet CSV rows retain gaps, numbers and protected formulas" {
   let sheet : @scene.Sheet = {
     name: "研究证据",
     cells: [
-      { row: 1, column: 1, value: @scene.Text("名称"), style_id: None, },
-      { row: 1, column: 2, value: @scene.Text("数值"), style_id: None, },
-      { row: 3, column: 1, value: @scene.Text("=2+2"), style_id: None, },
-      { row: 3, column: 2, value: @scene.Number("-0.05"), style_id: None, },
+      { row: 1, column: 1, value: Text("名称"), style_id: None, },
+      { row: 1, column: 2, value: Text("数值"), style_id: None, },
+      { row: 3, column: 1, value: Text("=2+2"), style_id: None, },
+      { row: 3, column: 2, value: Number("-0.05"), style_id: None, },
       {
         row: 3,
         column: 3,
-        value: @scene.Formula(expression="B3*2", cached=Some("-0.1")),
+        value: Formula(expression="B3*2", cached=Some("-0.1")),
         style_id: None,
       },
     ],
@@ -92,17 +98,15 @@ test "XLSX sheet CSV rows retain gaps, numbers and protected formulas" {
 
 ///|
 test "numeric preview metadata excludes numeric text, formulas and non-finite values" {
-  assert_true(is_numeric_cell(@scene.Number("12.5")))
-  assert_true(is_numeric_cell(@scene.Number("-0.05")))
-  assert_true(is_numeric_cell(@scene.Number("1e3")))
-  assert_true(!is_numeric_cell(@scene.Text("12.5")))
-  assert_true(
-    !is_numeric_cell(@scene.Formula(expression="A1*2", cached=Some("25"))),
-  )
-  assert_true(!is_numeric_cell(@scene.Boolean(true)))
-  assert_true(!is_numeric_cell(@scene.Number("NaN")))
-  assert_true(!is_numeric_cell(@scene.Number("Infinity")))
-  assert_true(!is_numeric_cell(@scene.Number("not-a-number")))
+  assert_true(is_numeric_cell(Number("12.5")))
+  assert_true(is_numeric_cell(Number("-0.05")))
+  assert_true(is_numeric_cell(Number("1e3")))
+  assert_true(!is_numeric_cell(Text("12.5")))
+  assert_true(!is_numeric_cell(Formula(expression="A1*2", cached=Some("25"))))
+  assert_true(!is_numeric_cell(Boolean(true)))
+  assert_true(!is_numeric_cell(Number("NaN")))
+  assert_true(!is_numeric_cell(Number("Infinity")))
+  assert_true(!is_numeric_cell(Number("not-a-number")))
 }
 
 ///|
@@ -110,15 +114,15 @@ test "spreadsheet preview distinguishes numeric cells from formulas" {
   let sheet : @scene.Sheet = {
     name: "研究证据",
     cells: [
-      { row: 1, column: 1, value: @scene.Number("12.5"), style_id: None, },
-      { row: 1, column: 2, value: @scene.Text("12.5"), style_id: None, },
+      { row: 1, column: 1, value: Number("12.5"), style_id: None, },
+      { row: 1, column: 2, value: Text("12.5"), style_id: None, },
       {
         row: 1,
         column: 3,
-        value: @scene.Formula(expression="A1*2", cached=Some("25")),
+        value: Formula(expression="A1*2", cached=Some("25")),
         style_id: None,
       },
-      { row: 1, column: 4, value: @scene.Number("NaN"), style_id: None, },
+      { row: 1, column: 4, value: Number("NaN"), style_id: None, },
     ],
     merged_ranges: [],
   }
@@ -164,11 +168,11 @@ test "delimited XLSX conversion preserves zeroes, formulas and Unicode as text" 
     @opc.open(@xlsx.create(rows, sheet_name="导入数据")),
   )
   let cells = workbook.sheets[0].cells
-  assert_eq(cells[0].value, @scene.Text("证券代码"))
-  assert_eq(cells[2].value, @scene.Text("001234"))
-  assert_eq(cells[3].value, @scene.Text("含,逗号"))
-  assert_eq(cells[4].value, @scene.Text("=1+1"))
-  assert_eq(cells[5].value, @scene.Text("换行\n文本"))
+  assert_eq(cells[0].value, Text("证券代码"))
+  assert_eq(cells[2].value, Text("001234"))
+  assert_eq(cells[3].value, Text("含,逗号"))
+  assert_eq(cells[4].value, Text("=1+1"))
+  assert_eq(cells[5].value, Text("换行\n文本"))
 }
 
 ///|
@@ -177,7 +181,7 @@ test "TSV conversion rejects malformed quoting" {
     ignore(delimited_xlsx_rows("a\t\"unterminated", '\t'))
     false
   } catch {
-    @csv.CsvError::UnterminatedQuote => true
+    UnterminatedQuote => true
     _ => false
   }
   assert_true(rejected)

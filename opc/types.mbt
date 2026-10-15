@@ -57,9 +57,9 @@ pub fn Package::text(
   match self.part(name) {
     Some(part) =>
       @fzip.str_from_u8(part.content) catch {
-        _ => raise PackageError::InvalidTextPart(name)
+        _ => raise InvalidTextPart(name)
       }
-    None => raise PackageError::MissingPart(name)
+    None => raise MissingPart(name)
   }
 }
 

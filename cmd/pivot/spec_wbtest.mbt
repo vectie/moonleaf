@@ -54,6 +54,12 @@ test "pivot spec rejects unknown fields invalid types and guessed policies" {
         #|{"id_columns":[],"key_column":"k","value_column":"v","drop_empty":true}
       ),
     ] {
-    assert_true((try? parse_spec(input)) is Err(_))
+    assert_true(
+      try parse_spec(input) catch {
+        _ => true
+      } noraise {
+        _ => false
+      },
+    )
   }
 }

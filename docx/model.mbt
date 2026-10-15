@@ -183,3 +183,9 @@ pub(all) struct PagedDocxDocument {
   content_height_twips : Int
   diagnostics : Array[@scene.Warning]
 } derive(Eq, Debug)
+
+///|
+pub extend ListInfo with Eq::{equal, not_equal}
+
+///|
+pub extend ListInfo with @debug.Debug::{to_repr}

@@ -2,11 +2,8 @@
 test "font decoration preserves original fonts, formulas, and other styles" {
   let source = @opc.open(
     @xlsx.create([
-      [@scene.Text("Title"), @scene.Text("Plain")],
-      [
-        @scene.Formula(expression="A1", cached=Some("Title")),
-        @scene.Number("42"),
-      ],
+      [Text("Title"), Text("Plain")],
+      [Formula(expression="A1", cached=Some("Title")), Number("42")],
     ]),
   )
   let original_styles = source.text("xl/styles.xml")
@@ -17,27 +14,21 @@ test "font decoration preserves original fonts, formulas, and other styles" {
     1,
     2,
     1,
-    @xlsx.Italic,
+    Italic,
     true,
   )
   assert_eq(changed, 2)
   assert_eq(source.text("xl/styles.xml"), original_styles)
-  assert_eq(@xlsx.font_decoration_cells(italic, "研究证据", @xlsx.Italic), [
+  assert_eq(@xlsx.font_decoration_cells(italic, "研究证据", Italic), [
     (1, 1),
     (2, 1),
   ])
-  assert_eq(
-    @xlsx.font_decoration_cells(italic, "研究证据", @xlsx.Underline),
-    [],
-  )
+  assert_eq(@xlsx.font_decoration_cells(italic, "研究证据", Underline), [])
   let cells = @xlsx.read(italic).sheets[0].cells
-  assert_eq(cells[0].value, @scene.Text("Title"))
-  assert_eq(cells[1].value, @scene.Text("Plain"))
-  assert_eq(
-    cells[2].value,
-    @scene.Formula(expression="A1", cached=Some("Title")),
-  )
-  assert_eq(cells[3].value, @scene.Number("42"))
+  assert_eq(cells[0].value, Text("Title"))
+  assert_eq(cells[1].value, Text("Plain"))
+  assert_eq(cells[2].value, Formula(expression="A1", cached=Some("Title")))
+  assert_eq(cells[3].value, Number("42"))
   let styles = @xml.parse(italic.text("xl/styles.xml"))
   let fonts = styles.first_child("fonts").unwrap().children_named("font")
   let xfs = styles.first_child("cellXfs").unwrap().children_named("xf")
@@ -56,7 +47,7 @@ test "font decoration preserves original fonts, formulas, and other styles" {
     1,
     2,
     1,
-    @xlsx.Italic,
+    Italic,
     true,
   )
   assert_eq(unchanged, 0)
@@ -68,18 +59,18 @@ test "font decoration preserves original fonts, formulas, and other styles" {
     1,
     1,
     1,
-    @xlsx.Underline,
+    Underline,
     true,
   )
   assert_eq(underlined_count, 1)
   assert_eq(
-    @xlsx.font_decoration_cells(underlined, "研究证据", @xlsx.Underline),
+    @xlsx.font_decoration_cells(underlined, "研究证据", Underline),
     [(1, 1)],
   )
-  assert_eq(
-    @xlsx.font_decoration_cells(underlined, "研究证据", @xlsx.Italic),
-    [(1, 1), (2, 1)],
-  )
+  assert_eq(@xlsx.font_decoration_cells(underlined, "研究证据", Italic), [
+    (1, 1),
+    (2, 1),
+  ])
   let (not_italic, cleared) = @xlsx.set_font_decoration_range(
     underlined,
     "研究证据",
@@ -87,23 +78,20 @@ test "font decoration preserves original fonts, formulas, and other styles" {
     1,
     2,
     1,
-    @xlsx.Italic,
+    Italic,
     false,
   )
   assert_eq(cleared, 2)
+  assert_eq(@xlsx.font_decoration_cells(not_italic, "研究证据", Italic), [])
   assert_eq(
-    @xlsx.font_decoration_cells(not_italic, "研究证据", @xlsx.Italic),
-    [],
-  )
-  assert_eq(
-    @xlsx.font_decoration_cells(not_italic, "研究证据", @xlsx.Underline),
+    @xlsx.font_decoration_cells(not_italic, "研究证据", Underline),
     [(1, 1)],
   )
 }
 
 ///|
 test "font decoration handles blank cells and rejects invalid styles" {
-  let source = @opc.open(@xlsx.create([[@scene.Text("A")]]))
+  let source = @opc.open(@xlsx.create([[Text("A")]]))
   let (formatted, count) = @xlsx.set_font_decoration_range(
     source,
     "研究证据",
@@ -111,17 +99,17 @@ test "font decoration handles blank cells and rejects invalid styles" {
     2,
     3,
     2,
-    @xlsx.Underline,
+    Underline,
     true,
   )
   assert_eq(count, 2)
-  assert_eq(
-    @xlsx.font_decoration_cells(formatted, "研究证据", @xlsx.Underline),
-    [(2, 2), (3, 2)],
-  )
+  assert_eq(@xlsx.font_decoration_cells(formatted, "研究证据", Underline), [
+    (2, 2),
+    (3, 2),
+  ])
   let cells = @xlsx.read(formatted).sheets[0].cells
   assert_eq(cells.length(), 3)
-  assert_eq(cells[1].value, @scene.Empty)
+  assert_eq(cells[1].value, Empty)
   let (again, unchanged) = @xlsx.set_font_decoration_range(
     formatted,
     "研究证据",
@@ -129,7 +117,7 @@ test "font decoration handles blank cells and rejects invalid styles" {
     2,
     3,
     2,
-    @xlsx.Underline,
+    Underline,
     true,
   )
   assert_eq(unchanged, 0)
@@ -141,14 +129,11 @@ test "font decoration handles blank cells and rejects invalid styles" {
     2,
     3,
     2,
-    @xlsx.Underline,
+    Underline,
     false,
   )
   assert_eq(changed, 2)
-  assert_eq(
-    @xlsx.font_decoration_cells(cleared, "研究证据", @xlsx.Underline),
-    [],
-  )
+  assert_eq(@xlsx.font_decoration_cells(cleared, "研究证据", Underline), [])
   let oversized = try {
     ignore(
       @xlsx.set_font_decoration_range(
@@ -158,13 +143,13 @@ test "font decoration handles blank cells and rejects invalid styles" {
         1,
         100,
         11,
-        @xlsx.Italic,
+        Italic,
         true,
       ),
     )
     false
   } catch {
-    @xlsx.InvalidWorkbook(_) => true
+    InvalidWorkbook(_) => true
     _ => false
   }
   assert_true(oversized)
@@ -183,13 +168,13 @@ test "font decoration handles blank cells and rejects invalid styles" {
         1,
         1,
         1,
-        @xlsx.Italic,
+        Italic,
         true,
       ),
     )
     false
   } catch {
-    @xlsx.InvalidWorkbook(_) => true
+    InvalidWorkbook(_) => true
     _ => false
   }
   assert_true(invalid)
@@ -199,11 +184,11 @@ test "font decoration handles blank cells and rejects invalid styles" {
 test "bold changes one cell without dropping italic and underline" {
   let source = @opc.open(
     @xlsx.create([
-      [@scene.Text("Header"), @scene.Text("Other")],
-      [@scene.Text("Evidence"), @scene.Number("8")],
+      [Text("Header"), Text("Other")],
+      [Text("Evidence"), Number("8")],
     ]),
   )
-  assert_eq(@xlsx.font_decoration_cells(source, "研究证据", @xlsx.Bold), [
+  assert_eq(@xlsx.font_decoration_cells(source, "研究证据", Bold), [
     (1, 1),
     (1, 2),
   ])
@@ -214,7 +199,7 @@ test "bold changes one cell without dropping italic and underline" {
     1,
     2,
     1,
-    @xlsx.Italic,
+    Italic,
     true,
   )
   assert_eq(italic_count, 2)
@@ -225,7 +210,7 @@ test "bold changes one cell without dropping italic and underline" {
     1,
     1,
     1,
-    @xlsx.Underline,
+    Underline,
     true,
   )
   assert_eq(underline_count, 1)
@@ -236,21 +221,18 @@ test "bold changes one cell without dropping italic and underline" {
     1,
     1,
     1,
-    @xlsx.Bold,
+    Bold,
     false,
   )
   assert_eq(cleared, 1)
-  assert_eq(@xlsx.font_decoration_cells(unbold, "研究证据", @xlsx.Bold), [
-    (1, 2),
-  ])
-  assert_eq(@xlsx.font_decoration_cells(unbold, "研究证据", @xlsx.Italic), [
+  assert_eq(@xlsx.font_decoration_cells(unbold, "研究证据", Bold), [(1, 2)])
+  assert_eq(@xlsx.font_decoration_cells(unbold, "研究证据", Italic), [
     (1, 1),
     (2, 1),
   ])
-  assert_eq(
-    @xlsx.font_decoration_cells(unbold, "研究证据", @xlsx.Underline),
-    [(1, 1)],
-  )
+  assert_eq(@xlsx.font_decoration_cells(unbold, "研究证据", Underline), [
+    (1, 1),
+  ])
   let (bold, count) = @xlsx.set_font_decoration_range(
     unbold,
     "研究证据",
@@ -258,11 +240,11 @@ test "bold changes one cell without dropping italic and underline" {
     1,
     2,
     1,
-    @xlsx.Bold,
+    Bold,
     true,
   )
   assert_eq(count, 1)
-  assert_eq(@xlsx.font_decoration_cells(bold, "研究证据", @xlsx.Bold), [
+  assert_eq(@xlsx.font_decoration_cells(bold, "研究证据", Bold), [
     (1, 2),
     (2, 1),
   ])
@@ -273,10 +255,10 @@ test "bold changes one cell without dropping italic and underline" {
     1,
     2,
     1,
-    @xlsx.Bold,
+    Bold,
     true,
   )
   assert_eq(no_change, 0)
   assert_eq(again.text("xl/styles.xml"), bold.text("xl/styles.xml"))
-  assert_eq(@xlsx.read(bold).sheets[0].cells[2].value, @scene.Text("Evidence"))
+  assert_eq(@xlsx.read(bold).sheets[0].cells[2].value, Text("Evidence"))
 }

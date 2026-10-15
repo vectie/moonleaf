@@ -40,7 +40,7 @@ fn table_relationships(
   let relationships = archive.relationships(part) catch {
     error => raise PackageFailure(part~, message="\{Repr(error)}")
   }
-  let ids : Map[String, Bool] = {}
+  let ids : Map[String, Bool] = Map([])
   for relationship in relationships {
     if ids.contains(relationship.id) {
       raise InvalidWorkbook("duplicate relationship id in " + part)
@@ -63,9 +63,9 @@ pub fn named_tables(
   }
   let relationships = table_relationships(archive, "xl/workbook.xml")
   let result : Array[NamedTable] = []
-  let names : Map[String, Bool] = {}
-  let parts : Map[String, Bool] = {}
-  let sheets : Map[String, Bool] = {}
+  let names : Map[String, Bool] = Map([])
+  let parts : Map[String, Bool] = Map([])
+  let sheets : Map[String, Bool] = Map([])
   for sheet in workbook_sheets(workbook) {
     if sheets.contains(sheet.name) {
       raise InvalidWorkbook("ambiguous worksheet name: " + sheet.name)
@@ -165,8 +165,8 @@ pub fn named_tables(
         raise InvalidWorkbook("Excel Table columns do not match its width")
       }
       let columns : Array[String] = []
-      let seen_columns : Map[String, Bool] = {}
-      let column_ids : Map[String, Bool] = {}
+      let seen_columns : Map[String, Bool] = Map([])
+      let column_ids : Map[String, Bool] = Map([])
       let mut calculated_columns = false
       for column in column_elements {
         guard column.attribute("name") is Some(column_name) &&
@@ -215,3 +215,9 @@ pub fn named_tables(
   }
   result
 }
+
+///|
+pub extend NamedTable with Eq::{equal, not_equal}
+
+///|
+pub extend NamedTable with @debug.Debug::{to_repr}

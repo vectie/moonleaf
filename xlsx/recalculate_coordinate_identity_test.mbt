@@ -50,7 +50,7 @@ test "recalculation rejects logically duplicate aliases without choosing a value
   )
   let before = @opc.save(original)
   try @xlsx.recalculate(original) catch {
-    @xlsx.InvalidWorkbook(message) =>
+    InvalidWorkbook(message) =>
       assert_eq(
         message, "recalculation requires unique explicit cell references",
       )
@@ -68,8 +68,7 @@ test "recalculation detects cycles through aliased references" {
   )
   let before = @opc.save(original)
   try @xlsx.recalculate(original) catch {
-    @xlsx.InvalidWorkbook(message) =>
-      assert_eq(message, "circular formula reference")
+    InvalidWorkbook(message) => assert_eq(message, "circular formula reference")
     _ => fail("expected aliased-cycle refusal")
   } noraise {
     _ => fail("a coordinate alias must not hide a cycle")

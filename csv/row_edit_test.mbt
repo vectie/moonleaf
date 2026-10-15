@@ -44,7 +44,7 @@ test "CSV row edits reject coordinates beyond preview limits" {
     ignore(source.insert_rows(10_000, 2))
     false
   } catch {
-    @csv.CsvError::InvalidCoordinates(..) => true
+    InvalidCoordinates(..) => true
     _ => false
   }
   assert_true(invalid)
@@ -52,7 +52,7 @@ test "CSV row edits reject coordinates beyond preview limits" {
     ignore(source.delete_rows(1, 101))
     false
   } catch {
-    @csv.CsvError::InvalidCoordinates(..) => true
+    InvalidCoordinates(..) => true
     _ => false
   }
   assert_true(invalid_count)

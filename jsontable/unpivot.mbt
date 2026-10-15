@@ -100,10 +100,16 @@ pub fn Table::unpivot(
         )
       }
       let output = identifiers.map(index => row[index])
-      output.push(@scene.Text(self.columns[index]))
+      output.push(Text(self.columns[index]))
       output.push(value)
       rows.push(output)
     }
   }
   { columns, rows, }
 }
+
+///|
+pub extend UnpivotError with @debug.Debug::{to_repr}
+
+///|
+pub extend UnpivotError with Eq::{not_equal, equal}

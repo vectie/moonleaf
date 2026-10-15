@@ -118,7 +118,8 @@ fn collect_run_info(
         run_direct,
       )
       out.push({
-        text: child.text_content(),
+        // Page breaks have their own FlowPageBreak block in the preview.
+        text: operation_run_text(child, include_page_breaks=false),
         bold: resolved.bold.unwrap_or(false),
         italic: resolved.italic.unwrap_or(false),
         underline: resolved.underline.unwrap_or(false),

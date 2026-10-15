@@ -32,7 +32,7 @@ pub fn parse(text : String, jsonl? : Bool = false) -> Table raise TableError {
   let objects : Array[Map[String, Json]] = []
   if jsonl {
     for line_index, line in text.split("\n").to_array() {
-      let line = line.trim().to_string()
+      let line = line.trim().to_owned()
       if line != "" {
         let value = @json.parse(line) catch {
           _ => raise InvalidJson("Invalid JSON on line \{line_index + 1}")
@@ -54,7 +54,7 @@ pub fn parse(text : String, jsonl? : Bool = false) -> Table raise TableError {
     }
   }
   let columns : Array[String] = []
-  let seen : Map[String, Bool] = {}
+  let seen : Map[String, Bool] = Map([])
   for object in objects {
     for key, _ in object {
       if !seen.contains(key) {
@@ -67,7 +67,7 @@ pub fn parse(text : String, jsonl? : Bool = false) -> Table raise TableError {
     columns.map(key => {
       match object.get(key) {
         Some(value) => cell_value(value)
-        None => @scene.Empty
+        None => Empty
       }
     })
   })
@@ -100,7 +100,7 @@ pub fn Table::export_csv(self : Table) -> String {
 ///|
 pub fn Table::export_xlsx(self : Table) -> FixedArray[Byte] raise TableError {
   @xlsx.create(
-    [self.columns.map(column => @scene.Text(column))] + self.rows,
+    [self.columns.map(column => Text(column))] + self.rows,
     sheet_name="JSON data",
   ) catch {
     error => raise Export("\{Repr(error)}")
@@ -111,7 +111,7 @@ pub fn Table::export_xlsx(self : Table) -> FixedArray[Byte] raise TableError {
 pub fn Table::workbook(self : Table) -> @scene.Workbook {
   let cells : Array[@scene.Cell] = []
   let rows : Array[Array[@scene.CellValue]] = [
-      self.columns.map(column => @scene.Text(column)),
+      self.columns.map(column => Text(column)),
     ] +
     self.rows
   for row_index, row in rows {
@@ -126,3 +126,15 @@ pub fn Table::workbook(self : Table) -> @scene.Workbook {
   }
   { sheets: [{ name: "JSON data", cells, merged_ranges: [], }], warnings: [], }
 }
+
+///|
+pub extend Table with @debug.Debug::{to_repr}
+
+///|
+pub extend Table with Eq::{not_equal, equal}
+
+///|
+pub extend TableError with @debug.Debug::{to_repr}
+
+///|
+pub extend TableError with Eq::{not_equal, equal}

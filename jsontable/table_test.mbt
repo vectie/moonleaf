@@ -18,16 +18,14 @@ test "JSON table unions keys and preserves values through CSV and XLSX" {
   let csv = @csv.parse(table.export_csv())
   assert_eq(csv.rows, [table.columns] + table.text_rows())
   let workbook = @xlsx.read(@opc.open(table.export_xlsx()))
-  assert_eq(workbook.sheets[0].cells[6].value, @scene.Text("東京 🐈"))
-  assert_eq(workbook.sheets[0].cells[7].value, @scene.Number("12.5"))
-  assert_eq(workbook.sheets[0].cells[8].value, @scene.Boolean(true))
+  assert_eq(workbook.sheets[0].cells[6].value, Text("東京 🐈"))
+  assert_eq(workbook.sheets[0].cells[7].value, Number("12.5"))
+  assert_eq(workbook.sheets[0].cells[8].value, Boolean(true))
   assert_true(
-    workbook.sheets[0].cells.any(cell => cell.value == @scene.Text("=literal")),
+    workbook.sheets[0].cells.any(cell => cell.value == Text("=literal")),
   )
   assert_true(
-    workbook.sheets[0].cells.any(cell => {
-      cell.value == @scene.Text("[1,\"好\"]")
-    }),
+    workbook.sheets[0].cells.any(cell => cell.value == Text("[1,\"好\"]")),
   )
 }
 
@@ -41,12 +39,25 @@ test "JSONL allows blank lines and unions optional fields" {
   assert_eq(table.text_rows(), [["1", ""], ["2", "中文"]])
   assert_eq(@jsontable.parse("[]").rows.length(), 0)
   assert_eq(@jsontable.parse("\n", jsonl=true).rows.length(), 0)
-  assert_true((try? @jsontable.parse("{}")) is Err(@jsontable.ExpectedArray))
   assert_true(
-    (try? @jsontable.parse("[{},42]")) is Err(@jsontable.ExpectedObject(2)),
+    try @jsontable.parse("{}") catch {
+      value => value is ExpectedArray
+    } noraise {
+      _ => false
+    },
   )
   assert_true(
-    (try? @jsontable.parse("{}\n42", jsonl=true))
-    is Err(@jsontable.ExpectedObject(2)),
+    try @jsontable.parse("[{},42]") catch {
+      value => value is ExpectedObject(2)
+    } noraise {
+      _ => false
+    },
+  )
+  assert_true(
+    try @jsontable.parse("{}\n42", jsonl=true) catch {
+      value => value is ExpectedObject(2)
+    } noraise {
+      _ => false
+    },
   )
 }

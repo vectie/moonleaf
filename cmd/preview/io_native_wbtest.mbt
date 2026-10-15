@@ -13,6 +13,6 @@ test "native adapter reads binary files and reserves outputs exclusively" {
   write_file(path, bytes)
   assert_eq(read_file(path), bytes)
   let second = exclusive_fopen(c_path(path), c_path("wbx"))
-  assert_eq(second, 0)
+  assert_true(file_is_null(second))
   assert_eq(test_unlink(c_path(path)), 0)
 }

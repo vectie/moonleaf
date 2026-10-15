@@ -2,10 +2,10 @@
 test "XLSX sort moves complete rows and preserves cell styles" {
   let bytes = @xlsx.create(
     [
-      [@scene.Text("Score"), @scene.Text("Company")],
-      [@scene.Number("12"), @scene.Text("Twelve")],
-      [@scene.Number("2"), @scene.Text("Two")],
-      [@scene.Number("10"), @scene.Text("Ten")],
+      [Text("Score"), Text("Company")],
+      [Number("12"), Text("Twelve")],
+      [Number("2"), Text("Two")],
+      [Number("10"), Text("Ten")],
     ],
     sheet_name="Metrics",
   )
@@ -25,11 +25,11 @@ test "XLSX sort moves complete rows and preserves cell styles" {
   )
   assert_eq(count, 3)
   let sheet = @xlsx.read(sorted).sheets[0]
-  assert_true(sheet.cells[2].value is @scene.Number("2"))
+  assert_true(sheet.cells[2].value is Number("2"))
   assert_true(sheet.cells[2].style_id is Some(4))
-  assert_true(sheet.cells[3].value is @scene.Text("Two"))
-  assert_true(sheet.cells[4].value is @scene.Number("10"))
-  assert_true(sheet.cells[6].value is @scene.Number("12"))
+  assert_true(sheet.cells[3].value is Text("Two"))
+  assert_true(sheet.cells[4].value is Number("10"))
+  assert_true(sheet.cells[6].value is Number("12"))
   assert_true(sheet.cells[6].style_id is Some(3))
   let xml = sorted.text("xl/worksheets/sheet1.xml")
   assert_true(
@@ -38,14 +38,14 @@ test "XLSX sort moves complete rows and preserves cell styles" {
   )
   assert_eq(@xlsx.read(archive).sheets[0].cells[2].row, 2)
   let reopened = @opc.open(@opc.save(sorted))
-  assert_eq(@xlsx.read(reopened).sheets[0].cells[2].value, @scene.Number("2"))
+  assert_eq(@xlsx.read(reopened).sheets[0].cells[2].value, Number("2"))
 }
 
 ///|
 test "XLSX sort refuses formulas and row-anchored features" {
   let archive = @opc.open(
     @xlsx.create(
-      [[@scene.Text("Score")], [@scene.Number("2")], [@scene.Number("1")]],
+      [[Text("Score")], [Number("2")], [Number("1")]],
       sheet_name="Metrics",
     ),
   )
@@ -55,7 +55,7 @@ test "XLSX sort refuses formulas and row-anchored features" {
   let rejected = try
     @xlsx.sort_sheet_rows(formula, "Metrics", 1, false, true)
   catch {
-    @xlsx.XlsxError::InvalidWorkbook(_) => true
+    InvalidWorkbook(_) => true
     _ => false
   } noraise {
     _ => false
@@ -67,7 +67,7 @@ test "XLSX sort refuses formulas and row-anchored features" {
   let rejected = try
     @xlsx.sort_sheet_rows(merged, "Metrics", 1, false, true)
   catch {
-    @xlsx.XlsxError::InvalidWorkbook(_) => true
+    InvalidWorkbook(_) => true
     _ => false
   } noraise {
     _ => false

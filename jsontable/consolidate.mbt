@@ -64,8 +64,8 @@ pub fn Table::consolidate(
     }
     keys.push(column)
   }
-  let selected : Map[String, Int] = {}
-  let counts : Map[String, Int] = {}
+  let selected : Map[String, Int] = Map([])
+  let counts : Map[String, Int] = Map([])
   let identities : Array[String] = []
   for i, row in self.rows {
     for c, value in row {
@@ -121,10 +121,10 @@ pub fn Table::consolidate(
       "discarded"
     }
     let report = row.copy()
-    report.push(@scene.Number((i + 1).to_string()))
-    report.push(@scene.Text(disposition))
-    report.push(@scene.Number((winner + 1).to_string()))
-    report.push(@scene.Number(size.to_string()))
+    report.push(Number((i + 1).to_string()))
+    report.push(Text(disposition))
+    report.push(Number((winner + 1).to_string()))
+    report.push(Number(size.to_string()))
     report_rows.push(report)
   }
   let report_columns = self.columns.copy()
@@ -136,3 +136,21 @@ pub fn Table::consolidate(
     report: { columns: report_columns, rows: report_rows, },
   }
 }
+
+///|
+pub extend Retention with @debug.Debug::{to_repr}
+
+///|
+pub extend Retention with Eq::{not_equal, equal}
+
+///|
+pub extend ConsolidateError with @debug.Debug::{to_repr}
+
+///|
+pub extend ConsolidateError with Eq::{not_equal, equal}
+
+///|
+pub extend Consolidation with @debug.Debug::{to_repr}
+
+///|
+pub extend Consolidation with Eq::{not_equal, equal}

@@ -5,9 +5,11 @@ import {
   "moonbitlang/core/string",
   "vectie/moonleaf",
   "vectie/moonleaf/csv",
+  "vectie/moonleaf/jsontable",
   "vectie/moonleaf/docx",
   "vectie/moonleaf/opc",
   "vectie/moonleaf/pdf_text",
+  "vectie/moonleaf/pptx",
   "vectie/moonleaf/scene",
   "vectie/moonleaf/xlsx",
 }
@@ -17,6 +19,7 @@ pkgtype(kind: "executable")
 supported_targets = "js+native"
 
 options(
+  "native-stub": [ "io_native.c" ],
   targets: {
     "io_js.mbt": [ "js" ],
     "io_native.mbt": [ "native" ],

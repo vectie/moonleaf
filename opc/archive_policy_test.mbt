@@ -73,7 +73,7 @@ fn expect_archive_rejection(
   message_part : String,
 ) -> Unit raise {
   try @opc.open_with_policy(content, policy) catch {
-    @opc.PackageError::InvalidPackage(message) =>
+    InvalidPackage(message) =>
       if !message.contains(message_part) {
         fail("expected '\{message}' to contain '\{message_part}'")
       }

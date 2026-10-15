@@ -15,5 +15,11 @@ test "verified DOCX copy preserves CJK XML text and returns defensive download b
     @moonleaf.open_session("source.docx", original).scene(),
     session.scene(),
   )
-  assert_true((try? @moonleaf.open_session("corrupt.docx", tampered)) is Err(_))
+  assert_true(
+    try @moonleaf.open_session("corrupt.docx", tampered) catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
+  )
 }

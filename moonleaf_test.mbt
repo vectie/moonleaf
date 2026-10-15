@@ -12,11 +12,10 @@ test "open dispatches a DOCX package by filename" {
       ),
     ),
   ])
-  guard @moonleaf.open("NOTES.DOCX", content)
-    is @scene.Document::TextDocument(document) else {
+  guard @moonleaf.open("NOTES.DOCX", content) is TextDocument(document) else {
     fail("expected a text document")
   }
-  guard document.blocks is [@scene.TextBlock::Paragraph([run])] else {
+  guard document.blocks is [Paragraph([run])] else {
     fail("expected one paragraph")
   }
   assert_eq(run.text, "Hello")
@@ -25,7 +24,7 @@ test "open dispatches a DOCX package by filename" {
 ///|
 test "open rejects unsupported extensions before reading the package" {
   try @moonleaf.open("notes.odt", []) catch {
-    @moonleaf.MoonLeafError::UnsupportedExtension("notes.odt") => ()
+    UnsupportedExtension("notes.odt") => ()
     _ => fail("expected unsupported extension")
   } noraise {
     _ => fail("expected unsupported extension")

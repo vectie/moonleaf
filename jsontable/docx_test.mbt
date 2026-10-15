@@ -33,8 +33,11 @@ fn docx_import(
 
 ///|
 fn refuses_docx(body : String) -> Unit raise {
-  let result = try? docx_import(body)
-  assert_true(result is Err(_))
+  try docx_import(body) catch {
+    _ => ()
+  } noraise {
+    _ => fail("expected DOCX import to fail")
+  }
 }
 
 ///|
@@ -62,8 +65,8 @@ test "docx tables preserve literal text blank cells order and source row mapping
     ["001", "12.50", "=1+1"],
     ["002", "", "雪😀 & <tag>,\"quote\""],
   ])
-  assert_true(imported.table.rows[0][1] is @scene.Text("12.50"))
-  imported.table.rows[0][0] = @scene.Text("changed")
+  assert_true(imported.table.rows[0][1] is Text("12.50"))
+  imported.table.rows[0][0] = Text("changed")
   candidates[0].first_row[0] = "changed"
   assert_eq(source.text("word/document.xml"), before)
   assert_eq(@jsontable.list_docx_tables(source)[0].first_row[0], "id")
@@ -91,10 +94,16 @@ test "docx explicit headers and header-only tables have unambiguous shape" {
   for
     header in [
       @jsontable.TableColumns([]),
-      @jsontable.TableColumns([""]),
-      @jsontable.TableColumns(["a", "b"]),
+      TableColumns([""]),
+      TableColumns(["a", "b"]),
     ] {
-    assert_true((try? docx_import(body, header~)) is Err(_))
+    assert_true(
+      try docx_import(body, header~) catch {
+        _ => true
+      } noraise {
+        _ => false
+      },
+    )
   }
   refuses_docx("<w:tbl>" + docx_row(["duplicate", "duplicate"]) + "</w:tbl>")
   refuses_docx("<w:tbl>" + docx_row([""]) + "</w:tbl>")
@@ -116,12 +125,17 @@ test "docx unsupported unrelated tables stay discoverable without blocking selec
   )
   assert_eq(selected.table.text_rows(), [["ok"]])
   assert_true(
-    (try? @jsontable.extract_docx(
-      source,
-      table_id="body/table:01",
-      header=FirstTableRow,
-    ))
-    is Err(_),
+    try
+      @jsontable.extract_docx(
+        source,
+        table_id="body/table:01",
+        header=FirstTableRow,
+      )
+    catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
   )
 }
 
@@ -177,14 +191,25 @@ test "docx rejects global field scope rebound namespace and ambiguous body" {
   let archive = docx_table_fixture(table).replace_text(
     "word/document.xml", "<w:document xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:body/><w:body/></w:document>",
   )
-  assert_true((try? @jsontable.list_docx_tables(archive)) is Err(_))
   assert_true(
-    (try? @jsontable.list_docx_tables(
-      docx_table_fixture(table).replace_text(
-        "word/document.xml", "<document><body/></document>",
-      ),
-    ))
-    is Err(_),
+    try @jsontable.list_docx_tables(archive) catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
+  )
+  assert_true(
+    try
+      @jsontable.list_docx_tables(
+        docx_table_fixture(table).replace_text(
+          "word/document.xml", "<document><body/></document>",
+        ),
+      )
+    catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
   )
 }
 
@@ -234,6 +259,10 @@ test "docx bounds columns rows cells and supplied header text" {
   let body = "<w:tbl>" + docx_row(["x"]) + "</w:tbl>"
   let too_large = "a".repeat(4000001)
   assert_true(
-    (try? docx_import(body, header=TableColumns([too_large]))) is Err(_),
+    try docx_import(body, header=TableColumns([too_large])) catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
   )
 }

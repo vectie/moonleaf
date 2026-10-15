@@ -1,0 +1,1 @@
+{"text_column":"Region","contains":"east","number_column":"Amount","min":10,"sort":"Amount","sort_type":"number","direction":"desc","group":"Region","sum":"Amount","limit":1,"export_format":"xlsx","export_target":"summary"}

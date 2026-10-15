@@ -145,7 +145,7 @@ fn numbered_document(document_package : @opc.Package) -> @opc.Package raise {
   ) -> @xml.Element raise {
     let children = e.children.map(node => {
       match node {
-        @xml.Element(child) => @xml.Element(rewrite(child, formats, counters))
+        Element(child) => @xml.Element(rewrite(child, formats, counters))
         _ => node
       }
     })
@@ -183,16 +183,12 @@ fn numbered_document(document_package : @opc.Package) -> @opc.Package raise {
     let properties = e.first_child("r").and_then(r => r.first_child("rPr"))
     let run_children : Array[@xml.Node] = []
     if properties is Some(p) {
-      run_children.push(@xml.Element(p))
+      run_children.push(Element(p))
     }
     run_children.push(
-      @xml.Element({
-        name: "w:t",
-        attributes: [],
-        children: [@xml.Text(prefix)],
-      }),
+      Element({ name: "w:t", attributes: [], children: [Text(prefix)], }),
     )
-    let run : @xml.Node = @xml.Element({
+    let run : @xml.Node = Element({
       name: "w:r",
       attributes: [],
       children: run_children,
@@ -200,7 +196,7 @@ fn numbered_document(document_package : @opc.Package) -> @opc.Package raise {
     let result : Array[@xml.Node] = []
     let mut inserted = false
     for child in e.children {
-      if !inserted && child is @xml.Element(c) && c.local_name() == "r" {
+      if !inserted && child is Element(c) && c.local_name() == "r" {
         result.push(run)
         inserted = true
       }

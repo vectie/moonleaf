@@ -39,7 +39,7 @@ fn reconcile_index(
   keys : Array[Int],
   side : String,
 ) -> (Map[String, Int], Array[String]) raise ReconcileError {
-  let index : Map[String, Int] = {}
+  let index : Map[String, Int] = Map([])
   let identities : Array[String] = []
   for i, row in table.rows {
     for c, value in row {
@@ -162,12 +162,12 @@ pub fn Table::reconcile(
     }
     if include_unchanged || change != "unchanged" {
       let output = before_keys.map(c => row[c])
-      output.push(@scene.Text(change))
-      output.push(@scene.Number((i + 1).to_string()))
+      output.push(Text(change))
+      output.push(Number((i + 1).to_string()))
       output.push(
         match found {
-          Some(j) => @scene.Number((j + 1).to_string())
-          None => @scene.Empty
+          Some(j) => Number((j + 1).to_string())
+          None => Empty
         },
       )
       for v, c in before_values {
@@ -175,7 +175,7 @@ pub fn Table::reconcile(
         output.push(
           match found {
             Some(j) => after.rows[j][after_values[v]]
-            None => @scene.Empty
+            None => Empty
           },
         )
       }
@@ -185,11 +185,11 @@ pub fn Table::reconcile(
   for j, row in after.rows {
     if !before_index.contains(after_ids[j]) {
       let output = after_keys.map(c => row[c])
-      output.push(@scene.Text("added"))
-      output.push(@scene.Empty)
-      output.push(@scene.Number((j + 1).to_string()))
+      output.push(Text("added"))
+      output.push(Empty)
+      output.push(Number((j + 1).to_string()))
       for c in after_values {
-        output.push(@scene.Empty)
+        output.push(Empty)
         output.push(row[c])
       }
       reconcile_append(rows, output)
@@ -197,3 +197,9 @@ pub fn Table::reconcile(
   }
   { columns, rows, }
 }
+
+///|
+pub extend ReconcileError with @debug.Debug::{to_repr}
+
+///|
+pub extend ReconcileError with Eq::{not_equal, equal}

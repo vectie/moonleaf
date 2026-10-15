@@ -137,7 +137,7 @@ pub fn parse_fixed_width(
   for i = 0; i < count; i = i + 1 {
     let raw = lines[i]
     let line = if raw.has_suffix("\r") && i < lines.length() - 1 {
-      raw.substring(start=0, end=raw.length() - 1)
+      raw[:raw.length() - 1].to_owned()
     } else {
       raw
     }
@@ -169,15 +169,9 @@ pub fn parse_fixed_width(
     let row : Array[@scene.CellValue] = []
     let mut start = 0
     for field in schema.fields {
-      let value = line.substring(start~, end=start + field.width)
+      let value = line[start:start + field.width].to_owned()
       row.push(
-        @scene.Text(
-          if field.trim {
-            value.trim(chars=" ").to_owned()
-          } else {
-            value
-          },
-        ),
+        Text(if field.trim { value.trim(chars=" ").to_owned() } else { value }),
       )
       start += field.width
     }
@@ -190,3 +184,15 @@ pub fn parse_fixed_width(
     skipped_lines,
   }
 }
+
+///|
+pub extend FixedWidthError with @debug.Debug::{to_repr}
+
+///|
+pub extend FixedWidthError with Eq::{not_equal, equal}
+
+///|
+pub extend FixedWidthTable with @debug.Debug::{to_repr}
+
+///|
+pub extend FixedWidthTable with Eq::{not_equal, equal}

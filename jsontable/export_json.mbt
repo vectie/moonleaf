@@ -15,9 +15,9 @@ pub fn Table::export_json(
   }
   let objects : Array[Json] = []
   for i, row in self.rows {
-    let object : Map[String, Json] = Map::new()
+    let object : Map[String, Json] = Map([])
     for j, value in row {
-      if omit_empty && value == @scene.Empty {
+      if omit_empty && value == Empty {
         continue
       }
       object[self.columns[j]] = match value {

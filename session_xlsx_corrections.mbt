@@ -12,7 +12,7 @@ pub fn DocumentSession::correct_xlsx_text_cells(
     )
   }
   let candidate = @xlsx.correct_text_cells(self.source_archive, edits) catch {
-    error => raise DocumentSessionError::Render("\{Repr(error)}")
+    error => raise Render("\{Repr(error)}")
   }
   self.commit_candidate(candidate)
 }

@@ -35,14 +35,9 @@ test "typed delimited selects renames preserves IDs and converts explicit values
   let table = @jsontable.parse_typed_delimited(input, typed_schema())
   assert_eq(table.columns, ["id", "amount", "active", "note"])
   assert_eq(table.rows, [
-    [
-      @scene.Text("001"),
-      @scene.Number("12.50"),
-      @scene.Boolean(true),
-      @scene.Text("a,b"),
-    ],
-    [@scene.Text("002"), @scene.Empty, @scene.Boolean(false), @scene.Text("")],
-    [@scene.Text("1"), @scene.Number("-2e1"), @scene.Empty, @scene.Empty],
+    [Text("001"), Number("12.50"), Boolean(true), Text("a,b")],
+    [Text("002"), Empty, Boolean(false), Text("")],
+    [Text("1"), Number("-2e1"), Empty, Empty],
   ])
   assert_eq(@jsontable.parse_typed_delimited(input, typed_schema()), table)
   // Existing Boolean queries can now consume delimited data without per-cell edits.
@@ -53,7 +48,7 @@ test "typed delimited selects renames preserves IDs and converts explicit values
   )
   let selected = table.query(query)
   assert_eq(selected.source_rows, [1])
-  assert_eq(selected.table.rows, [[@scene.Text("001"), @scene.Number("12.50")]])
+  assert_eq(selected.table.rows, [[Text("001"), Number("12.50")]])
 }
 
 ///|
@@ -64,7 +59,7 @@ test "typed delimited quoted multiline Unicode TSV BOM and zero rows" {
     typed_schema(),
     delimiter='\t',
   )
-  assert_eq(table.rows[0][3], @scene.Text("北\nsecond"))
+  assert_eq(table.rows[0][3], Text("北\nsecond"))
   let empty = @jsontable.parse_typed_delimited(
     "ID,Amount,Active,Note\n",
     typed_schema(),
@@ -80,11 +75,11 @@ test "typed delimited literal null empty whitespace and formula looking text are
     "v\nnull\nNULL\n\"\"\n\"  a  \"\n=1+1\n", literal,
   )
   assert_eq(table.rows, [
-    [@scene.Text("null")],
-    [@scene.Text("NULL")],
-    [@scene.Text("")],
-    [@scene.Text("  a  ")],
-    [@scene.Text("=1+1")],
+    [Text("null")],
+    [Text("NULL")],
+    [Text("")],
+    [Text("  a  ")],
+    [Text("=1+1")],
   ])
   let normalized = one_typed_schema(
     "{\"type\":\"text\"}", true, "[\"\",\"NULL\"]",
@@ -93,7 +88,7 @@ test "typed delimited literal null empty whitespace and formula looking text are
     @jsontable.parse_typed_delimited(
       "v\n\"  \"\nNULL\nnull\n\"  a  \"\n", normalized,
     ).rows,
-    [[@scene.Empty], [@scene.Empty], [@scene.Text("null")], [@scene.Text("a")]],
+    [[Empty], [Empty], [Text("null")], [Text("a")]],
   )
 }
 
@@ -107,7 +102,7 @@ test "typed delimited number syntax rejects guesses and nonfinite values" {
     ] {
     let csv = "v\n\"" + value + "\"\n"
     try @jsontable.parse_typed_delimited(csv, schema) catch {
-      @jsontable.DelimitedConversion(row~, column~, ..) => {
+      DelimitedConversion(row~, column~, ..) => {
         assert_eq(row, 1)
         assert_eq(column, "v")
       }
@@ -118,10 +113,10 @@ test "typed delimited number syntax rejects guesses and nonfinite values" {
   }
   let valid = @jsontable.parse_typed_delimited("v\n0\n-0\n1.25\n2E+3\n", schema)
   assert_eq(valid.rows, [
-    [@scene.Number("0")],
-    [@scene.Number("-0")],
-    [@scene.Number("1.25")],
-    [@scene.Number("2E+3")],
+    [Number("0")],
+    [Number("-0")],
+    [Number("1.25")],
+    [Number("2E+3")],
   ])
 }
 
@@ -131,7 +126,7 @@ test "typed delimited Boolean tokens are exact and late errors allow clean retry
   for value in ["yes", "true", "1", ""] {
     let bad = "ID,Amount,Active,Note\n001,2,YES,ok\n002,3," + value + ",bad\n"
     try @jsontable.parse_typed_delimited(bad, schema) catch {
-      @jsontable.DelimitedConversion(row~, column~, ..) => {
+      DelimitedConversion(row~, column~, ..) => {
         assert_eq(row, 2)
         assert_eq(column, "Active")
       }
@@ -142,11 +137,11 @@ test "typed delimited Boolean tokens are exact and late errors allow clean retry
   }
   let input = "ID,Amount,Active,Note\n001,2,YES,ok\n002,3,NO,good\n"
   let copy = @jsontable.parse_typed_delimited(input, schema)
-  copy.rows[0][0] = @scene.Text("changed")
+  copy.rows[0][0] = Text("changed")
   copy.columns[0] = "changed"
   let retry = @jsontable.parse_typed_delimited(input, schema)
   assert_eq(retry.columns[0], "id")
-  assert_eq(retry.rows[0][0], @scene.Text("001"))
+  assert_eq(retry.rows[0][0], Text("001"))
 }
 
 ///|
@@ -157,7 +152,7 @@ test "typed delimited refuses malformed schema contracts" {
       "{\"version\":1,\"columns\":[{}]}",
     ] {
     try @jsontable.parse_delimited_schema(schema) catch {
-      @jsontable.InvalidDelimitedSchema(_) => ()
+      InvalidDelimitedSchema(_) => ()
       error => fail("Unexpected error: \{Repr(error)}")
     } noraise {
       _ => fail("Expected schema refusal")
@@ -220,7 +215,7 @@ test "typed delimited actual CSV JSON and XLSX exports reopen" {
     pkg,
     sheet_name="JSON data",
     range="A1:D3",
-    header=@jsontable.FirstRow,
+    header=FirstRow,
   )
   assert_eq(imported.table, table)
 }
@@ -243,14 +238,14 @@ test "typed delimited schema and output bounds are enforced before returning a t
     780,
   )
   try @jsontable.parse_typed_delimited(accepted + "x\n", schema) catch {
-    @jsontable.InvalidTypedDelimited(_) => ()
+    InvalidTypedDelimited(_) => ()
     error => fail("Unexpected error: \{Repr(error)}")
   } noraise {
     _ => fail("Expected output cell limit")
   }
   let repeated = "v\n" + Array::make(40000, "x").join("") + "\n"
   try @jsontable.parse_typed_delimited(repeated, schema) catch {
-    @jsontable.InvalidTypedDelimited(_) => ()
+    InvalidTypedDelimited(_) => ()
     error => fail("Unexpected error: \{Repr(error)}")
   } noraise {
     _ => fail("Expected expanded-output text limit")
@@ -263,7 +258,7 @@ test "typed delimited schema and output bounds are enforced before returning a t
       Array::make(65537, " ").join(""),
     ] {
     try @jsontable.parse_delimited_schema(invalid) catch {
-      @jsontable.InvalidDelimitedSchema(_) => ()
+      InvalidDelimitedSchema(_) => ()
       error => fail("Unexpected error: \{Repr(error)}")
     } noraise {
       _ => fail("Expected schema bound or duplicate-name refusal")
@@ -276,14 +271,14 @@ test "typed delimited source numeric text is not converted without explicit kind
   let raw = one_typed_schema("{\"type\":\"text\"}", false, "[]")
   assert_eq(
     @jsontable.parse_typed_delimited("v\n001\ntrue\n12.50\n", raw).rows,
-    [[@scene.Text("001")], [@scene.Text("true")], [@scene.Text("12.50")]],
+    [[Text("001")], [Text("true")], [Text("12.50")]],
   )
   let no_trim = one_typed_schema(
     "{\"type\":\"boolean\",\"true\":\" YES \",\"false\":\" NO \"}", false, "[]",
   )
   assert_eq(
     @jsontable.parse_typed_delimited("v\n YES \n NO \n", no_trim).rows,
-    [[@scene.Boolean(true)], [@scene.Boolean(false)]],
+    [[Boolean(true)], [Boolean(false)]],
   )
 }
 
@@ -296,21 +291,18 @@ test "typed delimited retains CR but rejects XML controls only when exporting XL
     @opc.open(table.export_xlsx()),
     sheet_name="JSON data",
     range="A1:A2",
-    header=@jsontable.FirstRow,
+    header=FirstRow,
   )
-  assert_eq(imported.table.rows[0][0], @scene.Text(text))
+  assert_eq(imported.table.rows[0][0], Text(text))
   for control in ["\u{0}", "\u{1}", "\u{FFFE}", "\u{FFFF}"] {
     let data = "before" + control + "after"
     let table = @jsontable.parse_typed_delimited(
       "v\n\"" + data + "\"\n",
       schema,
     )
-    assert_eq(
-      @jsontable.parse(table.export_json()).rows[0][0],
-      @scene.Text(data),
-    )
+    assert_eq(@jsontable.parse(table.export_json()).rows[0][0], Text(data))
     try table.export_xlsx() catch {
-      @jsontable.Export(_) => ()
+      Export(_) => ()
       error => fail("Unexpected error: \{Repr(error)}")
     } noraise {
       _ => fail("Expected XML-character export refusal")

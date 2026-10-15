@@ -96,8 +96,8 @@ pub fn stack(
             )
         }
       }
-      output.push(@scene.Text(sources[i]))
-      output.push(@scene.Number((r + 1).to_string()))
+      output.push(Text(sources[i]))
+      output.push(Number((r + 1).to_string()))
       rows.push(output)
     }
   }
@@ -105,3 +105,15 @@ pub fn stack(
   columns.push(row_column)
   { columns, rows, }
 }
+
+///|
+pub extend StackMode with @debug.Debug::{to_repr}
+
+///|
+pub extend StackMode with Eq::{not_equal, equal}
+
+///|
+pub extend StackError with @debug.Debug::{to_repr}
+
+///|
+pub extend StackError with Eq::{not_equal, equal}

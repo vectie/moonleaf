@@ -45,7 +45,11 @@ test "fixed width refuses ragged and unsupported encodings" {
       "HEADER\n001Café    12.50", "HEADER\n001Acme    12.50\r",
     ] {
     assert_true(
-      (try? @jsontable.parse_fixed_width(value, fixture_schema())) is Err(_),
+      try @jsontable.parse_fixed_width(value, fixture_schema()) catch {
+        _ => true
+      } noraise {
+        _ => false
+      },
     )
   }
 }
@@ -70,7 +74,13 @@ test "fixed width refuses malformed schemas" {
         #|{"version":1,"skip_lines":0,"blank_lines":"skip","columns":[],"extra":true}
       ),
     ] {
-    assert_true((try? @jsontable.parse_fixed_width_schema(value)) is Err(_))
+    assert_true(
+      try @jsontable.parse_fixed_width_schema(value) catch {
+        _ => true
+      } noraise {
+        _ => false
+      },
+    )
   }
 }
 
@@ -80,7 +90,11 @@ test "fixed width empty data and explicit blank handling" {
   assert_eq(result.table.rows.length(), 0)
   assert_eq(result.table.columns, ["id", "name", "cost"])
   assert_true(
-    (try? @jsontable.parse_fixed_width("", fixture_schema())) is Err(_),
+    try @jsontable.parse_fixed_width("", fixture_schema()) catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
   )
   let schema = @jsontable.parse_fixed_width_schema(
     (
@@ -90,5 +104,11 @@ test "fixed width empty data and explicit blank handling" {
   assert_eq(@jsontable.parse_fixed_width("   ", schema).table.text_rows(), [
     ["   "],
   ])
-  assert_true((try? @jsontable.parse_fixed_width("\n", schema)) is Err(_))
+  assert_true(
+    try @jsontable.parse_fixed_width("\n", schema) catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
+  )
 }

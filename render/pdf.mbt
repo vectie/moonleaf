@@ -380,11 +380,11 @@ pub fn render_docx_pdf(
       "warnings, images, external links, headers or footers require an expanded layout profile",
     )
   }
-  let sections = preview.blocks.filter(block => block is @docx.FlowSection(_))
+  let sections = preview.blocks.filter(block => block is FlowSection(_))
   guard sections.length() <= 1 else { raise Unsupported("multiple sections") }
   let section = preview.blocks.fold(init=None, (current, block) => {
     match block {
-      @docx.FlowSection(s) => Some(s)
+      FlowSection(s) => Some(s)
       _ => current
     }
   })
@@ -422,13 +422,13 @@ pub fn render_docx_pdf(
   let mut y = height - top
   for block in preview.blocks {
     match block {
-      @docx.FlowSection(_) => ()
-      @docx.FlowPageBreak => {
+      FlowSection(_) => ()
+      FlowPageBreak => {
         pages.push(out.to_string())
         out = StringBuilder()
         y = height - top
       }
-      @docx.FlowParagraph(p) => {
+      FlowParagraph(p) => {
         let lines = paragraph_lines(p, available, faces, default_family)
         let before = p.metadata.spacing_before_twips.unwrap_or(0).max(0)
         let after = p.metadata.spacing_after_twips.unwrap_or(0).max(0)
@@ -445,7 +445,7 @@ pub fn render_docx_pdf(
         y -= draw_lines(out, lines, left, y, available, p.metadata.alignment)
         y -= after
       }
-      @docx.FlowTable(table) => {
+      FlowTable(table) => {
         let layout = layouts[table_index]
         table_index += 1
         y -= layout.y_offset

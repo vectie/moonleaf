@@ -9,7 +9,7 @@ test "session rejects identical-value duplicate aliases before same-value no-op"
   let before = original.scene()
   let saved = original.save_as_copy().bytes()
   try original.set_cell_text("Sheet1", 1, 1, "same") catch {
-    @moonleaf.DocumentSessionError::Render(message) =>
+    Render(message) =>
       assert_true(message.contains("duplicate target cell: A1"))
     _ => fail("expected an ambiguous-target diagnostic")
   } noraise {

@@ -27,7 +27,11 @@ test "session targeted DOCX creates one corrected reopened copy and leaves origi
   )
   assert_eq(unchanged.revision(), 1)
   assert_true(
-    (try? edited.set_docx_target_text(targets[1].id, "Acme", "wrong")) is Err(_),
+    try edited.set_docx_target_text(targets[1].id, "Acme", "wrong") catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
   )
 }
 
@@ -37,6 +41,18 @@ test "targeted DOCX operations are unavailable for other session formats" {
     "sheet.xlsx",
     document_session_xlsx_fixture(),
   )
-  assert_true((try? session.docx_text_targets()) is Err(_))
-  assert_true((try? session.set_docx_target_text("x", "y", "z")) is Err(_))
+  assert_true(
+    try session.docx_text_targets() catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
+  )
+  assert_true(
+    try session.set_docx_target_text("x", "y", "z") catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
+  )
 }

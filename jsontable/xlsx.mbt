@@ -34,7 +34,7 @@ pub fn extract_xlsx(
   let columns = match header {
     FirstRow =>
       selection.rows[0].map(value => {
-        guard value is @scene.Text(text) else {
+        guard value is Text(text) else {
           raise InvalidXlsxSelection(
             "first selected row must contain text headers",
           )
@@ -49,7 +49,7 @@ pub fn extract_xlsx(
       "explicit header count must match selected width",
     )
   }
-  let seen : Map[String, Bool] = {}
+  let seen : Map[String, Bool] = Map([])
   let mut units = 0
   for name in columns {
     if name == "" || seen.contains(name) {
@@ -59,14 +59,14 @@ pub fn extract_xlsx(
     units += name.length()
   }
   let offset = if header is FirstRow { 1 } else { 0 }
-  let rows = selection.rows[offset:].to_array()
+  let rows = selection.rows[offset:].to_owned()
   if rows.length() > 10000 {
     raise InvalidXlsxSelection("selection exceeds 10000 data rows")
   }
   for row in rows {
     for value in row {
       match value {
-        @scene.Text(text) | @scene.Number(text) => units += text.length()
+        Text(text) | Number(text) => units += text.length()
         _ => ()
       }
     }
@@ -88,3 +88,21 @@ pub fn extract_xlsx(
     ],
   }
 }
+
+///|
+pub extend XlsxHeader with @debug.Debug::{to_repr}
+
+///|
+pub extend XlsxHeader with Eq::{not_equal, equal}
+
+///|
+pub extend XlsxTableError with @debug.Debug::{to_repr}
+
+///|
+pub extend XlsxTableError with Eq::{not_equal, equal}
+
+///|
+pub extend XlsxTable with @debug.Debug::{to_repr}
+
+///|
+pub extend XlsxTable with Eq::{not_equal, equal}

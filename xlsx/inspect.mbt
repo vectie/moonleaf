@@ -237,24 +237,15 @@ fn resolved_metadata_part(
       // particular, an invalid target must fail closed through the existing
       // OPC-to-XlsxError mapping rather than being treated as a missing part.
       let target = @opc.resolve_target("xl/workbook.xml", relationship.target) catch {
-        @opc.PackageError::InvalidPackage(message) =>
-          raise XlsxError::PackageFailure(
-            part="xl/_rels/workbook.xml.rels",
-            message~,
-          )
-        @opc.PackageError::MissingPart(part) =>
-          raise XlsxError::PackageFailure(part~, message="missing package part")
-        @opc.PackageError::InvalidTextPart(part) =>
-          raise XlsxError::PackageFailure(
-            part~,
-            message="package part is not valid UTF-8",
-          )
+        InvalidPackage(message) =>
+          raise PackageFailure(part="xl/_rels/workbook.xml.rels", message~)
+        MissingPart(part) =>
+          raise PackageFailure(part~, message="missing package part")
+        InvalidTextPart(part) =>
+          raise PackageFailure(part~, message="package part is not valid UTF-8")
       }
       if !xlsx_package.has_part(target) {
-        raise XlsxError::PackageFailure(
-          part=target,
-          message="missing package part",
-        )
+        raise PackageFailure(part=target, message="missing package part")
       }
       return Some(parse_part(xlsx_package, target))
     }

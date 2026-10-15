@@ -4,6 +4,7 @@ priv struct FormulaParser {
   source : String
   mut position : Int
   resolve : (String) -> Double raise XlsxError
+  aggregate_resolve : (String) -> Double? raise XlsxError
 }
 
 ///|
@@ -60,12 +61,12 @@ fn FormulaParser::product(
   self : FormulaParser,
   depth : Int,
 ) -> Double raise XlsxError {
-  let mut value = self.atom(depth + 1)
+  let mut value = self.power(depth + 1)
   while true {
     if self.take('*') {
-      value *= self.atom(depth + 1)
+      value *= self.power(depth + 1)
     } else if self.take('/') {
-      let divisor = self.atom(depth + 1)
+      let divisor = self.power(depth + 1)
       if divisor == 0.0 {
         raise InvalidWorkbook("formula division by zero")
       }
@@ -76,6 +77,36 @@ fn FormulaParser::product(
     value = formula_finite(value)
   }
   value
+}
+
+///|
+fn FormulaParser::power(
+  self : FormulaParser,
+  depth : Int,
+) -> Double raise XlsxError {
+  if depth > 64 {
+    raise InvalidWorkbook("formula nesting bound exceeded")
+  }
+  // Excel negation/percent bind before power; equal-precedence powers are
+  // evaluated left to right. Parentheses express other intended grouping.
+  let mut value = self.atom(depth + 1)
+  while self.take('^') {
+    value = formula_power(value, self.atom(depth + 1))
+  }
+  value
+}
+
+///|
+fn formula_power(base : Double, exponent : Double) -> Double raise XlsxError {
+  if base < 0.0 && exponent.trunc() != exponent {
+    raise InvalidWorkbook(
+      "fractional powers of negative bases are not real numbers",
+    )
+  }
+  if base == 0.0 && exponent <= 0.0 {
+    raise InvalidWorkbook("zero base requires a positive exponent")
+  }
+  formula_finite(@math.pow(base, exponent))
 }
 
 ///|
@@ -123,7 +154,9 @@ fn FormulaParser::atom(
       raise InvalidWorkbook("unsupported formula token")
     }
     if self.take('(') {
-      if token != "SUM" && token != "ROUND" && token != "MIN" && token != "MAX" {
+      if !["SUM", "ROUND", "MIN", "MAX", "AVERAGE", "COUNT", "POWER"].contains(
+          token,
+        ) {
         raise InvalidWorkbook("unsupported formula function: " + token)
       }
       let arguments : Array[Double] = []
@@ -140,17 +173,39 @@ fn FormulaParser::atom(
             raise InvalidWorkbook("invalid formula range")
           }
           if token == "ROUND" ||
+            token == "POWER" ||
             (r2 - r1 + 1).to_int64() * (c2 - c1 + 1).to_int64() > 10000L {
             raise InvalidWorkbook("unsupported or oversized formula range")
           }
           for row in r1..<=r2 {
             for column in c1..<=c2 {
-              arguments.push((self.resolve)(cell_reference(row, column)))
+              let reference = cell_reference(row, column)
+              if token == "AVERAGE" || token == "COUNT" {
+                if (self.aggregate_resolve)(reference) is Some(value) {
+                  arguments.push(value)
+                }
+              } else {
+                arguments.push((self.resolve)(reference))
+              }
             }
           }
         } else {
-          self.position = saved
-          arguments.push(self.expression(depth + 1))
+          self.skip()
+          if (token == "AVERAGE" || token == "COUNT") &&
+            parse_cell_reference(first) is Some((row, column)) &&
+            self.position < self.source.length() &&
+            (
+              self.source[self.position] == ',' ||
+              self.source[self.position] == ')'
+            ) {
+            if (self.aggregate_resolve)(cell_reference(row, column))
+              is Some(value) {
+              arguments.push(value)
+            }
+          } else {
+            self.position = saved
+            arguments.push(self.expression(depth + 1))
+          }
         }
         if arguments.length() > 10000 {
           raise InvalidWorkbook("formula argument bound exceeded")
@@ -162,7 +217,23 @@ fn FormulaParser::atom(
           raise InvalidWorkbook("invalid formula argument separator")
         }
       }
-      if token == "ROUND" {
+      if token == "POWER" {
+        if arguments.length() != 2 {
+          raise InvalidWorkbook("POWER requires exactly two numeric arguments")
+        }
+        formula_power(arguments[0], arguments[1])
+      } else if token == "COUNT" {
+        arguments.length().to_double()
+      } else if token == "AVERAGE" {
+        if arguments.is_empty() {
+          raise InvalidWorkbook("AVERAGE has no numeric values")
+        }
+        let mut sum = 0.0
+        for argument in arguments {
+          sum = formula_finite(sum + argument)
+        }
+        sum / arguments.length().to_double()
+      } else if token == "ROUND" {
         if arguments.length() != 2 ||
           arguments[1].floor() != arguments[1] ||
           arguments[1] < -9.0 ||
@@ -215,11 +286,17 @@ fn FormulaParser::atom(
 fn evaluate_formula(
   source : String,
   resolve : (String) -> Double raise XlsxError,
+  aggregate_resolve : (String) -> Double? raise XlsxError,
 ) -> Double raise XlsxError {
   if source.length() == 0 || source.length() > 2048 {
     raise InvalidWorkbook("formula length bound exceeded")
   }
-  let parser : FormulaParser = { source, position: 0, resolve, }
+  let parser : FormulaParser = {
+    source,
+    position: 0,
+    resolve,
+    aggregate_resolve,
+  }
   let _ = parser.take('=')
   let value = parser.expression(0)
   parser.skip()
@@ -256,9 +333,22 @@ fn recalculate_value(
         "shared, array and data-table formulas are unsupported",
       )
     }
-    evaluate_formula(formula.text_content(), other => {
-      recalculate_value(other, cells, values, visiting, budget, depth + 1)
-    })
+    evaluate_formula(
+      formula.text_content(),
+      other => {
+        recalculate_value(other, cells, values, visiting, budget, depth + 1)
+      },
+      other => {
+        aggregate_recalculate_value(
+          other,
+          cells,
+          values,
+          visiting,
+          budget,
+          depth + 1,
+        )
+      },
+    )
   } else {
     if cell.attribute("t") == Some("e") ||
       cell.attribute("t") == Some("b") ||
@@ -285,6 +375,39 @@ fn recalculate_value(
   visiting[reference] = false
   values[reference] = value
   value
+}
+
+///|
+fn aggregate_recalculate_value(
+  reference : String,
+  cells : Map[String, @xml.Element],
+  values : Map[String, Double],
+  visiting : Map[String, Bool],
+  budget : Ref[Int],
+  depth : Int,
+) -> Double? raise XlsxError {
+  budget.val -= 1
+  if budget.val < 0 || depth > 64 {
+    raise InvalidWorkbook("formula evaluation bound exceeded")
+  }
+  guard cells.get(reference) is Some(cell) else { return None }
+  if cell.first_child("f") is Some(_) {
+    return Some(
+      recalculate_value(reference, cells, values, visiting, budget, depth),
+    )
+  }
+  if cell.attribute("t") == Some("e") {
+    raise InvalidWorkbook("formula references an error cell")
+  }
+  if [Some("b"), Some("s"), Some("inlineStr"), Some("str")].contains(
+      cell.attribute("t"),
+    ) {
+    return None
+  }
+  if child_text(cell, "v").unwrap_or("").trim().is_blank() {
+    return None
+  }
+  Some(recalculate_value(reference, cells, values, visiting, budget, depth))
 }
 
 ///|
@@ -334,7 +457,7 @@ fn write_formula_cache(
 ///|
 /// Recompute and replace every formula cache from source cells, never from
 /// cached formula values. Supports same-sheet A1/$A$1 references, arithmetic,
-/// percentages, SUM/MIN/MAX rectangular ranges and ROUND (precision -9..9).
+/// percentages, SUM/MIN/MAX/AVERAGE/COUNT rectangular ranges and ROUND (precision -9..9).
 /// Unsupported functions, external/cross-sheet references, shared/array
 /// formulas, cycles, numeric errors and excessive work fail closed. This
 /// deterministic IEEE-754 subset is for reviewed quote templates, not general

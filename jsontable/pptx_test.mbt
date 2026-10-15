@@ -82,7 +82,7 @@ test "pptx table discovery respects actual slide and nested group order with imm
     ["001", "12.50", "=1+1"],
     ["002", "", "雪😀 & <tag>,\"x\""],
   ])
-  imported.table.rows[0][0] = @scene.Text("changed")
+  imported.table.rows[0][0] = Text("changed")
   tables[0].rows[0][0] = "changed"
   assert_eq(source.parts, before)
   assert_eq(@pptx.read_tables(source)[0].rows[0][0], "id")
@@ -149,12 +149,17 @@ test "pptx unsupported table does not block an ordinary one and no notes are rea
     [["001"]],
   )
   assert_true(
-    (try? @jsontable.extract_pptx(
-      source,
-      table_id="slide:1/table:1",
-      header=FirstSlideTableRow,
-    ))
-    is Err(_),
+    try
+      @jsontable.extract_pptx(
+        source,
+        table_id="slide:1/table:1",
+        header=FirstSlideTableRow,
+      )
+    catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
   )
 }
 
@@ -182,7 +187,13 @@ test "pptx selected merges fields hyperlinks unknown content and malformed grids
         new="<a:t>001</a:t><a:t>002</a:t>",
       ),
     ] {
-    assert_true((try? pptx_import(altered)) is Err(_))
+    assert_true(
+      try pptx_import(altered) catch {
+        _ => true
+      } noraise {
+        _ => false
+      },
+    )
   }
 }
 
@@ -199,18 +210,29 @@ test "pptx exact headers support header-only data and refuse ambiguous selection
   for
     header in [
       @jsontable.SlideTableColumns(["a"]),
-      @jsontable.SlideTableColumns(["a", "a"]),
-      @jsontable.SlideTableColumns(["", "b"]),
+      SlideTableColumns(["a", "a"]),
+      SlideTableColumns(["", "b"]),
     ] {
-    assert_true((try? pptx_import(frame, header~)) is Err(_))
+    assert_true(
+      try pptx_import(frame, header~) catch {
+        _ => true
+      } noraise {
+        _ => false
+      },
+    )
   }
   assert_true(
-    (try? @jsontable.extract_pptx(
-      pptx_source(frame),
-      table_id="slide:01/table:1",
-      header=FirstSlideTableRow,
-    ))
-    is Err(_),
+    try
+      @jsontable.extract_pptx(
+        pptx_source(frame),
+        table_id="slide:01/table:1",
+        header=FirstSlideTableRow,
+      )
+    catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
   )
 }
 
@@ -225,21 +247,29 @@ test "pptx namespace changes and external slide relationships fail discovery" {
       slide.replace_all(old="</p:sld>", new=""),
     ] {
     assert_true(
-      (try? @pptx.read_tables(
-        source.replace_text("ppt/slides/slide9.xml", altered),
-      ))
-      is Err(_),
+      try
+        @pptx.read_tables(source.replace_text("ppt/slides/slide9.xml", altered))
+      catch {
+        _ => true
+      } noraise {
+        _ => false
+      },
     )
   }
   let rels = source.text("ppt/_rels/presentation.xml.rels")
   assert_true(
-    (try? @pptx.read_tables(
-      source.replace_text(
-        "ppt/_rels/presentation.xml.rels",
-        rels.replace_all(old="Target=", new="TargetMode=\"External\" Target="),
-      ),
-    ))
-    is Err(_),
+    try
+      @pptx.read_tables(
+        source.replace_text(
+          "ppt/_rels/presentation.xml.rels",
+          rels.replace_all(old="Target=", new="TargetMode=\"External\" Target="),
+        ),
+      )
+    catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
   )
   let empty = source.replace_text(
     "ppt/presentation.xml", "<p:presentation xmlns:p=\"http://schemas.openxmlformats.org/presentationml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\"/>",
@@ -250,22 +280,34 @@ test "pptx namespace changes and external slide relationships fail discovery" {
 ///|
 test "pptx bounded columns rows and imported header text" {
   assert_true(
-    (try? pptx_import(pptx_frame(pptx_rows([Array::make(129, "x")])))) is Err(_),
+    try pptx_import(pptx_frame(pptx_rows([Array::make(129, "x")]))) catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
   )
   assert_true(
-    (try? pptx_import(pptx_frame(pptx_rows(Array::make(1001, ["x"])))))
-    is Err(_),
+    try pptx_import(pptx_frame(pptx_rows(Array::make(1001, ["x"])))) catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
   )
   assert_eq(
     pptx_import(pptx_frame(pptx_rows(Array::make(1000, ["x"])))).table.rows.length(),
     999,
   )
   assert_true(
-    (try? pptx_import(
-      pptx_frame(pptx_rows([["x"]])),
-      header=SlideTableColumns(["x".repeat(2000001)]),
-    ))
-    is Err(_),
+    try
+      pptx_import(
+        pptx_frame(pptx_rows([["x"]])),
+        header=SlideTableColumns(["x".repeat(2000001)]),
+      )
+    catch {
+      _ => true
+    } noraise {
+      _ => false
+    },
   )
 }
 
@@ -302,7 +344,13 @@ test "pptx table discovery bounds aggregate cells across repeated slide referenc
     if count == 100 {
       assert_eq(@pptx.read_tables(changed).length(), 100)
     } else {
-      assert_true((try? @pptx.read_tables(changed)) is Err(_))
+      assert_true(
+        try @pptx.read_tables(changed) catch {
+          _ => true
+        } noraise {
+          _ => false
+        },
+      )
     }
   }
 }

@@ -12,8 +12,8 @@ fn verified_delimited_bytes(
     }) +
     table.serialize()
   let bytes = @utf8.encode(serialized).to_fixedarray()
-  if bytes.length() > 2_097_152 {
-    abort("edited delimited file exceeds 2 MiB")
+  if bytes.length() > 8_388_608 {
+    abort("edited delimited file exceeds 8 MiB")
   }
   let reopened = @csv.parse(serialized, delimiter=table.delimiter) catch {
     _ => abort("MoonLeaf edited copy failed verification")
@@ -36,7 +36,8 @@ fn cell_text(value : @scene.CellValue) -> String {
 
 ///|
 /// Only a finite numeric XLSX cell may receive a number-format display.
-/// Text that looks numeric and formulas stay in their original presentation.
+/// Formula caches are classified separately from their original XML result
+/// type, so text/boolean caches are not accidentally treated as numbers.
 fn is_numeric_cell(value : @scene.CellValue) -> Bool {
   match value {
     Number(text) => {
@@ -60,10 +61,12 @@ fn sheet_json(
   number_formats : Array[(Int, Int, String)],
   decimal_places : Array[(Int, Int, Int)],
   hidden_rows : Array[Int],
+  numeric_formulas? : Array[(Int, Int)] = [],
 ) -> Json {
   let rows : Array[Array[String]] = []
   let numeric_cells : Array[Json] = []
   let formula_cells : Array[Json] = []
+  let formula_expressions : Array[Json] = []
   for cell in sheet.cells {
     if cell.row < 1 || cell.row > 10_000 || cell.column < 1 || cell.column > 256 {
       abort("spreadsheet preview exceeds row or column limit")
@@ -80,16 +83,23 @@ fn sheet_json(
       }
     }
     let value = cell_text(cell.value)
-    if is_numeric_cell(cell.value) {
+    if is_numeric_cell(cell.value) ||
+      (
+        cell.value is Formula(..) &&
+        numeric_formulas.contains((cell.row, cell.column))
+      ) {
       let coordinate : Json = [cell.row, cell.column]
       numeric_cells.push(coordinate)
     }
-    if cell.value is @scene.Formula(..) {
+    if cell.value is Formula(expression~, ..) {
       let coordinate : Json = [cell.row, cell.column]
       formula_cells.push(coordinate)
+      formula_expressions.push(
+        [cell.row.to_json(), cell.column.to_json(), expression.to_json()].to_json(),
+      )
     }
     text_size.val += value.length()
-    if text_size.val > 2_000_000 {
+    if text_size.val > 8_388_608 {
       abort("spreadsheet preview exceeds text limit")
     }
     row[cell.column - 1] = value
@@ -127,6 +137,7 @@ fn sheet_json(
     "rows": rows,
     "numeric_cells": numeric_cells,
     "formula_cells": formula_cells,
+    "formula_expressions": formula_expressions,
     "wrapped_cells": wrapped_cells,
     "bold_cells": bold_cells,
     "italic_cells": italic_cells,
@@ -147,7 +158,7 @@ fn preview(source : String, filename : String) -> Unit {
       abort("MoonLeaf open failed")
     }
   }
-  guard scene is @scene.Document::WorkbookDocument(workbook) else {
+  guard scene is WorkbookDocument(workbook) else {
     abort("MoonLeaf did not return a workbook")
   }
   if workbook.sheets.length() > 20 {
@@ -174,21 +185,21 @@ fn preview(source : String, filename : String) -> Unit {
     }
     let bold = match xlsx_package {
       Some(archive) =>
-        @xlsx.font_decoration_cells(archive, sheet.name, @xlsx.Bold) catch {
+        @xlsx.font_decoration_cells(archive, sheet.name, Bold) catch {
           error => abort("MoonLeaf XLSX font inspection failed: \{Repr(error)}")
         }
       None => []
     }
     let italic = match xlsx_package {
       Some(archive) =>
-        @xlsx.font_decoration_cells(archive, sheet.name, @xlsx.Italic) catch {
+        @xlsx.font_decoration_cells(archive, sheet.name, Italic) catch {
           error => abort("MoonLeaf XLSX font inspection failed: \{Repr(error)}")
         }
       None => []
     }
     let underlined = match xlsx_package {
       Some(archive) =>
-        @xlsx.font_decoration_cells(archive, sheet.name, @xlsx.Underline) catch {
+        @xlsx.font_decoration_cells(archive, sheet.name, Underline) catch {
           error => abort("MoonLeaf XLSX font inspection failed: \{Repr(error)}")
         }
       None => []
@@ -231,9 +242,29 @@ fn preview(source : String, filename : String) -> Unit {
         }
       None => []
     }
+    let numeric_formulas = match xlsx_package {
+      Some(archive) =>
+        @xlsx.numeric_formula_cells(archive, sheet.name) catch {
+          error =>
+            abort(
+              "MoonLeaf XLSX formula cache inspection failed: \{Repr(error)}",
+            )
+        }
+      None => []
+    }
     sheet_json(
-      sheet, total, text_size, wrapped, bold, italic, underlined, horizontal, number_formats,
-      decimal_places, hidden_rows,
+      sheet,
+      total,
+      text_size,
+      wrapped,
+      bold,
+      italic,
+      underlined,
+      horizontal,
+      number_formats,
+      decimal_places,
+      hidden_rows,
+      numeric_formulas~,
     )
   })
   let preview : Json = { "sheets": sheets }
@@ -669,8 +700,8 @@ fn format_font(args : Array[String]) -> Unit {
   }
   let decoration = match decoration_name {
     "bold" => @xlsx.Bold
-    "italic" => @xlsx.Italic
-    "underline" => @xlsx.Underline
+    "italic" => Italic
+    "underline" => Underline
     _ => abort("font decoration must be bold, italic or underline")
   }
   let enabled = match enabled_value {
@@ -762,8 +793,8 @@ fn format_align(args : Array[String]) -> Unit {
   }
   let alignment = match alignment_name {
     "left" => @xlsx.Left
-    "center" => @xlsx.Center
-    "right" => @xlsx.Right
+    "center" => Center
+    "right" => Right
     _ => abort("alignment must be left, center or right")
   }
   if sheet.is_empty() ||
@@ -849,9 +880,9 @@ fn format_number(args : Array[String]) -> Unit {
   }
   let preset = match format_name {
     "general" => @xlsx.FormatGeneral
-    "number" => @xlsx.FormatNumber
-    "percent" => @xlsx.FormatPercent
-    "currency" => @xlsx.FormatCurrency
+    "number" => FormatNumber
+    "percent" => FormatPercent
+    "currency" => FormatCurrency
     _ => abort("number format must be general, number, percent or currency")
   }
   let decimal_places : Int? = match request {
@@ -1398,7 +1429,7 @@ fn replace_all(args : Array[String]) -> Unit {
     let session = @moonleaf.open_session(filename, bytes) catch {
       error => abort("MoonLeaf open failed: \{Repr(error)}")
     }
-    guard session.scene() is @scene.Document::WorkbookDocument(workbook) else {
+    guard session.scene() is WorkbookDocument(workbook) else {
       abort("MoonLeaf did not return a workbook")
     }
     let edits : Array[(Int, Int, String)] = []
@@ -1408,7 +1439,7 @@ fn replace_all(args : Array[String]) -> Unit {
         found_sheet = true
         for cell in candidate.cells {
           match cell.value {
-            @scene.Text(text) | @scene.Number(text) => {
+            Text(text) | Number(text) => {
               let updated = replace_visible_text(text, find, replacement)
               if updated != text {
                 edits.push((cell.row, cell.column, updated))
@@ -1611,9 +1642,9 @@ fn filter_file(args : Array[String]) -> Unit {
   }
   let mode = match operator {
     "contains" => @scene.RowFilter::Contains
-    "equals" => @scene.RowFilter::Equals
-    "not_empty" => @scene.RowFilter::NotEmpty
-    "empty" => @scene.RowFilter::Empty
+    "equals" => Equals
+    "not_empty" => NotEmpty
+    "empty" => Empty
     _ => abort("unknown filter operator")
   }
   if (operator == "contains" || operator == "equals") && value.is_empty() {
@@ -1623,7 +1654,7 @@ fn filter_file(args : Array[String]) -> Unit {
   let scene = @moonleaf.open(filename, read_file(args[3])) catch {
     error => abort("MoonLeaf open failed: \{Repr(error)}")
   }
-  guard scene is @scene.Document::WorkbookDocument(workbook) else {
+  guard scene is WorkbookDocument(workbook) else {
     abort("MoonLeaf did not return a workbook")
   }
   guard workbook.sheets.iter().find_first(sheet => sheet.name == sheet_name)
@@ -1665,13 +1696,19 @@ fn filter_file(args : Array[String]) -> Unit {
 ///|
 fn input_rows() -> Array[Array[@scene.CellValue]] {
   let raw = read_stdin()
-  if raw.length() > 2_097_152 {
-    abort("workbook JSON exceeds 2 MB")
+  if raw.length() > 8_388_608 {
+    abort("workbook JSON exceeds 8 Mi UTF-16 units")
   }
   let payload = @json.parse(raw) catch { _ => abort("invalid workbook JSON") }
   guard payload is { "rows": Array(items), .. } && items.length() <= 10_001 else {
     abort("missing or oversized workbook rows")
   }
+  json_cell_rows(items)
+}
+
+///|
+fn json_cell_rows(items : Array[Json]) -> Array[Array[@scene.CellValue]] {
+  guard items.length() <= 10001 else { abort("workbook rows exceed bounds") }
   let rows : Array[Array[@scene.CellValue]] = []
   let mut total_cells = 0
   for item in items {
@@ -1686,9 +1723,34 @@ fn input_rows() -> Array[Array[@scene.CellValue]] {
       }
       row.push(
         match value {
-          String(text) => @scene.Text(text)
-          Number(number, ..) => @scene.Number(number.to_string())
-          Null => @scene.Empty
+          String(text) => Text(text)
+          Number(number, ..) => Number(number.to_string())
+          True => Boolean(true)
+          False => Boolean(false)
+          Null => Empty
+          Object(fields) => {
+            guard fields.get("formula") is Some(String(formula)) else {
+              abort("formula cell requires explicit formula text")
+            }
+            let expression = formula
+              .trim()
+              .strip_prefix("=")
+              .unwrap_or(formula.trim())
+              .to_owned()
+            guard !expression.is_empty() && expression.length() <= 2048 else {
+              abort("formula cell expression must contain 1..2048 characters")
+            }
+            let cached = match fields.get("cached") {
+              None => None
+              Some(Number(number, ..)) if !number.is_inf() && !number.is_nan() =>
+                Some(number.to_string())
+              _ =>
+                abort(
+                  "formula cell cached value must be a finite number when supplied",
+                )
+            }
+            Formula(expression~, cached~)
+          }
           _ => abort("unsupported workbook cell")
         },
       )
@@ -1699,33 +1761,28 @@ fn input_rows() -> Array[Array[@scene.CellValue]] {
 }
 
 ///|
-fn safe_csv_text(value : String) -> String {
-  let mut first = None
-  for char in value.iter() {
-    if char != ' ' &&
-      char != '\t' &&
-      char != '\u{FEFF}' &&
-      char != '\r' &&
-      char != '\n' {
-      first = Some(char)
-      break
-    }
+fn recalculate_created_formulas(
+  bytes : FixedArray[Byte],
+  has_formulas : Bool,
+) -> FixedArray[Byte] {
+  if !has_formulas {
+    return bytes
   }
-  match first {
-    Some('=') | Some('+') | Some('-') | Some('@') => "'" + value
-    _ => value
+  let archive = @opc.open(bytes) catch {
+    error => abort("MoonLeaf formula workbook open failed: \{Repr(error)}")
+  }
+  let recalculated = @xlsx.recalculate(archive) catch {
+    error =>
+      abort("MoonLeaf formula workbook calculation failed: \{Repr(error)}")
+  }
+  @opc.save(recalculated) catch {
+    error => abort("MoonLeaf formula workbook save failed: \{Repr(error)}")
   }
 }
 
 ///|
-fn csv_cell_text(value : @scene.CellValue) -> String {
-  match value {
-    @scene.Text(text) | @scene.Error(text) => safe_csv_text(text)
-    @scene.Number(text) => text
-    @scene.Boolean(flag) => if flag { "TRUE" } else { "FALSE" }
-    @scene.Empty => ""
-    @scene.Formula(expression~, ..) => safe_csv_text("=" + expression)
-  }
+fn safe_csv_text(value : String) -> String {
+  @csv.safe_text(value)
 }
 
 ///|
@@ -1735,28 +1792,7 @@ fn csv_cell_text(value : @scene.CellValue) -> String {
 fn created_csv_bytes(
   rows : Array[Array[@scene.CellValue]],
 ) -> Result[FixedArray[Byte], String] {
-  // CSV has no zero-cell row representation; preserve it as one blank cell.
-  let csv_rows = rows.map(row => {
-    if row.length() == 0 {
-      [""]
-    } else {
-      row.map(csv_cell_text)
-    }
-  })
-  let table : @csv.Table = { rows: csv_rows, delimiter: ',', }
-  let line_end = if rows.length() == 0 { "" } else { "\r\n" }
-  let output = "\u{FEFF}" + table.serialize_quoted() + line_end
-  let bytes = @utf8.encode(output).to_fixedarray()
-  if bytes.length() > 2_097_152 {
-    return Err("CSV export exceeds MoonLeaf's 2 MiB reader limit")
-  }
-  let reopened = @csv.parse(output) catch {
-    _ => return Err("MoonLeaf CSV export failed verification")
-  }
-  if reopened.rows != csv_rows {
-    return Err("MoonLeaf CSV export failed verification")
-  }
-  Ok(bytes)
+  @csv.create(rows)
 }
 
 ///|
@@ -1769,7 +1805,7 @@ fn sheet_csv_rows(
   let mut max_column = 0
   let mut formula_count = 0
   for cell in sheet.cells {
-    if cell.row < 1 || cell.row > 10_000 || cell.column < 1 || cell.column > 256 {
+    if cell.row < 1 || cell.row > 50_000 || cell.column < 1 || cell.column > 256 {
       abort("CSV sheet export exceeds row or column limit")
     }
     while rows.length() < cell.row {
@@ -1777,9 +1813,9 @@ fn sheet_csv_rows(
     }
     let row = rows[cell.row - 1]
     while row.length() < cell.column {
-      row.push(@scene.Empty)
+      row.push(Empty)
       cell_count += 1
-      if cell_count > 100_000 {
+      if cell_count > 500_000 {
         abort("CSV sheet export exceeds cell limit")
       }
     }
@@ -1787,7 +1823,7 @@ fn sheet_csv_rows(
     if cell.column > max_column {
       max_column = cell.column
     }
-    if cell.value is @scene.Formula(..) {
+    if cell.value is Formula(..) {
       formula_count += 1
     }
   }
@@ -1805,13 +1841,17 @@ fn export_sheet_csv(args : Array[String]) -> Unit {
   let filename = args[4]
   let sheet_name = args[5]
   let output = args[6]
-  if !filename.to_lower().has_suffix(".xlsx") || sheet_name.is_empty() {
-    abort("CSV sheet export requires XLSX and a sheet name")
+  if (
+      !filename.to_lower().has_suffix(".xlsx") &&
+      !filename.to_lower().has_suffix(".xls")
+    ) ||
+    sheet_name.is_empty() {
+    abort("CSV sheet export requires XLSX or XLS and a sheet name")
   }
   let document = @moonleaf.open(filename, read_file(source)) catch {
     error => abort("MoonLeaf XLSX open failed: \{Repr(error)}")
   }
-  guard document is @scene.Document::WorkbookDocument(workbook) else {
+  guard document is WorkbookDocument(workbook) else {
     abort("MoonLeaf did not return a workbook")
   }
   let mut selected : @scene.Sheet? = None
@@ -1847,7 +1887,7 @@ fn delimited_xlsx_rows(
   delimiter : Char,
 ) -> Array[Array[@scene.CellValue]] raise @csv.CsvError {
   let table = @csv.parse(text, delimiter~)
-  table.rows.map(row => row.map(value => @scene.Text(value)))
+  table.rows.map(row => row.map(value => Text(value)))
 }
 
 ///|
@@ -1910,7 +1950,13 @@ fn create_file(args : Array[String]) -> Unit {
     let bytes = @xlsx.create(rows) catch {
       error => abort("MoonLeaf XLSX creation failed: \{Repr(error)}")
     }
-    write_file(args[3], bytes)
+    write_file(
+      args[3],
+      recalculate_created_formulas(
+        bytes,
+        rows.any(row => row.any(value => value is Formula(..))),
+      ),
+    )
   } else if args[2] == "create-csv" {
     let bytes = match created_csv_bytes(rows) {
       Ok(value) => value
@@ -1923,6 +1969,48 @@ fn create_file(args : Array[String]) -> Unit {
 }
 
 ///|
+fn create_workbook_file(args : Array[String]) -> Unit {
+  guard args.length() == 4 else {
+    abort("usage: moonleaf-preview create-workbook OUTPUT")
+  }
+  let raw = read_stdin()
+  guard raw.length() <= 8388608 else {
+    abort("workbook JSON exceeds 8 Mi UTF-16 units")
+  }
+  let payload = @json.parse(raw) catch { _ => abort("invalid workbook JSON") }
+  guard payload is { "sheets": Array(values), .. } &&
+    values.length() >= 1 &&
+    values.length() <= 20 else {
+    abort("workbook needs 1..20 sheets")
+  }
+  let sheets = values.map(value => {
+    guard value is { "name": String(name), "rows": Array(rows), .. } else {
+      abort("workbook sheet needs name and rows")
+    }
+    (name, json_cell_rows(rows))
+  })
+  let created = @xlsx.create_workbook(sheets) catch {
+    _ => abort("MoonLeaf workbook creation failed")
+  }
+  let bytes = recalculate_created_formulas(
+    created,
+    sheets.any(sheet => {
+      sheet.1.any(row => row.any(value => value is Formula(..)))
+    }),
+  )
+  let archive = @opc.open(bytes) catch {
+    _ => abort("MoonLeaf workbook ZIP verification failed")
+  }
+  let reopened = @xlsx.read(archive) catch {
+    _ => abort("MoonLeaf workbook read verification failed")
+  }
+  guard reopened.sheets.length() == sheets.length() else {
+    abort("MoonLeaf workbook sheet verification failed")
+  }
+  write_file(args[3], bytes)
+}
+
+///|
 fn extract_docx(args : Array[String]) -> Unit {
   if args.length() != 5 {
     abort("usage: moonleaf-preview extract-docx SOURCE OUTPUT")
@@ -1930,7 +2018,7 @@ fn extract_docx(args : Array[String]) -> Unit {
   let document = @moonleaf.open("source.docx", read_file(args[3])) catch {
     error => abort("MoonLeaf DOCX open failed: \{Repr(error)}")
   }
-  guard document is @scene.Document::TextDocument(text_document) else {
+  guard document is TextDocument(text_document) else {
     abort("MoonLeaf did not return a text document")
   }
   let content = text_document.plain_text()
@@ -2135,24 +2223,35 @@ fn docx_paragraph_json(
 }
 
 ///|
-fn docx_table_json(table : @docx.TableInfo, text_size : Ref[Int]) -> Json {
+fn docx_table_json(
+  table : @docx.TableInfo,
+  text_size : Ref[Int],
+  table_index? : Int,
+) -> Json {
   if table.rows.length() > 2_000 {
     abort("DOCX preview exceeds table row limit")
   }
   let rows : Array[Json] = []
-  for row in table.rows {
+  for row_index, row in table.rows {
     if row.cells.length() > 100 {
       abort("DOCX preview exceeds table column limit")
     }
     let cells : Array[Json] = []
-    for cell in row.cells {
+    for cell_index, cell in row.cells {
       if cell.paragraphs.length() > 1_000 {
         abort("DOCX preview exceeds cell paragraph limit")
       }
+      let paragraphs : Array[Json] = []
+      for paragraph_index, paragraph in cell.paragraphs {
+        let value = docx_paragraph_json(paragraph, text_size)
+        if value is Object(fields) {
+          fields["paragraph_index"] = paragraph_index.to_json()
+        }
+        paragraphs.push(value)
+      }
       cells.push({
-        "paragraphs": cell.paragraphs.map(paragraph => {
-          docx_paragraph_json(paragraph, text_size)
-        }),
+        "cell_index": cell_index,
+        "paragraphs": paragraphs,
         "grid_span": cell.grid_span,
         "vertical_merge": optional_string_json(cell.vertical_merge),
         "width_twips": optional_int_json(cell.width_twips),
@@ -2164,6 +2263,7 @@ fn docx_table_json(table : @docx.TableInfo, text_size : Ref[Int]) -> Json {
       })
     }
     rows.push({
+      "row_index": row_index,
       "cells": cells,
       "height_twips": optional_int_json(row.height_twips),
       "height_rule": optional_string_json(row.height_rule),
@@ -2171,6 +2271,7 @@ fn docx_table_json(table : @docx.TableInfo, text_size : Ref[Int]) -> Json {
   }
   {
     "type": "table",
+    "table_index": optional_int_json(table_index),
     "rows": rows,
     "grid_widths_twips": table.grid_widths_twips,
   }
@@ -2192,42 +2293,73 @@ fn preview_docx(args : Array[String]) -> Unit {
   }
   let text_size = Ref(0)
   let blocks : Array[Json] = []
+  let paragraph_index = Ref(0)
+  let table_index = Ref(0)
   for block in document.blocks {
-    match block {
-      FlowParagraph(paragraph) =>
-        blocks.push(docx_paragraph_json(paragraph, text_size))
-      FlowTable(table) => blocks.push(docx_table_json(table, text_size))
-      FlowPageBreak => blocks.push({ "type": "page_break" })
-      FlowSection(section) =>
-        blocks.push({
-          "type": "section",
-          "page_width_twips": optional_int_json(section.page_width_twips),
-          "page_height_twips": optional_int_json(section.page_height_twips),
-          "margin_top_twips": optional_int_json(section.margin_top_twips),
-          "margin_right_twips": optional_int_json(section.margin_right_twips),
-          "margin_bottom_twips": optional_int_json(section.margin_bottom_twips),
-          "margin_left_twips": optional_int_json(section.margin_left_twips),
-        })
-    }
+    blocks.push(
+      docx_flow_block_json(block, text_size, paragraph_index, table_index~),
+    )
+  }
+  let page_text_size = Ref(0)
+  let page_paragraph_index = Ref(0)
+  let pagination = @docx.paginate_document(archive) catch {
+    error => abort("MoonLeaf DOCX pagination failed: \{Repr(error)}")
+  }
+  let pages : Array[Json] = []
+  for index, page in pagination.pages {
+    pages.push({
+      "number": (index + 1).to_json(),
+      "blocks": page.blocks
+      .map(block => {
+        docx_flow_block_json(block, page_text_size, page_paragraph_index)
+      })
+      .to_json(),
+      "used_height_twips": page.used_height_twips.to_json(),
+    })
   }
   let result : Json = {
     "contract": "moonleaf.docx-preview.v1",
     "blocks": blocks,
     "headers": document.headers,
     "footers": document.footers,
+    "pages": pages.to_json(),
+    "page_geometry": {
+      "page_width_twips": pagination.page_width_twips.to_json(),
+      "page_height_twips": pagination.page_height_twips.to_json(),
+      "margin_top_twips": pagination.margin_top_twips.to_json(),
+      "margin_right_twips": pagination.margin_right_twips.to_json(),
+      "margin_bottom_twips": pagination.margin_bottom_twips.to_json(),
+      "margin_left_twips": pagination.margin_left_twips.to_json(),
+      "content_width_twips": pagination.content_width_twips.to_json(),
+      "content_height_twips": pagination.content_height_twips.to_json(),
+    },
   }
   println(result.stringify())
 }
 
 ///|
 fn extract_pdf(args : Array[String]) -> Unit {
-  if args.length() != 5 {
-    abort("usage: moonleaf-preview extract-pdf SOURCE OUTPUT")
+  if args.length() != 5 && args.length() != 6 {
+    abort("usage: moonleaf-preview extract-pdf SOURCE OUTPUT [MAX_BYTES]")
   }
-  let content = @pdf_text.extract(read_file(args[3])) catch {
+  let max_bytes = if args.length() == 6 {
+    @string.parse_int(args[5][:]) catch {
+      _ => abort("invalid PDF MAX_BYTES")
+    }
+  } else {
+    8_000_000
+  }
+  let extracted = @pdf_text.extract_with_details(read_file(args[3]), max_bytes~) catch {
     error => abort("MoonLeaf PDF extraction failed: \{Repr(error)}")
   }
-  write_file(args[4], @utf8.encode(content).to_fixedarray())
+  write_file(args[4], @utf8.encode(extracted.text).to_fixedarray())
+  let receipt : Json = {
+    "contract": "moonleaf.pdf-text-extraction.v1",
+    "extraction_warnings": extracted.extraction_warnings,
+    "checksum_verification": extracted.checksum_verification,
+    "truncated_pages": extracted.truncated_pages,
+  }
+  println(receipt.stringify())
 }
 
 ///|
@@ -2257,7 +2389,11 @@ fn parse_delimited(args : Array[String]) -> Unit {
 ///|
 fn main {
   let args = cli_args()
-  if args.length() >= 3 && args[2] == "replace-all" {
+  if args.length() >= 3 && args[2] == "edit-value" {
+    edit_value(args)
+  } else if args.length() >= 3 && args[2] == "recalculate" {
+    recalculate_file(args)
+  } else if args.length() >= 3 && args[2] == "replace-all" {
     replace_all(args)
   } else if args.length() >= 3 && args[2] == "paste-range" {
     paste_range(args)
@@ -2289,6 +2425,10 @@ fn main {
     sort_file(args)
   } else if args.length() >= 3 && args[2] == "filter" {
     filter_file(args)
+  } else if args.length() >= 3 && args[2] == "table-explore" {
+    table_explore(args)
+  } else if args.length() >= 3 && args[2] == "pivot-summary" {
+    pivot_summary_copy(args)
   } else if args.length() >= 3 && args[2] == "parse-delimited" {
     parse_delimited(args)
   } else if args.length() >= 3 && args[2] == "export-sheet-csv" {
@@ -2299,13 +2439,25 @@ fn main {
     extract_pdf(args)
   } else if args.length() >= 3 && args[2] == "extract-docx" {
     extract_docx(args)
+  } else if args.length() >= 3 && args[2] == "extract-pptx" {
+    extract_pptx(args)
   } else if args.length() >= 3 && args[2] == "edit-docx-copy" {
     edit_docx_copy(args)
   } else if args.length() >= 3 && args[2] == "preview-docx" {
     preview_docx(args)
+  } else if args.length() >= 3 && args[2] == "edit-docx-structure-copy" {
+    edit_docx_structure_copy(args)
+  } else if args.length() >= 3 && args[2] == "preview-pptx" {
+    preview_pptx(args)
+  } else if args.length() >= 3 && args[2] == "edit-pptx-copy" {
+    edit_pptx_copy(args)
   } else if args.length() >= 3 &&
     (args[2] == "create-xlsx" || args[2] == "create-csv") {
     create_file(args)
+  } else if args.length() >= 3 && args[2] == "create-workbook" {
+    create_workbook_file(args)
+  } else if args.length() >= 3 && args[2] == "create-pptx" {
+    create_pptx_file(args)
   } else if args.length() >= 3 && args[2] == "edit" {
     edit(args)
   } else if args.length() >= 3 {

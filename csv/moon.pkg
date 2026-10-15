@@ -1,3 +1,4 @@
 import {
   "vectie/moonleaf/scene",
+  "moonbitlang/core/encoding/utf8",
 }

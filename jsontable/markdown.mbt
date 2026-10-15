@@ -227,7 +227,7 @@ pub fn parse_markdown_tables(
           reason="Document tables exceed 100000 cells including headers",
         )
       }
-      rows.push(cells.map(cell => @scene.Text(cell)))
+      rows.push(cells.map(cell => Text(cell)))
       source_lines.push(line + 1)
       line += 1
     }
@@ -247,3 +247,15 @@ pub fn parse_markdown_tables(
   }
   tables
 }
+
+///|
+pub extend MarkdownTableError with @debug.Debug::{to_repr}
+
+///|
+pub extend MarkdownTableError with Eq::{not_equal, equal}
+
+///|
+pub extend MarkdownTable with @debug.Debug::{to_repr}
+
+///|
+pub extend MarkdownTable with Eq::{not_equal, equal}

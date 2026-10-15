@@ -206,18 +206,12 @@ fn worksheet_part_name(
     )
   }
   @opc.resolve_target("xl/workbook.xml", relationship.target) catch {
-    @opc.PackageError::InvalidPackage(message) =>
-      raise XlsxError::PackageFailure(
-        part="xl/_rels/workbook.xml.rels",
-        message~,
-      )
-    @opc.PackageError::MissingPart(part) =>
-      raise XlsxError::PackageFailure(part~, message="missing package part")
-    @opc.PackageError::InvalidTextPart(part) =>
-      raise XlsxError::PackageFailure(
-        part~,
-        message="package part is not valid UTF-8",
-      )
+    InvalidPackage(message) =>
+      raise PackageFailure(part="xl/_rels/workbook.xml.rels", message~)
+    MissingPart(part) =>
+      raise PackageFailure(part~, message="missing package part")
+    InvalidTextPart(part) =>
+      raise PackageFailure(part~, message="package part is not valid UTF-8")
   }
 }
 
