@@ -95,7 +95,11 @@ fn sheet_json(
       let coordinate : Json = [cell.row, cell.column]
       formula_cells.push(coordinate)
       formula_expressions.push(
-        [cell.row.to_json(), cell.column.to_json(), expression.to_json()].to_json(),
+        ToJson::to_json([
+          ToJson::to_json(cell.row),
+          ToJson::to_json(cell.column),
+          ToJson::to_json(expression),
+        ]),
       )
     }
     text_size.val += value.length()
@@ -2245,7 +2249,7 @@ fn docx_table_json(
       for paragraph_index, paragraph in cell.paragraphs {
         let value = docx_paragraph_json(paragraph, text_size)
         if value is Object(fields) {
-          fields["paragraph_index"] = paragraph_index.to_json()
+          fields["paragraph_index"] = ToJson::to_json(paragraph_index)
         }
         paragraphs.push(value)
       }
@@ -2308,13 +2312,13 @@ fn preview_docx(args : Array[String]) -> Unit {
   let pages : Array[Json] = []
   for index, page in pagination.pages {
     pages.push({
-      "number": (index + 1).to_json(),
-      "blocks": page.blocks
-      .map(block => {
-        docx_flow_block_json(block, page_text_size, page_paragraph_index)
-      })
-      .to_json(),
-      "used_height_twips": page.used_height_twips.to_json(),
+      "number": ToJson::to_json(index + 1),
+      "blocks": ToJson::to_json(
+        page.blocks.map(block => {
+          docx_flow_block_json(block, page_text_size, page_paragraph_index)
+        }),
+      ),
+      "used_height_twips": ToJson::to_json(page.used_height_twips),
     })
   }
   let result : Json = {
@@ -2322,16 +2326,16 @@ fn preview_docx(args : Array[String]) -> Unit {
     "blocks": blocks,
     "headers": document.headers,
     "footers": document.footers,
-    "pages": pages.to_json(),
+    "pages": ToJson::to_json(pages),
     "page_geometry": {
-      "page_width_twips": pagination.page_width_twips.to_json(),
-      "page_height_twips": pagination.page_height_twips.to_json(),
-      "margin_top_twips": pagination.margin_top_twips.to_json(),
-      "margin_right_twips": pagination.margin_right_twips.to_json(),
-      "margin_bottom_twips": pagination.margin_bottom_twips.to_json(),
-      "margin_left_twips": pagination.margin_left_twips.to_json(),
-      "content_width_twips": pagination.content_width_twips.to_json(),
-      "content_height_twips": pagination.content_height_twips.to_json(),
+      "page_width_twips": ToJson::to_json(pagination.page_width_twips),
+      "page_height_twips": ToJson::to_json(pagination.page_height_twips),
+      "margin_top_twips": ToJson::to_json(pagination.margin_top_twips),
+      "margin_right_twips": ToJson::to_json(pagination.margin_right_twips),
+      "margin_bottom_twips": ToJson::to_json(pagination.margin_bottom_twips),
+      "margin_left_twips": ToJson::to_json(pagination.margin_left_twips),
+      "content_width_twips": ToJson::to_json(pagination.content_width_twips),
+      "content_height_twips": ToJson::to_json(pagination.content_height_twips),
     },
   }
   println(result.stringify())

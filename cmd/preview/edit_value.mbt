@@ -37,7 +37,7 @@ fn recalculate_file(args : Array[String]) -> Unit {
     (
       {
         "contract": "moonleaf.workbook-recalculate.v1",
-        "recalculated_formulas": count.to_json(),
+        "recalculated_formulas": ToJson::to_json(count),
       } : Json).stringify(),
   )
 }
@@ -84,8 +84,8 @@ fn edit_value(args : Array[String]) -> Unit {
   let receipt : Map[String, Json] = {
     "contract": Json::string("moonleaf.cell-value-edit.v1"),
     "sheet": Json::string(sheet),
-    "row": row.to_json(),
-    "column": column.to_json(),
+    "row": ToJson::to_json(row),
+    "column": ToJson::to_json(column),
     "value_type": Json::string(value_type),
   }
   if args[4].to_lower().has_suffix(".xlsx") {
@@ -144,6 +144,6 @@ fn edit_value(args : Array[String]) -> Unit {
   } else {
     abort("unsupported spreadsheet format")
   }
-  receipt["recalculated_formulas"] = count.to_json()
+  receipt["recalculated_formulas"] = ToJson::to_json(count)
   println(Json::object(receipt).stringify())
 }

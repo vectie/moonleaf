@@ -60,9 +60,9 @@ pub fn edit_copy(
     copy,
     {
       "contract": "moonleaf.pptx-edit-copy.v1",
-      "changed": (expected != replacement).to_json(),
-      "bytes": copy.length().to_json(),
-      "source_sha256": digest.to_json(),
+      "changed": ToJson::to_json(expected != replacement),
+      "bytes": ToJson::to_json(copy.length()),
+      "source_sha256": ToJson::to_json(digest),
     },
   )
 }
@@ -181,28 +181,28 @@ pub fn preview_json(
       fallback
     }
     slides.push({
-      "number": slide.number.to_json(),
-      "name": slide.name.to_json(),
-      "part": slide.part.to_json(),
-      "hidden": slide.hidden.to_json(),
-      "title": title.to_json(),
-      "svg": svg.to_json(),
-      "blocks": slide.blocks.to_json(),
-      "notes": slide.notes.to_json(),
-      "tables": tables
-      .filter(table => table.slide_number == slide.number)
-      .to_json(),
-      "targets": targets
-      .filter(target => target.slide_number == slide.number)
-      .to_json(),
+      "number": ToJson::to_json(slide.number),
+      "name": ToJson::to_json(slide.name),
+      "part": ToJson::to_json(slide.part),
+      "hidden": ToJson::to_json(slide.hidden),
+      "title": ToJson::to_json(title),
+      "svg": ToJson::to_json(svg),
+      "blocks": ToJson::to_json(slide.blocks),
+      "notes": ToJson::to_json(slide.notes),
+      "tables": ToJson::to_json(
+        tables.filter(table => table.slide_number == slide.number),
+      ),
+      "targets": ToJson::to_json(
+        targets.filter(target => target.slide_number == slide.number),
+      ),
     })
   }
   {
     "contract": "moonleaf.pptx-preview.v1",
-    "source_sha256": source_sha256.to_json(),
-    "width": width.to_json(),
-    "height": height.to_json(),
-    "slides": slides.to_json(),
-    "warnings": warnings.to_json(),
+    "source_sha256": ToJson::to_json(source_sha256),
+    "width": ToJson::to_json(width),
+    "height": ToJson::to_json(height),
+    "slides": ToJson::to_json(slides),
+    "warnings": ToJson::to_json(warnings),
   }
 }

@@ -23,7 +23,7 @@ fn definition_json(table : @xlsx.NamedTable) -> Json {
     "reference": table.reference,
     "import_reference": match table.import_reference {
       None => Json::null()
-      Some(value) => value.to_json()
+      Some(value) => ToJson::to_json(value)
     },
     "columns": table.columns,
     "header_rows": table.header_rows,
@@ -98,7 +98,7 @@ fn run() -> Unit raise {
     "source_sha256": digest,
     "query_sha256": match query_bytes {
       None => Json::null()
-      Some(bytes) => sha256(bytes).to_json()
+      Some(bytes) => ToJson::to_json(sha256(bytes))
     },
     "definition": definition_json(imported.definition),
     "input_rows": imported.table.rows.length(),

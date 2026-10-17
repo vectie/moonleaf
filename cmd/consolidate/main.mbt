@@ -61,19 +61,11 @@ fn run() -> Unit raise {
   let stacked = @jsontable.stack(
     tables,
     sources~,
-    mode=if args[2] == "strict" {
-      @jsontable.StrictHeaders
-    } else {
-      @jsontable.UnionHeaders
-    },
+    mode=if args[2] == "strict" { StrictHeaders } else { UnionHeaders },
   )
   let result = stacked.consolidate(
     key_columns=keys,
-    retention=if args[3] == "first" {
-      @jsontable.KeepFirst
-    } else {
-      @jsontable.KeepLast
-    },
+    retention=if args[3] == "first" { KeepFirst } else { KeepLast },
   )
   let output = if args[4] == "kept" { result.kept } else { result.report }
   // No dataset bytes are emitted before all inputs and both tables are validated.

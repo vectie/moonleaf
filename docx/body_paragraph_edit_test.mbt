@@ -17,7 +17,7 @@ test "body paragraph edit targets one paragraph and retains formatting" {
     ),
   )
   assert_true(xml.contains("<w:t>表格</w:t>"))
-  assert_eq(xml.split("<w:t>重复</w:t>").length(), 3)
+  assert_eq(xml.split("<w:t>重复</w:t>").count(), 3)
   assert_eq(result.text("custom/untouched.txt"), "keep")
   assert_eq(source.text("word/document.xml").contains("旧</w:t>"), true)
 }

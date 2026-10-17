@@ -5,9 +5,9 @@ test "summary CLI specification selects grouping and named measures" {
   )
   assert_eq(keys, ["region"])
   assert_eq(measures, [
-    { name: "n", operation: @jsontable.CountRows, },
-    { name: "total", operation: @jsontable.Sum("amount"), },
-    { name: "average", operation: @jsontable.Mean("amount"), },
+    { name: "n", operation: CountRows, },
+    { name: "total", operation: Sum("amount"), },
+    { name: "average", operation: Mean("amount"), },
   ])
 }
 

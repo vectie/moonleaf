@@ -36,8 +36,8 @@ fn parse_spec(
   })
   let duplicates = match fields.get("duplicates") {
     None | Some(String("reject")) => @jsontable.Reject
-    Some(String("first")) => @jsontable.First
-    Some(String("last")) => @jsontable.Last
+    Some(String("first")) => First
+    Some(String("last")) => Last
     _ => fail("duplicates must be reject, first or last")
   }
   let prefix = match fields.get("prefix") {

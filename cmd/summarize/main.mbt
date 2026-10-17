@@ -34,8 +34,8 @@ fn parse_spec(
         fail("sum and mean measures need a column")
       }
       match op {
-        "sum" => @jsontable.Sum(column)
-        "mean" => @jsontable.Mean(column)
+        "sum" => Sum(column)
+        "mean" => Mean(column)
         _ => fail("Unknown measure op: " + op)
       }
     }

@@ -352,17 +352,19 @@ fn table_explore(args : Array[String]) -> Unit {
     rows: summary.rows[:summary_count.min(1_000)].to_owned(),
   }
   let output : Map[String, Json] = {
-    "contract": "moonleaf.table-explore.v1".to_json(),
-    "sheets": names.to_json(),
-    "sheet": sheet_name.to_json(),
-    "columns": table.columns.to_json(),
-    "rows": page.text_rows().to_json(),
-    "row_indices": indexes[offset:end].to_owned().map(i => i + 2).to_json(),
-    "source_rows": table.rows.length().to_json(),
-    "matched_rows": indexes.length().to_json(),
-    "offset": offset.to_json(),
-    "limit": limit.to_json(),
-    "truncated": (end < indexes.length()).to_json(),
+    "contract": ToJson::to_json("moonleaf.table-explore.v1"),
+    "sheets": ToJson::to_json(names),
+    "sheet": ToJson::to_json(sheet_name),
+    "columns": ToJson::to_json(table.columns),
+    "rows": ToJson::to_json(page.text_rows()),
+    "row_indices": ToJson::to_json(
+      indexes[offset:end].to_owned().map(i => i + 2),
+    ),
+    "source_rows": ToJson::to_json(table.rows.length()),
+    "matched_rows": ToJson::to_json(indexes.length()),
+    "offset": ToJson::to_json(offset),
+    "limit": ToJson::to_json(limit),
+    "truncated": ToJson::to_json(end < indexes.length()),
     "summary": {
       "columns": summary.columns,
       "rows": summary_page.text_rows(),
@@ -370,7 +372,7 @@ fn table_explore(args : Array[String]) -> Unit {
       "truncated": summary_count > 1_000,
     },
     "totals": totals,
-    "formula_values": "cached_without_recalculation".to_json(),
+    "formula_values": ToJson::to_json("cached_without_recalculation"),
   }
   if Json::object(output).stringify().length() > 2_097_152 {
     abort("table exploration report exceeds 2 MiB")

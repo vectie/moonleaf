@@ -1,7 +1,7 @@
 ///|
 fn optional_text(value : String?) -> String {
   match value {
-    Some(v) => v.to_json().stringify()
+    Some(v) => ToJson::to_json(v).stringify()
     None => "(none)"
   }
 }
@@ -22,8 +22,8 @@ fn display_cell(cell : @xlsx.ComparisonCell?) -> String {
       let value = optional_text(cell.value)
       match cell.formula {
         Some(formula) => {
-          let expression = formula.to_json().stringify()
-          let attributes = cell.formula_attributes.to_json().stringify()
+          let expression = ToJson::to_json(formula).stringify()
+          let attributes = ToJson::to_json(cell.formula_attributes).stringify()
           "formula " +
           expression +
           " attributes=" +
@@ -51,8 +51,8 @@ fn text_report(
     "Original SHA-256: " + before_hash,
     "Copy SHA-256:     " + after_hash,
     "Identical bytes: \{identical}",
-    "Original sheets: " + comparison.before_sheets.to_json().stringify(),
-    "Copy sheets:     " + comparison.after_sheets.to_json().stringify(),
+    "Original sheets: " + ToJson::to_json(comparison.before_sheets).stringify(),
+    "Copy sheets:     " + ToJson::to_json(comparison.after_sheets).stringify(),
     "Changed cells: \{comparison.changed_cells}",
   ]
   if comparison.date_system_changed {
@@ -64,7 +64,7 @@ fn text_report(
     lines.push("")
     lines.push(
       "Sheet " +
-      sheet.name.to_json().stringify() +
+      ToJson::to_json(sheet.name).stringify() +
       ": " +
       sheet.changes.join(", "),
     )
@@ -83,9 +83,9 @@ fn text_report(
     if sheet.before_merges != sheet.after_merges {
       lines.push(
         "  Merges: " +
-        sheet.before_merges.to_json().stringify() +
+        ToJson::to_json(sheet.before_merges).stringify() +
         " -> " +
-        sheet.after_merges.to_json().stringify(),
+        ToJson::to_json(sheet.after_merges).stringify(),
       )
     }
     for cell in sheet.cells {

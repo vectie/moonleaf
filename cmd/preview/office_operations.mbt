@@ -97,7 +97,7 @@ fn docx_flow_block_json(
       guard value is Object(fields) else {
         abort("DOCX paragraph JSON unavailable")
       }
-      fields["paragraph_index"] = paragraph_index.val.to_json()
+      fields["paragraph_index"] = ToJson::to_json(paragraph_index.val)
       paragraph_index.val += 1
       Json::object(fields)
     }

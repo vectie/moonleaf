@@ -6,7 +6,7 @@ test "pivot spec requires selections and defaults to rejecting duplicates" {
         #|{"id_columns":["id"],"key_column":"month","value_column":"sales"}
       ),
     ),
-    (["id"], "month", "sales", @jsontable.Reject, ""),
+    (["id"], "month", "sales", Reject, ""),
   )
   assert_eq(
     parse_spec(
@@ -14,7 +14,7 @@ test "pivot spec requires selections and defaults to rejecting duplicates" {
         #|{"id_columns":[],"key_column":"k","value_column":"v","duplicates":"last","prefix":"v."}
       ),
     ),
-    ([], "k", "v", @jsontable.Last, "v."),
+    ([], "k", "v", Last, "v."),
   )
   assert_eq(
     parse_spec(
@@ -22,7 +22,7 @@ test "pivot spec requires selections and defaults to rejecting duplicates" {
         #|{"id_columns":[],"key_column":"k","value_column":"v","duplicates":"first"}
       ),
     ),
-    ([], "k", "v", @jsontable.First, ""),
+    ([], "k", "v", First, ""),
   )
 }
 

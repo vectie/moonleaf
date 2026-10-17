@@ -38,7 +38,7 @@ fn warnings() -> Array[String] {
 ///|
 fn target_json(target : @xlsx.TextCellTarget) -> Json {
   let style : Json = match target.style_id {
-    Some(value) => value.to_json()
+    Some(value) => ToJson::to_json(value)
     None => Json::null()
   }
   {
@@ -153,7 +153,7 @@ fn run() -> Unit raise {
     .diagnostics()
     .map(d => {
       let part : Json = match d.part {
-        Some(value) => value.to_json()
+        Some(value) => ToJson::to_json(value)
         None => Json::null()
       }
       let item : Json = { "code": d.code, "message": d.message, "part": part }

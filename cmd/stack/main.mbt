@@ -40,7 +40,7 @@ fn run() -> Unit raise {
   let mode = if args[2] == "strict" {
     @jsontable.StrictHeaders
   } else {
-    @jsontable.UnionHeaders
+    UnionHeaders
   }
   let output = @jsontable.stack(tables, sources~, mode~)
   match args[3] {
