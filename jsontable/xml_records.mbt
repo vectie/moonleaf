@@ -27,8 +27,8 @@ pub(all) suberror XmlRecordError {
   InvalidXmlSpec(String)
   InvalidRecordXml(String)
   XmlRecordLimit(String)
-  RepeatedXmlField(row~ : Int, column~ : String)
-  NonLeafXmlField(row~ : Int, column~ : String)
+  RepeatedXmlField(row~ : Int32, column~ : String)
+  NonLeafXmlField(row~ : Int32, column~ : String)
 } derive(Debug, Eq)
 
 ///|
@@ -181,7 +181,7 @@ fn xml_walk_path(
 fn xml_field_cell(
   record : RecordElement,
   field : XmlField,
-  row : Int,
+  row : Int32,
 ) -> @scene.CellValue raise XmlRecordError {
   let selected = xml_walk_path([record], field.path)
   if selected.is_empty() {

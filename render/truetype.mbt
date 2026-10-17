@@ -15,17 +15,17 @@ pub(all) struct PdfFontInput {
 ///|
 priv struct Face {
   input : PdfFontInput
-  units : Int
-  metrics : Int
-  metric_count : Int
-  glyph_count : Int
-  cmap : Int
-  cmap_format : Int
-  used : Map[Int, Int]
+  units : Int32
+  metrics : Int32
+  metric_count : Int32
+  glyph_count : Int32
+  cmap : Int32
+  cmap_format : Int32
+  used : Map[Int32, Int32]
 }
 
 ///|
-fn u16(b : Bytes, p : Int) -> Int raise PdfError {
+fn u16(b : Bytes, p : Int32) -> Int32 raise PdfError {
   guard p >= 0 && p <= b.length() - 2 else {
     raise InvalidFont("truncated font table")
   }
@@ -33,7 +33,7 @@ fn u16(b : Bytes, p : Int) -> Int raise PdfError {
 }
 
 ///|
-fn u32(b : Bytes, p : Int) -> Int raise PdfError {
+fn u32(b : Bytes, p : Int32) -> Int32 raise PdfError {
   let hi = u16(b, p)
   guard hi < 32768 else { raise InvalidFont("font offset exceeds bound") }
   hi * 65536 + u16(b, p + 2)
@@ -47,7 +47,7 @@ fn font_face(input : PdfFontInput) -> Face raise PdfError {
       "only bounded static TrueType glyf fonts supported; not CFF/TTC",
     )
   }
-  let tables : Map[String, Int] = Map([])
+  let tables : Map[String, Int32] = Map([])
   let count = u16(b, 4)
   guard count <= 256 && b.length() >= 12 + count * 16 else {
     raise InvalidFont("invalid font table directory")
@@ -67,7 +67,7 @@ fn font_face(input : PdfFontInput) -> Face raise PdfError {
   guard !tables.contains("fvar") && tables.contains("glyf") else {
     raise InvalidFont("variable or non-glyf font unsupported")
   }
-  fn table(tables : Map[String, Int], name : String) -> Int raise PdfError {
+  fn table(tables : Map[String, Int32], name : String) -> Int32 raise PdfError {
     tables.get(name).unwrap_or_else(() => raise InvalidFont("missing " + name))
   }
   let names = table(tables, "name")
@@ -141,7 +141,7 @@ fn font_face(input : PdfFontInput) -> Face raise PdfError {
 }
 
 ///|
-fn Face::glyph(self : Face, code : Int) -> Int raise PdfError {
+fn Face::glyph(self : Face, code : Int32) -> Int32 raise PdfError {
   if self.used.get(code) is Some(g) {
     return g
   }
@@ -194,7 +194,11 @@ fn Face::glyph(self : Face, code : Int) -> Int raise PdfError {
 }
 
 ///|
-fn Face::advance(self : Face, glyph : Int, size : Int) -> Int raise PdfError {
+fn Face::advance(
+  self : Face,
+  glyph : Int32,
+  size : Int32,
+) -> Int32 raise PdfError {
   u16(self.input.bytes, self.metrics + glyph.min(self.metric_count - 1) * 4) *
   size /
   self.units

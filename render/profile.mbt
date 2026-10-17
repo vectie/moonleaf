@@ -8,17 +8,17 @@ fn[T, U] Option::and_then(self : T?, f : (T) -> U?) -> U? {
 
 ///|
 priv struct TableLayout {
-  x : Int?
-  y_offset : Int
-  border : Int
-  top : Int
-  bottom : Int
-  left : Int
-  right : Int
+  x : Int32?
+  y_offset : Int32
+  border : Int32
+  top : Int32
+  bottom : Int32
+  left : Int32
+  right : Int32
 }
 
 ///|
-fn integer(e : @xml.Element?, attr : String, fallback : Int) -> Int raise {
+fn integer(e : @xml.Element?, attr : String, fallback : Int32) -> Int32 raise {
   match e.and_then(e => e.attribute(attr)) {
     None => fallback
     Some(s) => @string.parse_int(s)
@@ -86,7 +86,7 @@ fn validate_profile(document_package : @opc.Package) -> Unit raise {
 }
 
 ///|
-fn chinese_number(n : Int) -> String raise PdfError {
+fn chinese_number(n : Int32) -> String raise PdfError {
   let digits = [
     "零", "一", "二", "三", "四", "五", "六", "七", "八", "九",
   ]
@@ -109,8 +109,8 @@ fn numbered_document(document_package : @opc.Package) -> @opc.Package raise {
     return document_package
   }
   let numbering = @xml.parse(document_package.text("word/numbering.xml"))
-  let counters : Map[String, Int] = Map([])
-  let formats : Map[String, (String, String, Int)] = Map([])
+  let counters : Map[String, Int32] = Map([])
+  let formats : Map[String, (String, String, Int32)] = Map([])
   for num in numbering.children_named("num") {
     let id = num.attribute("numId").unwrap_or("")
     let abstract_id = num
@@ -140,8 +140,8 @@ fn numbered_document(document_package : @opc.Package) -> @opc.Package raise {
   }
   fn rewrite(
     e : @xml.Element,
-    formats : Map[String, (String, String, Int)],
-    counters : Map[String, Int],
+    formats : Map[String, (String, String, Int32)],
+    counters : Map[String, Int32],
   ) -> @xml.Element raise {
     let children = e.children.map(node => {
       match node {

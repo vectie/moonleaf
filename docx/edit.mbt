@@ -62,7 +62,7 @@ fn rewrite_run_text(element : @xml.Element, value : String) -> @xml.Element {
 }
 
 ///|
-fn run_at_offset(offsets : Array[Int], position : Int) -> Int {
+fn run_at_offset(offsets : Array[Int32], position : Int32) -> Int32 {
   let mut low = 0
   let mut high = offsets.length()
   for ;; {
@@ -82,10 +82,10 @@ fn run_at_offset(offsets : Array[Int], position : Int) -> Int {
 ///|
 fn append_original_range(
   values : Array[String],
-  offsets : Array[Int],
+  offsets : Array[Int32],
   output : Array[StringBuilder],
-  start : Int,
-  end : Int,
+  start : Int32,
+  end : Int32,
 ) -> Unit {
   if start >= end {
     return
@@ -111,7 +111,7 @@ fn append_original_range(
 ///|
 fn replace_run_segment(
   children : Array[@xml.Node],
-  indices : Array[Int],
+  indices : Array[Int32],
   values : Array[String],
   find : String,
   replacement : String,
@@ -121,7 +121,7 @@ fn replace_run_segment(
     return
   }
   let combined = StringBuilder()
-  let offsets : Array[Int] = []
+  let offsets : Array[Int32] = []
   let mut total = 0
   for value in values {
     offsets.push(total)
@@ -173,7 +173,7 @@ fn replace_in_paragraph(
   changed : Ref[Bool],
 ) -> @xml.Element {
   let children : Array[@xml.Node] = []
-  let indices : Array[Int] = []
+  let indices : Array[Int32] = []
   let values : Array[String] = []
   for child in element.children {
     match child {
@@ -301,7 +301,7 @@ pub fn replace_text(
 /// content are rejected so editing cannot silently discard document features.
 pub fn replace_body_paragraph(
   document_package : @opc.Package,
-  paragraph_index : Int,
+  paragraph_index : Int32,
   expected_text : String,
   replacement : String,
 ) -> @opc.Package raise DocxError {
@@ -342,10 +342,10 @@ pub fn replace_body_paragraph(
 ///|
 fn replace_body_paragraph_in_element(
   element : @xml.Element,
-  paragraph_index : Int,
+  paragraph_index : Int32,
   expected_text : String,
   replacement : String,
-  ordinal : Ref[Int],
+  ordinal : Ref[Int32],
   found : Ref[Bool],
 ) -> @xml.Element raise DocxError {
   if element.local_name() == "body" {

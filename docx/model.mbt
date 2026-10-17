@@ -4,14 +4,14 @@
 /// Callers needing layout or relationship metadata should use `inspect_document`.
 pub(all) struct ParagraphMetadata {
   alignment : String?
-  spacing_before_twips : Int?
-  spacing_after_twips : Int?
-  line_twips : Int?
+  spacing_before_twips : Int32?
+  spacing_after_twips : Int32?
+  line_twips : Int32?
   line_rule : String?
-  left_indent_twips : Int?
-  right_indent_twips : Int?
-  first_line_twips : Int?
-  hanging_twips : Int?
+  left_indent_twips : Int32?
+  right_indent_twips : Int32?
+  first_line_twips : Int32?
+  hanging_twips : Int32?
 } derive(Eq, Debug)
 
 ///|
@@ -20,7 +20,7 @@ pub(all) struct RunMetadata {
   bold : Bool
   italic : Bool
   underline : Bool
-  font_size_half_points : Int?
+  font_size_half_points : Int32?
   font_ascii : String?
   font_east_asia : String?
   font_complex_script : String?
@@ -34,7 +34,7 @@ pub(all) struct RunMetadata {
 /// Internal resolved style properties used by `inspect_document`.
 /// Direct paragraph/run formatting is applied after this inherited cascade.
 priv struct ResolvedStyle {
-  outline_level : Int?
+  outline_level : Int32?
   paragraph : ParagraphMetadata
   font_ascii : String?
   font_east_asia : String?
@@ -45,13 +45,13 @@ priv struct ResolvedStyle {
   bold : Bool?
   italic : Bool?
   underline : Bool?
-  font_size_half_points : Int?
+  font_size_half_points : Int32?
 }
 
 ///|
 pub(all) struct ParagraphInfo {
   metadata : ParagraphMetadata
-  outline_level : Int?
+  outline_level : Int32?
   list : ListInfo?
   runs : Array[RunMetadata]
 } derive(Eq, Debug)
@@ -62,37 +62,37 @@ pub(all) struct ParagraphInfo {
 /// retaining the list identity and explicit restart value.
 pub(all) struct ListInfo {
   num_id : String
-  level : Int
+  level : Int32
   format : String
   label_template : String
-  start : Int
+  start : Int32
 } derive(Eq, Debug)
 
 ///|
 pub(all) struct TableCellInfo {
   text : String
   paragraphs : Array[ParagraphInfo]
-  grid_span : Int
+  grid_span : Int32
   vertical_merge : String?
-  width_twips : Int?
-  margin_top_twips : Int?
-  margin_right_twips : Int?
-  margin_bottom_twips : Int?
-  margin_left_twips : Int?
+  width_twips : Int32?
+  margin_top_twips : Int32?
+  margin_right_twips : Int32?
+  margin_bottom_twips : Int32?
+  margin_left_twips : Int32?
   vertical_alignment : String?
 } derive(Eq, Debug)
 
 ///|
 pub(all) struct TableRowInfo {
   cells : Array[TableCellInfo]
-  height_twips : Int?
+  height_twips : Int32?
   height_rule : String?
 } derive(Eq, Debug)
 
 ///|
 pub(all) struct TableInfo {
   rows : Array[TableRowInfo]
-  grid_widths_twips : Array[Int]
+  grid_widths_twips : Array[Int32]
 } derive(Eq, Debug)
 
 ///| Ordered rich DOCX content for host renderers. This keeps the existing
@@ -110,12 +110,12 @@ pub(all) enum DocxFlowBlock {
 
 ///|
 pub(all) struct SectionInfo {
-  page_width_twips : Int?
-  page_height_twips : Int?
-  margin_top_twips : Int?
-  margin_right_twips : Int?
-  margin_bottom_twips : Int?
-  margin_left_twips : Int?
+  page_width_twips : Int32?
+  page_height_twips : Int32?
+  margin_top_twips : Int32?
+  margin_right_twips : Int32?
+  margin_bottom_twips : Int32?
+  margin_left_twips : Int32?
 } derive(Eq, Debug)
 
 ///|
@@ -150,21 +150,21 @@ pub(all) struct DocxPreviewDocument {
 ///|
 /// Deterministic layout constants used by MoonLeaf's portable paginator.
 pub(all) struct PaginationProfile {
-  default_margin_top_twips : Int
-  default_margin_right_twips : Int
-  default_margin_bottom_twips : Int
-  default_margin_left_twips : Int
-  default_font_size_half_points : Int
-  default_line_twips : Int
-  table_cell_vertical_padding_twips : Int
-  page_safety_twips : Int
+  default_margin_top_twips : Int32
+  default_margin_right_twips : Int32
+  default_margin_bottom_twips : Int32
+  default_margin_left_twips : Int32
+  default_font_size_half_points : Int32
+  default_line_twips : Int32
+  table_cell_vertical_padding_twips : Int32
+  page_safety_twips : Int32
 } derive(Eq, Debug)
 
 ///|
 /// One physical page projected from DOCX flow blocks.
 pub(all) struct DocxPage {
   blocks : Array[DocxFlowBlock]
-  used_height_twips : Int
+  used_height_twips : Int32
 } derive(Eq, Debug)
 
 ///| Portable MoonLeaf pagination output. This contains layout decisions, not
@@ -173,14 +173,14 @@ pub(all) struct DocxPage {
 /// raster or PDF bytes; glyph rasterization remains a renderer responsibility.
 pub(all) struct PagedDocxDocument {
   pages : Array[DocxPage]
-  page_width_twips : Int
-  page_height_twips : Int
-  margin_top_twips : Int
-  margin_right_twips : Int
-  margin_bottom_twips : Int
-  margin_left_twips : Int
-  content_width_twips : Int
-  content_height_twips : Int
+  page_width_twips : Int32
+  page_height_twips : Int32
+  margin_top_twips : Int32
+  margin_right_twips : Int32
+  margin_bottom_twips : Int32
+  margin_left_twips : Int32
+  content_width_twips : Int32
+  content_height_twips : Int32
   diagnostics : Array[@scene.Warning]
 } derive(Eq, Debug)
 

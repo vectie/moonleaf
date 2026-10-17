@@ -46,8 +46,8 @@ fn child_text(element : @xml.Element, name : String) -> String? {
 fn integer_attribute(
   element : @xml.Element,
   name : String,
-  limit : Int,
-) -> Int? {
+  limit : Int32,
+) -> Int32? {
   match element.attribute(name) {
     Some(value) => parse_decimal(value, limit)
     None => None

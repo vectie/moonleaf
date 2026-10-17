@@ -25,14 +25,14 @@ pub struct QueryRecipe {
   priv filters : Array[QueryFilter]
   priv sort : Array[QuerySort]
   priv select : Array[String]
-  priv limit : Int
+  priv limit : Int32
 }
 
 ///|
 pub(all) struct QueryResult {
   table : Table
-  source_rows : Array[Int]
-  matched_rows : Int
+  source_rows : Array[Int32]
+  matched_rows : Int32
 } derive(Debug, Eq)
 
 ///|
@@ -216,11 +216,11 @@ fn query_value(
 }
 
 ///|
-fn query_compare(a : QueryValue, b : QueryValue) -> Int {
+fn query_compare(a : QueryValue, b : QueryValue) -> Int32 {
   match (a, b) {
     (TextValue(a), TextValue(b)) => {
       // String::compare uses shortlex; recipes promise UTF-16 lexical order.
-      for i in 0..<Int::min(a.length(), b.length()) {
+      for i in 0..<Int32::min(a.length(), b.length()) {
         let order = a.code_unit_at(i).compare(b.code_unit_at(i))
         if order != 0 {
           return order
@@ -271,7 +271,7 @@ fn query_matches(
 }
 
 ///|
-fn query_column(table : Table, name : String) -> Int raise QueryError {
+fn query_column(table : Table, name : String) -> Int32 raise QueryError {
   lookup_column(table, name) catch {
     _ => raise InvalidQuery("Unknown column: " + name)
   }
@@ -305,7 +305,7 @@ pub fn Table::query(
   let wanted = recipe.filters.map(f => {
     query_value(f.value, f.mode, "filter value")
   })
-  let indices : Array[Int] = []
+  let indices : Array[Int32] = []
   let sort_values : Array[Array[QueryValue]] = []
   for i, row in self.rows {
     for value in row {
@@ -373,7 +373,7 @@ pub fn Table::query(
     }
     a.compare(b)
   })
-  let count = Int::min(indices.length(), recipe.limit)
+  let count = Int32::min(indices.length(), recipe.limit)
   let selected = indices[:count].to_owned()
   {
     table: {

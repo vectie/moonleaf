@@ -32,7 +32,7 @@ fn preview_geometry(
   bounds : @scene.Rect,
   paint : String,
   stroke : String,
-  stroke_width : Int,
+  stroke_width : Int32,
 ) -> String {
   let x = bounds.x.to_double()
   let y = bounds.y.to_double()
@@ -287,8 +287,8 @@ fn preview_runs_fallback(
 ///|
 fn preview_outline_svg(
   slide : SlideOutline,
-  width : Int,
-  height : Int,
+  width : Int32,
+  height : Int32,
 ) -> String {
   let out = StringBuilder()
   let font = height.to_double() / 30.0

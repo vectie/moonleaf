@@ -3,7 +3,7 @@
 /// leaves rows empty. References must be bound to the exact source digest.
 pub(all) struct SlideTable {
   id : String
-  slide_number : Int
+  slide_number : Int32
   part : String
   shape_id : String
   hidden_slide : Bool
@@ -217,7 +217,7 @@ fn table_values(
 fn table_frames(
   tree : @xml.Element,
   frames : Array[@xml.Element],
-  items : Ref[Int],
+  items : Ref[Int32],
 ) -> Unit raise PptxError {
   for child in tree.child_elements() {
     items.val += 1

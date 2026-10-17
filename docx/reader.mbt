@@ -77,7 +77,7 @@ fn collect_runs(element : @xml.Element, output : Array[@scene.TextRun]) -> Unit 
 }
 
 ///|
-fn heading_level(properties : @xml.Element?) -> Int? {
+fn heading_level(properties : @xml.Element?) -> Int32? {
   match properties {
     None => None
     Some(properties) =>
@@ -102,7 +102,7 @@ fn heading_level(properties : @xml.Element?) -> Int? {
 }
 
 ///|
-fn list_properties(properties : @xml.Element?) -> (Int, String)? {
+fn list_properties(properties : @xml.Element?) -> (Int32, String)? {
   match properties {
     None => None
     Some(properties) =>

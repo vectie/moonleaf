@@ -51,7 +51,7 @@ fn explore_sheet_table(sheet : @scene.Sheet) -> @jsontable.Table {
 fn explore_string(
   fields : Map[String, Json],
   key : String,
-  fallback? : String = "",
+  fallback~ : String = "",
 ) -> String {
   match fields.get(key) {
     None | Some(Null) => fallback
@@ -64,9 +64,9 @@ fn explore_string(
 fn explore_integer(
   fields : Map[String, Json],
   key : String,
-  fallback : Int,
-  maximum : Int,
-) -> Int {
+  fallback : Int32,
+  maximum : Int32,
+) -> Int32 {
   match fields.get(key) {
     None | Some(Null) => fallback
     Some(Number(value, ..)) if value >= 0 &&
@@ -82,7 +82,7 @@ fn explore_column(
   fields : Map[String, Json],
   key : String,
   columns : Array[String],
-) -> Int? {
+) -> Int32? {
   match fields.get(key) {
     None | Some(Null) | Some(String("")) => None
     Some(Number(value, ..)) if value >= 0 &&
@@ -131,7 +131,7 @@ fn explore_bound(fields : Map[String, Json], key : String) -> Double? {
 
 ///|
 /// UTF-16 lexical ordering, with worksheet row order as the final tie-breaker.
-fn explore_compare(left : String, right : String) -> Int {
+fn explore_compare(left : String, right : String) -> Int32 {
   for i in 0..<left.length().min(right.length()) {
     let order = left.code_unit_at(i).compare(right.code_unit_at(i))
     if order != 0 {
@@ -145,7 +145,7 @@ fn explore_compare(left : String, right : String) -> Int {
 fn explore_indexes(
   table : @jsontable.Table,
   fields : Map[String, Json],
-) -> Array[Int] {
+) -> Array[Int32] {
   let text_column = explore_column(fields, "text_column", table.columns)
   let needle = explore_string(fields, "contains").to_lower()
   let number_column = explore_column(fields, "number_column", table.columns)
@@ -161,7 +161,7 @@ fn explore_indexes(
     abort("minimum must not exceed maximum")
   }
   let rows = table.text_rows()
-  let indexes : Array[Int] = []
+  let indexes : Array[Int32] = []
   for i, row in rows {
     if text_column is Some(column) && !row[column].to_lower().contains(needle) {
       continue
@@ -221,10 +221,10 @@ fn explore_indexes(
 /// and totals; groups retain first appearance after filtering and sorting.
 fn explore_summary(
   table : @jsontable.Table,
-  group : Int?,
-  sum : Int?,
+  group : Int32?,
+  sum : Int32?,
 ) -> (@jsontable.Table, Json) {
-  let groups : Map[String, (Int, Int, Double)] = Map([])
+  let groups : Map[String, (Int32, Int32, Double)] = Map([])
   let mut numeric_values = 0
   let mut total = 0.0
   for row in table.text_rows() {

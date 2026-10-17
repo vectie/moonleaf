@@ -5,14 +5,14 @@
 /// metadata and checked again against the extracted entries. The dependency's
 /// own hard limits remain an additional ceiling.
 pub(all) struct ArchivePolicy {
-  max_compressed_input_bytes : Int
-  max_entries : Int
-  max_entry_compressed_bytes : Int
-  max_entry_uncompressed_bytes : Int
-  max_total_uncompressed_bytes : Int
-  max_compression_ratio : Int
-  max_path_depth : Int
-  max_path_length : Int
+  max_compressed_input_bytes : Int32
+  max_entries : Int32
+  max_entry_compressed_bytes : Int32
+  max_entry_uncompressed_bytes : Int32
+  max_total_uncompressed_bytes : Int32
+  max_compression_ratio : Int32
+  max_path_depth : Int32
+  max_path_length : Int32
 } derive(Debug, Eq)
 
 ///|
@@ -84,9 +84,9 @@ pub fn ArchivePolicy::validate(self : ArchivePolicy) -> Unit raise PackageError 
 
 ///|
 fn archive_ratio_exceeds(
-  uncompressed : Int,
-  compressed : Int,
-  maximum_ratio : Int,
+  uncompressed : Int32,
+  compressed : Int32,
+  maximum_ratio : Int32,
 ) -> Bool {
   if uncompressed == 0 {
     return false

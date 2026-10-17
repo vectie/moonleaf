@@ -24,7 +24,7 @@ fn relationship_by_id(
 }
 
 ///|
-fn slide_dimensions(root : @xml.Element) -> (Int, Int) raise PptxError {
+fn slide_dimensions(root : @xml.Element) -> (Int32, Int32) raise PptxError {
   match first_descendant(root, "sldSz") {
     None => raise InvalidPresentation(message="presentation is missing p:sldSz")
     Some(size) =>

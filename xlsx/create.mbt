@@ -58,7 +58,7 @@ fn valid_xml_cell_text(text : String) -> Bool {
 /// Strings are stored as literal inline strings, including text beginning with '='.
 pub fn create(
   rows : Array[Array[@scene.CellValue]],
-  sheet_name? : String = "研究证据",
+  sheet_name~ : String = "研究证据",
 ) -> FixedArray[Byte] raise XlsxError {
   // Count UTF-16 units explicitly, including both units of supplementary
   // characters, while preserving XML-valid whitespace through references.

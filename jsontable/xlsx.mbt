@@ -14,7 +14,7 @@ pub(all) struct XlsxTable {
   table : Table
   sheet_name : String
   range : @scene.CellRange
-  source_rows : Array[Int]
+  source_rows : Array[Int32]
   warnings : Array[String]
 } derive(Debug, Eq)
 

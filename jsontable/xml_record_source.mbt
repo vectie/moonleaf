@@ -1,5 +1,5 @@
 ///|
-fn record_xml_at(source : String, offset : Int, token : String) -> Bool {
+fn record_xml_at(source : String, offset : Int32, token : String) -> Bool {
   offset + token.length() <= source.length() &&
   source.unsafe_substring(start=offset, end=offset + token.length()) == token
 }
@@ -12,9 +12,9 @@ fn record_xml_space(c : UInt16) -> Bool {
 ///|
 fn record_xml_end(
   source : String,
-  start : Int,
+  start : Int32,
   token : String,
-) -> Int raise XmlRecordError {
+) -> Int32 raise XmlRecordError {
   match source.unsafe_substring(start~, end=source.length()).find(token) {
     Some(index) => start + index
     None => raise InvalidRecordXml("Unterminated XML construct")

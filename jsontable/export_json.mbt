@@ -8,7 +8,7 @@
 /// existing null-to-text projection, so this is not a lossless Table codec.
 pub fn Table::export_json(
   self : Table,
-  omit_empty? : Bool = false,
+  omit_empty~ : Bool = false,
 ) -> String raise TableError {
   validate_lookup_table(self) catch {
     _ => raise Export("Expected unique nonempty columns and rectangular rows")

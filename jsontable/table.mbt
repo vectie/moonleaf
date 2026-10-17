@@ -11,7 +11,7 @@ pub(all) struct Table {
 pub(all) suberror TableError {
   InvalidJson(String)
   ExpectedArray
-  ExpectedObject(Int)
+  ExpectedObject(Int32)
   Export(String)
 } derive(Debug, Eq)
 
@@ -28,7 +28,7 @@ fn cell_value(value : Json) -> @scene.CellValue {
 
 ///|
 /// Parse an array of objects, or one object per nonblank line with jsonl=true.
-pub fn parse(text : String, jsonl? : Bool = false) -> Table raise TableError {
+pub fn parse(text : String, jsonl~ : Bool = false) -> Table raise TableError {
   let objects : Array[Map[String, Json]] = []
   if jsonl {
     for line_index, line in text.split("\n").to_array() {

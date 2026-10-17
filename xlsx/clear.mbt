@@ -5,11 +5,11 @@
 pub fn clear_sheet_range(
   xlsx_package : @opc.Package,
   sheet_name : String,
-  start_row : Int,
-  start_column : Int,
-  end_row : Int,
-  end_column : Int,
-) -> (@opc.Package, Int) raise XlsxError {
+  start_row : Int32,
+  start_column : Int32,
+  end_row : Int32,
+  end_column : Int32,
+) -> (@opc.Package, Int32) raise XlsxError {
   if start_row < 1 ||
     start_column < 1 ||
     end_row < start_row ||

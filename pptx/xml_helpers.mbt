@@ -47,7 +47,7 @@ fn relationship_id_attribute(element : @xml.Element) -> String? {
 }
 
 ///|
-fn parse_decimal(part : String, value : String) -> Int raise PptxError {
+fn parse_decimal(part : String, value : String) -> Int32 raise PptxError {
   if value is "" {
     raise InvalidNumber(part~, value~)
   }
@@ -89,8 +89,8 @@ fn numeric_attribute(
   element : @xml.Element,
   name : String,
   part : String,
-  default~ : Int,
-) -> Int raise PptxError {
+  default~ : Int32,
+) -> Int32 raise PptxError {
   match element.attribute(name) {
     Some(value) => parse_decimal(part, value)
     None => default

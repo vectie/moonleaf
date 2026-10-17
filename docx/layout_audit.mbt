@@ -24,15 +24,15 @@ pub(all) struct LayoutAudit {
   table_layout_equal : Bool
   section_layout_equal : Bool
   explicit_page_breaks_equal : Bool
-  reference_cached_page_count : Int?
-  candidate_cached_page_count : Int?
-  reference_paragraph_count : Int
-  candidate_paragraph_count : Int
-  reference_table_count : Int
-  candidate_table_count : Int
-  reference_explicit_page_break_count : Int
-  candidate_explicit_page_break_count : Int
-  inserted_text_slot_paragraphs : Int
+  reference_cached_page_count : Int32?
+  candidate_cached_page_count : Int32?
+  reference_paragraph_count : Int32
+  candidate_paragraph_count : Int32
+  reference_table_count : Int32
+  candidate_table_count : Int32
+  reference_explicit_page_break_count : Int32
+  candidate_explicit_page_break_count : Int32
+  inserted_text_slot_paragraphs : Int32
   diagnostics : Array[String]
 } derive(Eq)
 
@@ -41,7 +41,7 @@ priv struct RunStyle {
   bold : Bool
   italic : Bool
   underline : Bool
-  font_size_half_points : Int?
+  font_size_half_points : Int32?
   font_ascii : String?
   font_east_asia : String?
   font_complex_script : String?
@@ -101,7 +101,7 @@ fn paragraph_layouts_equal(
 fn run_style_layouts(
   reference : Array[ParagraphInfo],
   candidate : Array[ParagraphInfo],
-) -> (Bool, Int) {
+) -> (Bool, Int32) {
   if reference.length() != candidate.length() {
     return (false, 0)
   }
@@ -238,7 +238,7 @@ fn non_document_parts_equal(
 }
 
 ///|
-fn cached_page_count(document_package : @opc.Package) -> Int? {
+fn cached_page_count(document_package : @opc.Package) -> Int32? {
   guard document_package.has_part("docProps/app.xml") else { return None }
   let source = document_package.text("docProps/app.xml") catch {
     _ => return None

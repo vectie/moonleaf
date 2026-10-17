@@ -16,14 +16,14 @@ pub(all) struct SummaryMeasure {
 pub(all) suberror SummaryError {
   InvalidSummary(String)
   UnknownSummaryColumn(String)
-  InvalidSummaryNumber(row~ : Int, column~ : String)
-  SummaryOverflow(row~ : Int, column~ : String)
-  UnsupportedGroupValue(row~ : Int, column~ : String)
+  InvalidSummaryNumber(row~ : Int32, column~ : String)
+  SummaryOverflow(row~ : Int32, column~ : String)
+  UnsupportedGroupValue(row~ : Int32, column~ : String)
 } derive(Debug, Eq)
 
 ///|
 priv struct SummaryAccumulator {
-  mut count : Int
+  mut count : Int32
   mut sum : Double
   mut correction : Double
 }
@@ -35,7 +35,7 @@ priv struct SummaryGroup {
 }
 
 ///|
-fn summary_column(table : Table, name : String) -> Int raise SummaryError {
+fn summary_column(table : Table, name : String) -> Int32 raise SummaryError {
   for i, column in table.columns {
     if name == column {
       return i
@@ -47,7 +47,7 @@ fn summary_column(table : Table, name : String) -> Int raise SummaryError {
 ///|
 fn summary_number(
   value : @scene.CellValue,
-  row~ : Int,
+  row~ : Int32,
   column~ : String,
 ) -> Double? raise SummaryError {
   let text = match value {
@@ -70,7 +70,7 @@ fn summary_number(
 ///|
 fn summary_key(
   value : @scene.CellValue,
-  row~ : Int,
+  row~ : Int32,
   column~ : String,
 ) -> Json raise SummaryError {
   // Tags keep missing, empty text, numeric text and booleans distinct. JSON
@@ -93,7 +93,7 @@ fn summary_key(
 ///|
 fn new_summary_group(
   keys : Array[@scene.CellValue],
-  count : Int,
+  count : Int32,
 ) -> SummaryGroup {
   {
     keys,
@@ -105,7 +105,7 @@ fn new_summary_group(
 fn SummaryAccumulator::add(
   self : SummaryAccumulator,
   value : Double,
-  row~ : Int,
+  row~ : Int32,
   column~ : String,
 ) -> Unit raise SummaryError {
   let total = self.sum + value
@@ -154,7 +154,7 @@ pub fn Table::summarize(
     )
   }
   let columns : Array[String] = []
-  let group_indices : Array[Int] = []
+  let group_indices : Array[Int32] = []
   for column in group_by {
     if columns.contains(column) {
       raise InvalidSummary("Duplicate group column: " + column)
@@ -162,7 +162,7 @@ pub fn Table::summarize(
     group_indices.push(summary_column(self, column))
     columns.push(column)
   }
-  let measure_indices : Array[Int?] = []
+  let measure_indices : Array[Int32?] = []
   for measure in measures {
     if measure.name == "" || columns.contains(measure.name) {
       raise InvalidSummary("Empty or duplicate output column: " + measure.name)
@@ -176,7 +176,7 @@ pub fn Table::summarize(
     )
   }
   let groups : Array[SummaryGroup] = []
-  let indices : Map[String, Int] = Map([])
+  let indices : Map[String, Int32] = Map([])
   if group_by.is_empty() {
     groups.push(new_summary_group([], measures.length()))
     indices["[]"] = 0

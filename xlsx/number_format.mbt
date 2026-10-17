@@ -14,7 +14,7 @@ let currency_format_code = "\"¥\"#,##0.00;[Red]-\"¥\"#,##0.00"
 fn custom_format_part(
   xlsx_package : @opc.Package,
   format_code : String,
-) -> (@opc.Package, Int) raise XlsxError {
+) -> (@opc.Package, Int32) raise XlsxError {
   let relationships = workbook_relationships(xlsx_package)
   let styles_part = wrap_styles_part(xlsx_package, relationships)
   let style_sheet = parse_part(xlsx_package, styles_part)
@@ -25,7 +25,7 @@ fn custom_format_part(
     Some(part) => part.children_named("numFmt")
     None => []
   }
-  let used : Array[Int] = []
+  let used : Array[Int32] = []
   for item in formats {
     guard integer_attribute(item, "numFmtId", 65535) is Some(id) &&
       item.attribute("formatCode") is Some(code) else {
@@ -106,12 +106,12 @@ fn custom_format_part(
 pub fn set_number_format_range(
   xlsx_package : @opc.Package,
   sheet_name : String,
-  start_row : Int,
-  start_column : Int,
-  end_row : Int,
-  end_column : Int,
+  start_row : Int32,
+  start_column : Int32,
+  end_row : Int32,
+  end_column : Int32,
   preset : NumberFormatPreset,
-) -> (@opc.Package, Int) raise XlsxError {
+) -> (@opc.Package, Int32) raise XlsxError {
   let (source, id) = match preset {
     FormatGeneral => (xlsx_package, 0)
     FormatNumber => (xlsx_package, 4)
@@ -130,7 +130,7 @@ pub fn set_number_format_range(
 }
 
 ///|
-fn decimal_format_code(preset : NumberFormatPreset, places : Int) -> String {
+fn decimal_format_code(preset : NumberFormatPreset, places : Int32) -> String {
   let digits = StringBuilder()
   if places > 0 {
     digits.write_char('.')
@@ -153,13 +153,13 @@ fn decimal_format_code(preset : NumberFormatPreset, places : Int) -> String {
 pub fn set_number_format_places_range(
   xlsx_package : @opc.Package,
   sheet_name : String,
-  start_row : Int,
-  start_column : Int,
-  end_row : Int,
-  end_column : Int,
+  start_row : Int32,
+  start_column : Int32,
+  end_row : Int32,
+  end_column : Int32,
   preset : NumberFormatPreset,
-  decimal_places : Int,
-) -> (@opc.Package, Int) raise XlsxError {
+  decimal_places : Int32,
+) -> (@opc.Package, Int32) raise XlsxError {
   if decimal_places < 0 || decimal_places > 6 || preset is FormatGeneral {
     raise InvalidWorkbook(
       "decimal places require Number, Percent or Currency from 0 to 6",
@@ -195,7 +195,7 @@ fn generated_format_label(code : String) -> String? {
 }
 
 ///|
-fn generated_format_places(code : String) -> Int? {
+fn generated_format_places(code : String) -> Int32? {
   for places in 0..<=6 {
     if code == decimal_format_code(FormatNumber, places) ||
       code == decimal_format_code(FormatPercent, places) ||
@@ -207,7 +207,7 @@ fn generated_format_places(code : String) -> Int? {
 }
 
 ///|
-fn known_format_places(id : Int, code : String?) -> Int? {
+fn known_format_places(id : Int32, code : String?) -> Int32? {
   match code {
     Some(value) => {
       if value == currency_format_code {
@@ -230,8 +230,8 @@ fn known_format_places(id : Int, code : String?) -> Int? {
 pub fn number_format_places_cells(
   xlsx_package : @opc.Package,
   sheet_name : String,
-) -> Array[(Int, Int, Int)] raise XlsxError {
-  let result : Array[(Int, Int, Int)] = []
+) -> Array[(Int32, Int32, Int32)] raise XlsxError {
+  let result : Array[(Int32, Int32, Int32)] = []
   for cell in inspect(xlsx_package) {
     if cell.sheet_name == sheet_name {
       match cell.number_format_id {
@@ -248,7 +248,7 @@ pub fn number_format_places_cells(
 }
 
 ///|
-fn number_format_label(id : Int, code : String?) -> String? {
+fn number_format_label(id : Int32, code : String?) -> String? {
   if id == 0 {
     None
   } else if id == 9 || id == 10 {
@@ -274,8 +274,8 @@ fn number_format_label(id : Int, code : String?) -> String? {
 pub fn number_format_cells(
   xlsx_package : @opc.Package,
   sheet_name : String,
-) -> Array[(Int, Int, String)] raise XlsxError {
-  let result : Array[(Int, Int, String)] = []
+) -> Array[(Int32, Int32, String)] raise XlsxError {
+  let result : Array[(Int32, Int32, String)] = []
   for cell in inspect(xlsx_package) {
     if cell.sheet_name == sheet_name {
       match cell.number_format_id {

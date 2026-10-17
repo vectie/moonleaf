@@ -9,7 +9,7 @@ pub(all) struct OutlineBlock {
 
 ///|
 pub(all) struct SlideOutline {
-  number : Int
+  number : Int32
   part : String
   name : String
   hidden : Bool
@@ -70,7 +70,7 @@ fn outline_shape_info(shape : @xml.Element) -> (String, String) {
 }
 
 ///|
-fn outline_charge(text : String, budget : Ref[Int]) -> Unit raise PptxError {
+fn outline_charge(text : String, budget : Ref[Int32]) -> Unit raise PptxError {
   budget.val += text.length()
   if budget.val > 2_000_000 {
     raise InvalidPresentation(
@@ -87,8 +87,8 @@ fn outline_blocks(
   title : Ref[String],
   blocks : Array[OutlineBlock],
   warnings : Array[String],
-  text_budget : Ref[Int],
-  item_budget : Ref[Int],
+  text_budget : Ref[Int32],
+  item_budget : Ref[Int32],
 ) -> Unit raise PptxError {
   for child in tree.child_elements() {
     item_budget.val += 1

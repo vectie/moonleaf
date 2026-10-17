@@ -1,35 +1,35 @@
 ///|
 pub(all) struct PdfDocument {
   bytes : Bytes
-  page_count : Int
+  page_count : Int32
 } derive(Debug)
 
 ///|
 priv struct Glyph {
-  face : Int
-  code : Int
-  size : Int
-  x : Int
-  advance : Int
+  face : Int32
+  code : Int32
+  size : Int32
+  x : Int32
+  advance : Int32
   underline : Bool
 }
 
 ///|
 priv struct Line {
   glyphs : Array[Glyph]
-  width : Int
-  height : Int
-  offset : Int
+  width : Int32
+  height : Int32
+  offset : Int32
 }
 
 ///|
-fn hex4(value : Int) -> String {
+fn hex4(value : Int32) -> String {
   let s = value.to_string(radix=16)
   "0".repeat((4 - s.length()).max(0)) + s
 }
 
 ///|
-fn face_index(faces : Array[Face], family : String) -> Int raise PdfError {
+fn face_index(faces : Array[Face], family : String) -> Int32 raise PdfError {
   for i, face in faces {
     if face.input.family == family {
       return i
@@ -42,7 +42,7 @@ fn face_index(faces : Array[Face], family : String) -> Int raise PdfError {
 /// Strict Chinese/Latin legal-document profile. Complex-script shaping is not supported.
 fn paragraph_lines(
   p : @docx.ParagraphInfo,
-  width : Int,
+  width : Int32,
   faces : Array[Face],
   default_family : String,
 ) -> Array[Line] raise PdfError {
@@ -62,9 +62,9 @@ fn paragraph_lines(
   fn flush(
     lines : Array[Line],
     glyphs : Array[Glyph],
-    used : Int,
-    size_max : Int,
-    offset : Int,
+    used : Int32,
+    size_max : Int32,
+    offset : Int32,
     p : @docx.ParagraphInfo,
   ) -> Unit raise PdfError {
     let natural = size_max * 13 / 10
@@ -198,11 +198,11 @@ fn paragraph_lines(
 fn draw_lines(
   out : StringBuilder,
   lines : Array[Line],
-  x : Int,
-  top : Int,
-  width : Int,
+  x : Int32,
+  top : Int32,
+  width : Int32,
   align : String?,
-) -> Int raise PdfError {
+) -> Int32 raise PdfError {
   guard align is None ||
     align == Some("left") ||
     align == Some("center") ||
@@ -257,7 +257,7 @@ fn draw_lines(
 }
 
 ///|
-fn stream(data : Bytes, extra? : String = "") -> Bytes {
+fn stream(data : Bytes, extra~ : String = "") -> Bytes {
   @utf8.encode("<< /Length \{data.length()} \{extra} >>\nstream\n") +
   data +
   b"\nendstream"
@@ -266,8 +266,8 @@ fn stream(data : Bytes, extra? : String = "") -> Bytes {
 ///|
 fn pdf_bytes(
   pages : Array[String],
-  width : Int,
-  height : Int,
+  width : Int32,
+  height : Int32,
   faces : Array[Face],
 ) -> Bytes raise PdfError {
   let objects : Array[Bytes] = [b"<< /Type /Catalog /Pages 2 0 R >>", b""]
@@ -335,7 +335,7 @@ fn pdf_bytes(
   )
   let out = @buffer.Buffer()
   out.write_bytes(b"%PDF-1.7\n%MoonLeaf\n")
-  let offsets : Array[Int] = []
+  let offsets : Array[Int32] = []
   for i, object in objects {
     offsets.push(out.length())
     out.write_string_utf8("\{i + 1} 0 obj\n")
@@ -455,8 +455,8 @@ pub fn render_docx_pdf(
         }
         for row in table.rows {
           let cell_lines : Array[Array[(Array[Line], @docx.ParagraphInfo)]] = []
-          let widths : Array[Int] = []
-          let content_heights : Array[Int] = []
+          let widths : Array[Int32] = []
+          let content_heights : Array[Int32] = []
           let mut column = 0
           let mut row_height = 0
           for cell in row.cells {

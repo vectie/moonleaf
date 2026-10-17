@@ -46,9 +46,9 @@ fn inline_text_cell(
 /// rows/cells need not be sorted. Only an ambiguous target prevents an edit.
 fn cell_location(
   sheet_data : @xml.Element,
-  row : Int,
-  column : Int,
-) -> (Int, Int)? raise XlsxError {
+  row : Int32,
+  column : Int32,
+) -> (Int32, Int32)? raise XlsxError {
   let mut found = None
   let mut previous_row = 0
   for row_index, node in sheet_data.children {
@@ -88,8 +88,8 @@ fn cell_location(
 ///|
 fn insert_cell(
   row_element : @xml.Element,
-  row : Int,
-  column : Int,
+  row : Int32,
+  column : Int32,
   text : String,
 ) -> @xml.Element {
   let reference = cell_reference(row, column)
@@ -117,7 +117,7 @@ fn insert_cell(
 }
 
 ///|
-fn new_row(row : Int, column : Int, text : String) -> @xml.Element {
+fn new_row(row : Int32, column : Int32, text : String) -> @xml.Element {
   element("row", [attribute("r", "\{row}")], [
     Element(inline_text_cell(cell_reference(row, column), text, None)),
   ])
@@ -126,8 +126,8 @@ fn new_row(row : Int, column : Int, text : String) -> @xml.Element {
 ///|
 fn replace_or_insert_row(
   sheet_data : @xml.Element,
-  row : Int,
-  column : Int,
+  row : Int32,
+  column : Int32,
   text : String,
 ) -> @xml.Element raise XlsxError {
   if cell_location(sheet_data, row, column) is Some((row_index, cell_index)) {
@@ -227,8 +227,8 @@ fn comes_after_sheet_data(local_name : String) -> Bool {
 ///|
 fn update_worksheet(
   worksheet : @xml.Element,
-  row : Int,
-  column : Int,
+  row : Int32,
+  column : Int32,
   text : String,
 ) -> @xml.Element raise XlsxError {
   guard worksheet.local_name() == "worksheet" else {
@@ -295,8 +295,8 @@ fn descriptor_named(
 pub fn set_cell_text(
   xlsx_package : @opc.Package,
   sheet_name : String,
-  row : Int,
-  column : Int,
+  row : Int32,
+  column : Int32,
   text : String,
 ) -> @opc.Package raise XlsxError {
   if row < 1 || row > max_row || column < 1 || column > max_column {
@@ -337,8 +337,8 @@ pub fn set_cell_text(
 ///|
 fn replace_existing_cells_in_worksheet(
   worksheet : @xml.Element,
-  edits : Array[(Int, Int, String)],
-  changed : Ref[Int],
+  edits : Array[(Int32, Int32, String)],
+  changed : Ref[Int32],
 ) -> @xml.Element raise XlsxError {
   guard worksheet.local_name() == "worksheet" else {
     raise InvalidWorkbook("worksheet part has an invalid root")
@@ -393,12 +393,12 @@ fn replace_existing_cells_in_worksheet(
 pub fn set_cells_text(
   xlsx_package : @opc.Package,
   sheet_name : String,
-  edits : Array[(Int, Int, String)],
+  edits : Array[(Int32, Int32, String)],
 ) -> @opc.Package raise XlsxError {
   if edits.is_empty() {
     return xlsx_package
   }
-  let replacements : Map[Int, Map[Int, String]] = Map([])
+  let replacements : Map[Int32, Map[Int32, String]] = Map([])
   for (row, column, text) in edits {
     if row < 1 || row > max_row || column < 1 || column > max_column {
       raise InvalidCoordinates(row~, column~)
@@ -409,7 +409,7 @@ pub fn set_cells_text(
     let columns = match replacements.get(row) {
       Some(columns) => columns
       None => {
-        let columns : Map[Int, String] = Map([])
+        let columns : Map[Int32, String] = Map([])
         replacements[row] = columns
         columns
       }

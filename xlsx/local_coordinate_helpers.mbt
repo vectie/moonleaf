@@ -4,9 +4,9 @@
 /// row; the exact-coordinate text editors keep using cell_location instead.
 fn cell_column_or_implicit(
   cell : @xml.Element,
-  row : Int,
-  previous : Int,
-) -> Int raise XlsxError {
+  row : Int32,
+  previous : Int32,
+) -> Int32 raise XlsxError {
   match cell.attribute("r") {
     None => previous + 1
     Some(reference) =>
@@ -19,6 +19,6 @@ fn cell_column_or_implicit(
 
 ///|
 /// Preserve the local operations' explicit-row validation and fallback rules.
-fn row_number(row : @xml.Element) -> Int? {
+fn row_number(row : @xml.Element) -> Int32? {
   integer_attribute(row, "r", max_row)
 }

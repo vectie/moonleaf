@@ -3,9 +3,9 @@
 priv struct Parser {
   source : String
   options : ParseOptions
-  mut offset : Int
-  mut nodes : Int
-  mut decoded_text : Int
+  mut offset : Int32
+  mut nodes : Int32
+  mut decoded_text : Int32
 }
 
 ///|
@@ -95,7 +95,7 @@ fn Parser::parse_name(self : Parser) -> String raise XmlError {
 }
 
 ///|
-fn decode_entity(entity : String, offset : Int) -> String raise XmlError {
+fn decode_entity(entity : String, offset : Int32) -> String raise XmlError {
   match entity {
     "amp" => "&"
     "lt" => "<"
@@ -148,7 +148,7 @@ fn decode_entity(entity : String, offset : Int) -> String raise XmlError {
 fn Parser::decode(
   _self : Parser,
   raw : String,
-  at : Int,
+  at : Int32,
 ) -> String raise XmlError {
   let out = StringBuilder()
   let mut cursor = 0
@@ -233,7 +233,7 @@ fn Parser::add_text(self : Parser, text : String) -> Unit raise XmlError {
 fn Parser::parse_element(
   self : Parser,
   _parent_scope : Array[(String, String)],
-  depth : Int,
+  depth : Int32,
 ) -> Element raise XmlError {
   if depth > self.options.max_depth {
     self.fail("depth limit exceeded")

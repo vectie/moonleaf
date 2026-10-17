@@ -51,17 +51,17 @@ fn is_numeric_cell(value : @scene.CellValue) -> Bool {
 ///|
 fn sheet_json(
   sheet : @scene.Sheet,
-  total : Ref[Int],
-  text_size : Ref[Int],
-  wrapped : Array[(Int, Int)],
-  bold : Array[(Int, Int)],
-  italic : Array[(Int, Int)],
-  underlined : Array[(Int, Int)],
-  horizontal : Array[(Int, Int, String)],
-  number_formats : Array[(Int, Int, String)],
-  decimal_places : Array[(Int, Int, Int)],
-  hidden_rows : Array[Int],
-  numeric_formulas? : Array[(Int, Int)] = [],
+  total : Ref[Int32],
+  text_size : Ref[Int32],
+  wrapped : Array[(Int32, Int32)],
+  bold : Array[(Int32, Int32)],
+  italic : Array[(Int32, Int32)],
+  underlined : Array[(Int32, Int32)],
+  horizontal : Array[(Int32, Int32, String)],
+  number_formats : Array[(Int32, Int32, String)],
+  decimal_places : Array[(Int32, Int32, Int32)],
+  hidden_rows : Array[Int32],
+  numeric_formulas~ : Array[(Int32, Int32)] = [],
 ) -> Json {
   let rows : Array[Array[String]] = []
   let numeric_cells : Array[Json] = []
@@ -343,7 +343,7 @@ fn edit(args : Array[String]) -> Unit {
 ///|
 /// Turn a bounded clipboard rectangle into 1-based cell edits. Empty strings
 /// clear cells; ragged rows leave the omitted trailing cells untouched.
-fn paste_edits(request : Json) -> (String, Array[(Int, Int, String)]) {
+fn paste_edits(request : Json) -> (String, Array[(Int32, Int32, String)]) {
   guard request
     is {
       "sheet": String(sheet),
@@ -369,7 +369,7 @@ fn paste_edits(request : Json) -> (String, Array[(Int, Int, String)]) {
     rows.length() > 1_000 {
     abort("paste range exceeds bounds")
   }
-  let edits : Array[(Int, Int, String)] = []
+  let edits : Array[(Int32, Int32, String)] = []
   for row_offset, item in rows {
     guard item is Array(values) && !values.is_empty() else {
       abort("paste rows must contain text cells")
@@ -885,7 +885,7 @@ fn format_number(args : Array[String]) -> Unit {
     "currency" => FormatCurrency
     _ => abort("number format must be general, number, percent or currency")
   }
-  let decimal_places : Int? = match request {
+  let decimal_places : Int32? = match request {
     { "decimal_places": Number(value, ..), .. } =>
       Some(
         @string.parse_int(value.to_string()[:]) catch {
@@ -1353,7 +1353,7 @@ fn copy_row_styles(args : Array[String]) -> Unit {
 }
 
 ///|
-fn ascii_fold(char : Char) -> Int {
+fn ascii_fold(char : Char) -> Int32 {
   let code = char.to_int()
   if code >= 65 && code <= 90 {
     code + 32
@@ -1432,7 +1432,7 @@ fn replace_all(args : Array[String]) -> Unit {
     guard session.scene() is WorkbookDocument(workbook) else {
       abort("MoonLeaf did not return a workbook")
     }
-    let edits : Array[(Int, Int, String)] = []
+    let edits : Array[(Int32, Int32, String)] = []
     let mut found_sheet = false
     for candidate in workbook.sheets {
       if candidate.name == sheet {
@@ -1504,10 +1504,10 @@ fn replace_all(args : Array[String]) -> Unit {
 ///|
 fn sorted_delimited(
   table : @csv.Table,
-  column : Int,
+  column : Int32,
   descending : Bool,
   has_header : Bool,
-) -> (@csv.Table, Int) {
+) -> (@csv.Table, Int32) {
   if column < 1 || column > 256 {
     abort("sort column is out of range")
   }
@@ -1799,7 +1799,7 @@ fn created_csv_bytes(
 /// Convert a sparse worksheet into CSV rows while retaining row positions.
 fn sheet_csv_rows(
   sheet : @scene.Sheet,
-) -> (Array[Array[@scene.CellValue]], Int, Int) {
+) -> (Array[Array[@scene.CellValue]], Int32, Int32) {
   let rows : Array[Array[@scene.CellValue]] = []
   let mut cell_count = 0
   let mut max_column = 0
@@ -2052,7 +2052,7 @@ fn verified_docx_edit_copy(
 ///|
 fn verified_docx_paragraph_copy(
   source : FixedArray[Byte],
-  paragraph_index : Int,
+  paragraph_index : Int32,
   expected_text : String,
   replacement : String,
 ) -> FixedArray[Byte] {
@@ -2147,7 +2147,7 @@ fn edit_docx_copy(args : Array[String]) -> Unit {
 }
 
 ///|
-fn optional_int_json(value : Int?) -> Json {
+fn optional_int_json(value : Int32?) -> Json {
   match value {
     Some(number) => @json.to_json(number)
     None => Json::null()
@@ -2163,7 +2163,7 @@ fn optional_string_json(value : String?) -> Json {
 }
 
 ///|
-fn docx_run_json(run : @docx.RunMetadata, text_size : Ref[Int]) -> Json {
+fn docx_run_json(run : @docx.RunMetadata, text_size : Ref[Int32]) -> Json {
   text_size.val += run.text.length()
   if text_size.val > 200_000 {
     abort("DOCX preview exceeds text limit")
@@ -2186,7 +2186,7 @@ fn docx_run_json(run : @docx.RunMetadata, text_size : Ref[Int]) -> Json {
 ///|
 fn docx_paragraph_json(
   paragraph : @docx.ParagraphInfo,
-  text_size : Ref[Int],
+  text_size : Ref[Int32],
 ) -> Json {
   if paragraph.runs.length() > 10_000 {
     abort("DOCX preview exceeds run limit")
@@ -2225,8 +2225,8 @@ fn docx_paragraph_json(
 ///|
 fn docx_table_json(
   table : @docx.TableInfo,
-  text_size : Ref[Int],
-  table_index? : Int,
+  text_size : Ref[Int32],
+  table_index? : Int32,
 ) -> Json {
   if table.rows.length() > 2_000 {
     abort("DOCX preview exceeds table row limit")

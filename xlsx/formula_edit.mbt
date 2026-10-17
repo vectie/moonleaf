@@ -2,8 +2,8 @@
 fn value_edit_worksheet(
   archive : @opc.Package,
   sheet_name : String,
-  row : Int,
-  column : Int,
+  row : Int32,
+  column : Int32,
 ) -> (String, @xml.Element) raise XlsxError {
   if row < 1 || row > max_row || column < 1 || column > max_column {
     raise InvalidCoordinates(row~, column~)
@@ -79,8 +79,8 @@ fn formula_cell_element(
 pub fn set_cell_formula(
   archive : @opc.Package,
   sheet_name : String,
-  row : Int,
-  column : Int,
+  row : Int32,
+  column : Int32,
   formula : String,
 ) -> @opc.Package raise XlsxError {
   let expression = formula
@@ -116,8 +116,8 @@ pub fn set_cell_formula(
 pub fn set_cell_value(
   archive : @opc.Package,
   sheet_name : String,
-  row : Int,
-  column : Int,
+  row : Int32,
+  column : Int32,
   value_type : String,
   value : String,
 ) -> @opc.Package raise XlsxError {

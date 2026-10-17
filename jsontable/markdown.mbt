@@ -1,6 +1,6 @@
 ///|
 pub(all) suberror MarkdownTableError {
-  InvalidMarkdownTable(line~ : Int, reason~ : String)
+  InvalidMarkdownTable(line~ : Int32, reason~ : String)
 } derive(Debug, Eq)
 
 ///|
@@ -8,9 +8,9 @@ pub(all) suberror MarkdownTableError {
 /// is local to this exact document and is not a stable business key.
 pub(all) struct MarkdownTable {
   id : String
-  header_line : Int
-  separator_line : Int
-  source_lines : Array[Int]
+  header_line : Int32
+  separator_line : Int32
+  source_lines : Array[Int32]
   table : Table
 } derive(Debug, Eq)
 
@@ -93,7 +93,7 @@ fn markdown_separator(cells : Array[String]) -> Bool {
 }
 
 ///|
-fn markdown_fence(line : String) -> (Char, Int, Bool)? {
+fn markdown_fence(line : String) -> (Char, Int32, Bool)? {
   if markdown_indented(line) {
     return None
   }
@@ -150,7 +150,7 @@ pub fn parse_markdown_tables(
     lines[0] = lines[0].trim_start(chars="\uFEFF").to_owned()
   }
   let tables : Array[MarkdownTable] = []
-  let mut fence : (Char, Int)? = None
+  let mut fence : (Char, Int32)? = None
   let mut line = 0
   let mut total_cells = 0
   while line < lines.length() {
@@ -199,7 +199,7 @@ pub fn parse_markdown_tables(
     let header_line = line + 1
     let separator_line = line + 2
     let rows : Array[Array[@scene.CellValue]] = []
-    let source_lines : Array[Int] = []
+    let source_lines : Array[Int32] = []
     total_cells += headers.length()
     line += 2
     while line < lines.length() {

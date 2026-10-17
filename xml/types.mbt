@@ -1,6 +1,6 @@
 ///|
 pub(all) suberror XmlError {
-  InvalidXml(offset~ : Int, message~ : String)
+  InvalidXml(offset~ : Int32, message~ : String)
 } derive(Debug, Eq)
 
 ///|
@@ -33,11 +33,11 @@ pub(all) struct Element {
 ///|
 /// Parser resource ceilings. Values must be non-negative.
 pub(all) struct ParseOptions {
-  max_input_utf16 : Int
-  max_depth : Int
-  max_nodes : Int
-  max_attributes_per_element : Int
-  max_total_decoded_text : Int
+  max_input_utf16 : Int32
+  max_depth : Int32
+  max_nodes : Int32
+  max_attributes_per_element : Int32
+  max_total_decoded_text : Int32
 } derive(Debug, Eq)
 
 ///|

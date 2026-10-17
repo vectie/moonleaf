@@ -2,7 +2,7 @@
 pub(all) struct NamedXlsxTable {
   table : Table
   definition : @xlsx.NamedTable
-  source_rows : Array[Int]
+  source_rows : Array[Int32]
   warnings : Array[String]
 } derive(Debug, Eq)
 

@@ -1,7 +1,7 @@
 ///|
 priv struct ComparisonSheet {
   name : String
-  position : Int
+  position : Int32
   state : String
   merges : Array[String]
   cells : Map[String, ComparisonCell]

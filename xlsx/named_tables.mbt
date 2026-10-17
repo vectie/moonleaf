@@ -9,9 +9,9 @@ pub(all) struct NamedTable {
   reference : String
   import_reference : String?
   columns : Array[String]
-  header_rows : Int
-  totals_rows : Int
-  data_rows : Int
+  header_rows : Int32
+  totals_rows : Int32
+  data_rows : Int32
   calculated_columns : Bool
 } derive(Debug, Eq)
 
@@ -19,8 +19,8 @@ pub(all) struct NamedTable {
 fn table_count(
   element : @xml.Element,
   name : String,
-  default : Int,
-) -> Int raise XlsxError {
+  default : Int32,
+) -> Int32 raise XlsxError {
   match element.attribute(name) {
     None => default
     Some(value) =>

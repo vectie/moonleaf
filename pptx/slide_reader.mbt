@@ -1,17 +1,17 @@
 ///|
 priv struct LocalTransform {
-  x : Int
-  y : Int
-  width : Int
-  height : Int
+  x : Int32
+  y : Int32
+  width : Int32
+  height : Int32
   // Exact affine scale, retained as a ratio through nested groups.
-  scale_x_num : Int
-  scale_x_den : Int
-  scale_y_num : Int
-  scale_y_den : Int
-  group_width : Int
-  group_height : Int
-  rotation : Int
+  scale_x_num : Int32
+  scale_x_den : Int32
+  scale_y_num : Int32
+  scale_y_den : Int32
+  group_width : Int32
+  group_height : Int32
+  rotation : Int32
   flip_h : Bool
   flip_v : Bool
 }
@@ -403,8 +403,8 @@ fn append_slide_elements(
 fn parse_slide(
   container : @opc.Package,
   part : String,
-  width : Int,
-  height : Int,
+  width : Int32,
+  height : Int32,
   warnings : Array[@scene.Warning],
 ) -> @scene.Slide raise PptxError {
   let root = parse_xml_part(container, part, presentation=false)

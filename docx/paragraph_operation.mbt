@@ -384,7 +384,7 @@ fn operation_paragraph_text(element : @xml.Element) -> String {
 ///|
 fn operation_run_text(
   element : @xml.Element,
-  include_page_breaks? : Bool = true,
+  include_page_breaks~ : Bool = true,
 ) -> String {
   let out = StringBuilder()
   for child in element.child_elements() {
@@ -401,7 +401,10 @@ fn operation_run_text(
 }
 
 ///|
-fn operation_span(source : String, wanted : Int) -> (Int, Int) raise DocxError {
+fn operation_span(
+  source : String,
+  wanted : Int32,
+) -> (Int32, Int32) raise DocxError {
   let mut offset = 0
   let mut ordinal = 0
   let mut depth = 0
@@ -469,7 +472,7 @@ fn operation_span(source : String, wanted : Int) -> (Int, Int) raise DocxError {
 }
 
 ///|
-fn operation_index(request : Json, key : String) -> Int raise DocxError {
+fn operation_index(request : Json, key : String) -> Int32 raise DocxError {
   match operation_field(request, key) {
     Number(n, ..) if !n.is_nan() &&
       !n.is_inf() &&
@@ -484,8 +487,8 @@ fn operation_index(request : Json, key : String) -> Int raise DocxError {
 fn operation_child_at(
   parent : @xml.Element,
   name : String,
-  wanted : Int,
-) -> (Int, @xml.Element) raise DocxError {
+  wanted : Int32,
+) -> (Int32, @xml.Element) raise DocxError {
   let mut ordinal = 0
   for position, child in parent.children {
     if child is Element(element) && element.local_name() == name {
@@ -586,7 +589,7 @@ pub fn edit_body_paragraph(
   let root = @xml.parse(source) catch {
     error => raise InvalidDocument(repr(error))
   }
-  let mut path : Array[Int] = []
+  let mut path : Array[Int32] = []
   let mut paragraph : @xml.Element? = None
   let mut ordinal = 0
   let scope = operation_field(request, "scope")

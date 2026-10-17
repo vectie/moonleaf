@@ -7,7 +7,7 @@ fn optional_text(value : String?) -> String {
 }
 
 ///|
-fn optional_int(value : Int?) -> String {
+fn optional_int(value : Int32?) -> String {
   match value {
     Some(v) => v.to_string()
     None => "(none)"

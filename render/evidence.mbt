@@ -22,7 +22,7 @@ pub(all) struct Evidence {
   artifact_sha256 : String
   font_bundle_sha256 : String
   layout_profile_sha256 : String
-  page_count : Int
+  page_count : Int32
   rendered_unix_ms : Int64
 } derive(Debug, Eq, ToJson, FromJson)
 

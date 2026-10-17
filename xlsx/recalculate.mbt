@@ -2,7 +2,7 @@
 /// A deliberately bounded quote-template formula profile, not an Excel emulator.
 priv struct FormulaParser {
   source : String
-  mut position : Int
+  mut position : Int32
   resolve : (String) -> Double raise XlsxError
   aggregate_resolve : (String) -> Double? raise XlsxError
 }
@@ -37,7 +37,7 @@ fn FormulaParser::take(self : FormulaParser, code : UInt16) -> Bool {
 ///|
 fn FormulaParser::expression(
   self : FormulaParser,
-  depth : Int,
+  depth : Int32,
 ) -> Double raise XlsxError {
   if depth > 64 {
     raise InvalidWorkbook("formula nesting bound exceeded")
@@ -59,7 +59,7 @@ fn FormulaParser::expression(
 ///|
 fn FormulaParser::product(
   self : FormulaParser,
-  depth : Int,
+  depth : Int32,
 ) -> Double raise XlsxError {
   let mut value = self.power(depth + 1)
   while true {
@@ -82,7 +82,7 @@ fn FormulaParser::product(
 ///|
 fn FormulaParser::power(
   self : FormulaParser,
-  depth : Int,
+  depth : Int32,
 ) -> Double raise XlsxError {
   if depth > 64 {
     raise InvalidWorkbook("formula nesting bound exceeded")
@@ -131,7 +131,7 @@ fn FormulaParser::token(self : FormulaParser) -> String {
 ///|
 fn FormulaParser::atom(
   self : FormulaParser,
-  depth : Int,
+  depth : Int32,
 ) -> Double raise XlsxError {
   if depth > 64 {
     raise InvalidWorkbook("formula nesting bound exceeded")
@@ -312,8 +312,8 @@ fn recalculate_value(
   cells : Map[String, @xml.Element],
   values : Map[String, Double],
   visiting : Map[String, Bool],
-  budget : Ref[Int],
-  depth : Int,
+  budget : Ref[Int32],
+  depth : Int32,
 ) -> Double raise XlsxError {
   budget.val -= 1
   if budget.val < 0 || depth > 64 {
@@ -383,8 +383,8 @@ fn aggregate_recalculate_value(
   cells : Map[String, @xml.Element],
   values : Map[String, Double],
   visiting : Map[String, Bool],
-  budget : Ref[Int],
-  depth : Int,
+  budget : Ref[Int32],
+  depth : Int32,
 ) -> Double? raise XlsxError {
   budget.val -= 1
   if budget.val < 0 || depth > 64 {

@@ -2,11 +2,11 @@
 pub(all) suberror UnpivotError {
   InvalidUnpivot(String)
   UnknownUnpivotColumn(String)
-  UnsupportedUnpivotValue(row~ : Int, column~ : String)
+  UnsupportedUnpivotValue(row~ : Int32, column~ : String)
 } derive(Debug, Eq)
 
 ///|
-fn unpivot_column(table : Table, name : String) -> Int raise UnpivotError {
+fn unpivot_column(table : Table, name : String) -> Int32 raise UnpivotError {
   for index, column in table.columns {
     if column == name {
       return index
@@ -18,7 +18,7 @@ fn unpivot_column(table : Table, name : String) -> Int raise UnpivotError {
 ///|
 fn unpivot_scalar(
   value : @scene.CellValue,
-  row~ : Int,
+  row~ : Int32,
   column~ : String,
 ) -> Unit raise UnpivotError {
   match value {
@@ -36,9 +36,9 @@ pub fn Table::unpivot(
   self : Table,
   id_columns~ : Array[String],
   value_columns~ : Array[String],
-  names_to? : String = "variable",
-  values_to? : String = "value",
-  drop_empty? : Bool = false,
+  names_to~ : String = "variable",
+  values_to~ : String = "value",
+  drop_empty~ : Bool = false,
 ) -> Table raise UnpivotError {
   validate_lookup_table(self) catch {
     _ =>
@@ -59,7 +59,7 @@ pub fn Table::unpivot(
     )
   }
   let selected : Array[String] = []
-  let identifiers : Array[Int] = []
+  let identifiers : Array[Int32] = []
   for column in id_columns {
     if selected.contains(column) {
       raise InvalidUnpivot("Duplicate identifier column: " + column)
@@ -67,7 +67,7 @@ pub fn Table::unpivot(
     identifiers.push(unpivot_column(self, column))
     selected.push(column)
   }
-  let values : Array[Int] = []
+  let values : Array[Int32] = []
   for column in value_columns {
     if selected.contains(column) {
       raise InvalidUnpivot("Repeated or overlapping value column: " + column)

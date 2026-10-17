@@ -94,7 +94,7 @@ test "batch paste expands CSV once and rejects duplicate coordinates" {
     _ => false
   }
   assert_true(duplicate)
-  let oversized : Array[(Int, Int, String)] = []
+  let oversized : Array[(Int32, Int32, String)] = []
   for row in 1..<=400 {
     oversized.push((row, 256, "x"))
   }

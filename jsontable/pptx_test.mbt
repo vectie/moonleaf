@@ -45,7 +45,7 @@ fn pptx_source(content : String) -> @opc.Package {
 ///|
 fn pptx_import(
   content : String,
-  header? : @jsontable.PptxHeader = FirstSlideTableRow,
+  header~ : @jsontable.PptxHeader = FirstSlideTableRow,
 ) -> @jsontable.PptxTable raise {
   @jsontable.extract_pptx(
     pptx_source(content),

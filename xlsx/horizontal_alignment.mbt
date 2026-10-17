@@ -21,12 +21,12 @@ fn horizontal_name(alignment : HorizontalAlignment) -> String {
 pub fn set_horizontal_alignment_range(
   xlsx_package : @opc.Package,
   sheet_name : String,
-  start_row : Int,
-  start_column : Int,
-  end_row : Int,
-  end_column : Int,
+  start_row : Int32,
+  start_column : Int32,
+  end_row : Int32,
+  end_column : Int32,
   alignment : HorizontalAlignment,
-) -> (@opc.Package, Int) raise XlsxError {
+) -> (@opc.Package, Int32) raise XlsxError {
   set_cell_style_range(
     xlsx_package,
     sheet_name,
@@ -44,7 +44,7 @@ pub fn set_horizontal_alignment_range(
 pub fn horizontal_alignment_cells(
   xlsx_package : @opc.Package,
   sheet_name : String,
-) -> Array[(Int, Int, String)] raise XlsxError {
+) -> Array[(Int32, Int32, String)] raise XlsxError {
   if !xlsx_package.has_part("xl/workbook.xml") {
     raise MissingWorkbook
   }
@@ -67,7 +67,7 @@ pub fn horizontal_alignment_cells(
   }
   let styles = cell_xfs.children_named("xf")
   let worksheet = parse_part(xlsx_package, sheet_part)
-  let result : Array[(Int, Int, String)] = []
+  let result : Array[(Int32, Int32, String)] = []
   match worksheet.first_child("sheetData") {
     Some(data) => {
       let mut previous_row = 0

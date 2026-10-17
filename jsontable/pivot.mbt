@@ -11,19 +11,19 @@ pub(all) enum PivotDuplicates {
 pub(all) suberror PivotError {
   InvalidPivot(String)
   UnknownPivotColumn(String)
-  InvalidPivotKey(row~ : Int, column~ : String)
-  UnsupportedPivotValue(row~ : Int, column~ : String)
-  DuplicatePivotCell(first_row~ : Int, row~ : Int, key~ : String)
+  InvalidPivotKey(row~ : Int32, column~ : String)
+  UnsupportedPivotValue(row~ : Int32, column~ : String)
+  DuplicatePivotCell(first_row~ : Int32, row~ : Int32, key~ : String)
 } derive(Debug, Eq)
 
 ///|
 priv struct PivotGroup {
   ids : Array[@scene.CellValue]
-  cells : Map[String, (Int, @scene.CellValue)]
+  cells : Map[String, (Int32, @scene.CellValue)]
 }
 
 ///|
-fn pivot_column(table : Table, name : String) -> Int raise PivotError {
+fn pivot_column(table : Table, name : String) -> Int32 raise PivotError {
   for index, column in table.columns {
     if column == name {
       return index
@@ -35,7 +35,7 @@ fn pivot_column(table : Table, name : String) -> Int raise PivotError {
 ///|
 fn pivot_scalar(
   value : @scene.CellValue,
-  row~ : Int,
+  row~ : Int32,
   column~ : String,
 ) -> Json raise PivotError {
   // Typed JSON framing preserves exact scalar identities without delimiter
@@ -50,7 +50,7 @@ fn pivot_scalar(
 }
 
 ///|
-fn pivot_size(rows : Int, columns : Int) -> Unit raise PivotError {
+fn pivot_size(rows : Int32, columns : Int32) -> Unit raise PivotError {
   if columns > 256 || rows > 10_000 || (rows + 1) * columns > 100_000 {
     raise InvalidPivot(
       "Result exceeds 256 columns, 10000 rows or 100000 cells including header",
@@ -70,8 +70,8 @@ pub fn Table::pivot(
   id_columns~ : Array[String],
   key_column~ : String,
   value_column~ : String,
-  duplicates? : PivotDuplicates = Reject,
-  prefix? : String = "",
+  duplicates~ : PivotDuplicates = Reject,
+  prefix~ : String = "",
 ) -> Table raise PivotError {
   validate_lookup_table(self) catch {
     _ =>
@@ -85,7 +85,7 @@ pub fn Table::pivot(
     raise InvalidPivot("Input exceeds 256 columns, 10000 rows or 100000 cells")
   }
   let selected : Array[String] = []
-  let identifiers : Array[Int] = []
+  let identifiers : Array[Int32] = []
   for column in id_columns {
     if selected.contains(column) {
       raise InvalidPivot("Duplicate identifier column: " + column)
@@ -104,7 +104,7 @@ pub fn Table::pivot(
   let columns = id_columns.copy()
   let key_names : Array[String] = []
   let seen_keys : Map[String, Bool] = Map([])
-  let group_indices : Map[String, Int] = Map([])
+  let group_indices : Map[String, Int32] = Map([])
   let groups : Array[PivotGroup] = []
   for row_index, row in self.rows {
     let data_row = row_index + 1

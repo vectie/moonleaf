@@ -27,10 +27,10 @@ pub(all) suberror DocumentSessionError {
   Render(String)
   OperationNotSupported(operation~ : String, format~ : DocumentFormat)
   InvalidFind(String)
-  InvalidCoordinates(row~ : Int, column~ : Int)
+  InvalidCoordinates(row~ : Int32, column~ : Int32)
   SheetNotFound(String)
-  FormulaCell(sheet~ : String, row~ : Int, column~ : Int)
-  MergedCellNotAnchor(sheet~ : String, row~ : Int, column~ : Int)
+  FormulaCell(sheet~ : String, row~ : Int32, column~ : Int32)
+  MergedCellNotAnchor(sheet~ : String, row~ : Int32, column~ : Int32)
   SaveVerification(String)
 } derive(Debug, Eq)
 
@@ -42,7 +42,7 @@ pub struct DocumentSession {
   priv source_archive : @opc.Package
   priv scene : @scene.Document
   priv diagnostics : Array[DocumentDiagnostic]
-  priv revision : Int
+  priv revision : Int32
   priv dirty : Bool
 }
 
@@ -253,7 +253,7 @@ pub fn DocumentSession::diagnostics(
 }
 
 ///|
-pub fn DocumentSession::revision(self : DocumentSession) -> Int {
+pub fn DocumentSession::revision(self : DocumentSession) -> Int32 {
   self.revision
 }
 
@@ -319,8 +319,8 @@ pub fn DocumentSession::replace_text(
 fn DocumentSession::validate_xlsx_cell(
   self : DocumentSession,
   sheet_name : String,
-  row : Int,
-  column : Int,
+  row : Int32,
+  column : Int32,
 ) -> Unit raise DocumentSessionError {
   if row < 1 || row > 1048576 || column < 1 || column > 16384 {
     raise InvalidCoordinates(row~, column~)
@@ -362,8 +362,8 @@ fn DocumentSession::validate_xlsx_cell(
 fn DocumentSession::cell_text_equals(
   self : DocumentSession,
   sheet_name : String,
-  row : Int,
-  column : Int,
+  row : Int32,
+  column : Int32,
   text : String,
 ) -> Bool {
   match self.scene {
@@ -386,8 +386,8 @@ fn DocumentSession::cell_text_equals(
 pub fn DocumentSession::set_cell_text(
   self : DocumentSession,
   sheet : String,
-  row : Int,
-  column : Int,
+  row : Int32,
+  column : Int32,
   text : String,
 ) -> DocumentSession raise DocumentSessionError {
   if self.format != Xlsx {
@@ -414,7 +414,7 @@ pub fn DocumentSession::set_cell_text(
 pub fn DocumentSession::set_cells_text(
   self : DocumentSession,
   sheet : String,
-  edits : Array[(Int, Int, String)],
+  edits : Array[(Int32, Int32, String)],
 ) -> DocumentSession raise DocumentSessionError {
   if self.format != Xlsx {
     raise OperationNotSupported(operation="set_cells_text", format=self.format)

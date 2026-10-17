@@ -1,5 +1,5 @@
 ///|
-fn record_name_start(c : Int) -> Bool {
+fn record_name_start(c : Int32) -> Bool {
   c == 0x5f ||
   (c >= 0x41 && c <= 0x5a) ||
   (c >= 0x61 && c <= 0x7a) ||

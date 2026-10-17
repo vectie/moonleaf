@@ -31,7 +31,7 @@ fn row_edit_is_safe(archive : @opc.Package, worksheet : @xml.Element) -> Bool {
 }
 
 ///|
-fn row_edit_blank_row(row : Int) -> @xml.Node {
+fn row_edit_blank_row(row : Int32) -> @xml.Node {
   Element(
     element("row", [attribute("r", row.to_string())], [
       Element(element("c", [attribute("r", cell_reference(row, 1))], [])),
@@ -91,10 +91,10 @@ fn row_edit_extent(rows : Array[@xml.Node]) -> String raise XlsxError {
 ///|
 fn row_edit_sheet_data(
   data : @xml.Element,
-  at : Int,
-  count : Int,
+  at : Int32,
+  count : Int32,
   edit : RowEdit,
-) -> (@xml.Element, Int) raise XlsxError {
+) -> (@xml.Element, Int32) raise XlsxError {
   let rows : Array[@xml.Node] = []
   let mut previous_row = 0
   let mut inserted = false
@@ -189,10 +189,10 @@ fn row_edit_sheet_data(
 fn edit_sheet_rows(
   archive : @opc.Package,
   sheet_name : String,
-  at : Int,
-  count : Int,
+  at : Int32,
+  count : Int32,
   edit : RowEdit,
-) -> (@opc.Package, Int) raise XlsxError {
+) -> (@opc.Package, Int32) raise XlsxError {
   if at < 1 ||
     at > max_row ||
     count < 1 ||
@@ -314,9 +314,9 @@ fn edit_sheet_rows(
 pub fn insert_sheet_rows(
   archive : @opc.Package,
   sheet_name : String,
-  at : Int,
-  count : Int,
-) -> (@opc.Package, Int) raise XlsxError {
+  at : Int32,
+  count : Int32,
+) -> (@opc.Package, Int32) raise XlsxError {
   edit_sheet_rows(archive, sheet_name, at, count, Insert)
 }
 
@@ -327,8 +327,8 @@ pub fn insert_sheet_rows(
 pub fn delete_sheet_rows(
   archive : @opc.Package,
   sheet_name : String,
-  at : Int,
-  count : Int,
-) -> (@opc.Package, Int) raise XlsxError {
+  at : Int32,
+  count : Int32,
+) -> (@opc.Package, Int32) raise XlsxError {
   edit_sheet_rows(archive, sheet_name, at, count, Delete)
 }

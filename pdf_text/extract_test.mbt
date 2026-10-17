@@ -1,5 +1,5 @@
 ///|
-fn pdf_offset(value : Int) -> String {
+fn pdf_offset(value : Int32) -> String {
   let text = value.to_string()
   let output = StringBuilder()
   for _ in 0..<(10 - text.length()) {
@@ -21,7 +21,7 @@ test "extracts a simple PDF text stream" {
   ]
   let output = StringBuilder()
   output.write_string("%PDF-1.4\n")
-  let offsets : Array[Int] = []
+  let offsets : Array[Int32] = []
   for index, object in objects {
     offsets.push(output.to_string().length())
     output.write_string("\{index + 1} 0 obj\n\{object}\nendobj\n")

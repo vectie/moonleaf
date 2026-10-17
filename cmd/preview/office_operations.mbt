@@ -87,9 +87,9 @@ fn edit_docx_structure_copy(args : Array[String]) -> Unit {
 ///|
 fn docx_flow_block_json(
   block : @docx.DocxFlowBlock,
-  text_size : Ref[Int],
-  paragraph_index : Ref[Int],
-  table_index? : Ref[Int],
+  text_size : Ref[Int32],
+  paragraph_index : Ref[Int32],
+  table_index? : Ref[Int32],
 ) -> Json {
   match block {
     FlowParagraph(paragraph) => {

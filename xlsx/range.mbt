@@ -5,7 +5,7 @@ pub(all) struct RangeValues {
   sheet_name : String
   range : @scene.CellRange
   rows : Array[Array[@scene.CellValue]]
-  styled_cells : Int
+  styled_cells : Int32
 } derive(Debug, Eq)
 
 ///|
@@ -17,7 +17,11 @@ fn ranges_overlap(a : @scene.CellRange, b : @scene.CellRange) -> Bool {
 }
 
 ///|
-fn selected_position(range : @scene.CellRange, row : Int, column : Int) -> Bool {
+fn selected_position(
+  range : @scene.CellRange,
+  row : Int32,
+  column : Int32,
+) -> Bool {
   row >= range.start_row &&
   row <= range.end_row &&
   column >= range.start_column &&

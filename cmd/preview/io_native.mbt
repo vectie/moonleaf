@@ -2,7 +2,7 @@
 /// POSIX file and stream adapter. The document work stays in MoonBit; these
 /// calls only cross the operating-system boundary.
 #borrow(path)
-extern "c" fn posix_open(path : Bytes, flags : Int, mode : Int) -> Int = "open"
+extern "c" fn posix_open(path : Bytes, flags : Int32, mode : Int32) -> Int32 = "open"
 
 ///|
 #external
@@ -16,27 +16,27 @@ extern "c" fn exclusive_fopen(path : Bytes, mode : Bytes) -> NativeFile = "moonl
 extern "c" fn file_is_null(file : NativeFile) -> Bool = "moonleaf_preview_file_is_null"
 
 ///|
-extern "c" fn file_descriptor(file : NativeFile) -> Int = "moonleaf_preview_fileno"
+extern "c" fn file_descriptor(file : NativeFile) -> Int32 = "moonleaf_preview_fileno"
 
 ///|
-extern "c" fn set_file_mode(fd : Int, mode : Int) -> Int = "fchmod"
+extern "c" fn set_file_mode(fd : Int32, mode : Int32) -> Int32 = "fchmod"
 
 ///|
-extern "c" fn set_umask(mask : Int) -> Int = "umask"
+extern "c" fn set_umask(mask : Int32) -> Int32 = "umask"
 
 ///|
-extern "c" fn close_file(file : NativeFile) -> Int = "moonleaf_preview_fclose"
-
-///|
-#borrow(buffer)
-extern "c" fn posix_read(fd : Int, buffer : Bytes, count : UInt64) -> Int64 = "read"
+extern "c" fn close_file(file : NativeFile) -> Int32 = "moonleaf_preview_fclose"
 
 ///|
 #borrow(buffer)
-extern "c" fn posix_write(fd : Int, buffer : Bytes, count : UInt64) -> Int64 = "write"
+extern "c" fn posix_read(fd : Int32, buffer : Bytes, count : UInt64) -> Int64 = "read"
 
 ///|
-extern "c" fn posix_close(fd : Int) -> Int = "close"
+#borrow(buffer)
+extern "c" fn posix_write(fd : Int32, buffer : Bytes, count : UInt64) -> Int64 = "write"
+
+///|
+extern "c" fn posix_close(fd : Int32) -> Int32 = "close"
 
 ///|
 fn c_path(path : String) -> Bytes {
@@ -49,7 +49,7 @@ fn c_path(path : String) -> Bytes {
 }
 
 ///|
-fn read_fd(fd : Int) -> FixedArray[Byte] {
+fn read_fd(fd : Int32) -> FixedArray[Byte] {
   let output : Array[Byte] = []
   let buffer = Bytes::make(8192, 0)
   for ;; {
@@ -81,7 +81,7 @@ fn read_file(path : String) -> FixedArray[Byte] {
 }
 
 ///|
-fn write_fd(fd : Int, bytes : Bytes) -> Unit {
+fn write_fd(fd : Int32, bytes : Bytes) -> Unit {
   let mut offset = 0
   while offset < bytes.length() {
     let end = (offset + 8192).min(bytes.length())

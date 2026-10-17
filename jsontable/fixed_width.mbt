@@ -1,29 +1,29 @@
 ///|
 pub(all) suberror FixedWidthError {
   InvalidFixedWidthSchema(String)
-  InvalidFixedWidth(line~ : Int, reason~ : String)
+  InvalidFixedWidth(line~ : Int32, reason~ : String)
 } derive(Debug, Eq)
 
 ///|
 priv struct FixedWidthField {
   name : String
-  width : Int
+  width : Int32
   trim : Bool
 }
 
 ///|
 pub struct FixedWidthSchema {
   priv fields : Array[FixedWidthField]
-  priv skip_lines : Int
+  priv skip_lines : Int32
   priv skip_blank : Bool
-  priv width : Int
+  priv width : Int32
 }
 
 ///|
 pub(all) struct FixedWidthTable {
   table : Table
-  source_lines : Array[Int]
-  skipped_lines : Array[Int]
+  source_lines : Array[Int32]
+  skipped_lines : Array[Int32]
 } derive(Debug, Eq)
 
 ///|
@@ -40,7 +40,11 @@ fn fw_fields(
 }
 
 ///|
-fn fw_integer(value : Json, low : Int, high : Int) -> Int raise FixedWidthError {
+fn fw_integer(
+  value : Json,
+  low : Int32,
+  high : Int32,
+) -> Int32 raise FixedWidthError {
   guard value is Number(number, ..) &&
     number >= low.to_double() &&
     number <= high.to_double() &&
@@ -132,8 +136,8 @@ pub fn parse_fixed_width(
     )
   }
   let rows : Array[Array[@scene.CellValue]] = []
-  let source_lines : Array[Int] = []
-  let skipped_lines : Array[Int] = []
+  let source_lines : Array[Int32] = []
+  let skipped_lines : Array[Int32] = []
   for i = 0; i < count; i = i + 1 {
     let raw = lines[i]
     let line = if raw.has_suffix("\r") && i < lines.length() - 1 {

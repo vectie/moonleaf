@@ -27,10 +27,10 @@ fn copied_cell_style(cell : @xml.Element, style : String?) -> @xml.Element {
 ///|
 fn row_style_cells(
   row : @xml.Element,
-  number : Int,
-  style_count : Int,
-) -> Array[(Int, String?)] raise XlsxError {
-  let result : Array[(Int, String?)] = []
+  number : Int32,
+  style_count : Int32,
+) -> Array[(Int32, String?)] raise XlsxError {
+  let result : Array[(Int32, String?)] = []
   let mut previous = 0
   for child in row.child_elements() {
     if child.local_name() != "c" {
@@ -62,17 +62,17 @@ fn row_style_cells(
 fn copied_row_styles(
   source : @xml.Element,
   destination : @xml.Element,
-  source_number : Int,
-  destination_number : Int,
-  style_count : Int,
-) -> (@xml.Element, Int) raise XlsxError {
+  source_number : Int32,
+  destination_number : Int32,
+  style_count : Int32,
+) -> (@xml.Element, Int32) raise XlsxError {
   let source_cells = row_style_cells(source, source_number, style_count)
   let destination_cells = row_style_cells(
     destination, destination_number, style_count,
   )
   let attributes = row_style_attributes(destination.attributes, source)
   let mut changed = if attributes == destination.attributes { 0 } else { 1 }
-  let source_styles : Map[Int, String] = Map([])
+  let source_styles : Map[Int32, String] = Map([])
   for (column, style) in source_cells {
     match style {
       Some(value) => source_styles[column] = value
@@ -162,9 +162,9 @@ fn copied_row_styles(
 pub fn copy_sheet_row_styles(
   archive : @opc.Package,
   sheet_name : String,
-  source_row : Int,
-  destination_row : Int,
-) -> (@opc.Package, Int) raise XlsxError {
+  source_row : Int32,
+  destination_row : Int32,
+) -> (@opc.Package, Int32) raise XlsxError {
   if source_row < 1 ||
     source_row > max_row ||
     destination_row < 1 ||

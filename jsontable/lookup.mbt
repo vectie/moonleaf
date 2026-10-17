@@ -2,8 +2,8 @@
 pub(all) suberror LookupError {
   InvalidTable(String)
   UnknownColumn(String)
-  DuplicateKey(Int, Int)
-  InvalidKey(Int)
+  DuplicateKey(Int32, Int32)
+  InvalidKey(Int32)
   InvalidDelimited(String)
 } derive(Debug, Eq)
 
@@ -12,15 +12,15 @@ pub(all) suberror LookupError {
 /// Missing lookup rows are None. Header rows are not counted.
 pub(all) struct LookupResult {
   table : Table
-  source_rows : Array[Int]
-  lookup_rows : Array[Int?]
+  source_rows : Array[Int32]
+  lookup_rows : Array[Int32?]
 } derive(Debug, Eq)
 
 ///|
 /// Read a header-bearing CSV/TSV without guessing number/date types.
 pub fn parse_delimited(
   text : String,
-  delimiter? : Char = ',',
+  delimiter~ : Char = ',',
 ) -> Table raise LookupError {
   let parsed = @csv.parse(text, delimiter~) catch {
     InvalidDelimiter =>
@@ -57,7 +57,7 @@ fn validate_lookup_table(table : Table) -> Unit raise LookupError {
 }
 
 ///|
-fn lookup_column(table : Table, name : String) -> Int raise LookupError {
+fn lookup_column(table : Table, name : String) -> Int32 raise LookupError {
   for i, column in table.columns {
     if column == name {
       return i
@@ -71,7 +71,7 @@ fn lookup_column(table : Table, name : String) -> Int raise LookupError {
 /// Missing/empty left keys are unmatched; lookup keys must all be nonempty text.
 fn text_lookup_key(
   value : @scene.CellValue,
-  row : Int,
+  row : Int32,
 ) -> String? raise LookupError {
   match value {
     Empty | Text("") => None
@@ -90,8 +90,8 @@ pub fn Table::lookup(
   source_key~ : String,
   lookup_key~ : String,
   columns~ : Array[String],
-  prefix? : String = "lookup.",
-  matched_only? : Bool = false,
+  prefix~ : String = "lookup.",
+  matched_only~ : Bool = false,
 ) -> LookupResult raise LookupError {
   validate_lookup_table(self)
   validate_lookup_table(other)
@@ -106,7 +106,7 @@ pub fn Table::lookup(
     }
     names.push(output_name)
   }
-  let index : Map[String, Int] = Map([])
+  let index : Map[String, Int32] = Map([])
   for i, row in other.rows {
     let key = lookup_key_value(row[right_key], i + 1)
     match index.get(key) {
@@ -115,8 +115,8 @@ pub fn Table::lookup(
     }
   }
   let rows : Array[Array[@scene.CellValue]] = []
-  let source_rows : Array[Int] = []
-  let lookup_rows : Array[Int?] = []
+  let source_rows : Array[Int32] = []
+  let lookup_rows : Array[Int32?] = []
   for i, row in self.rows {
     let key = text_lookup_key(row[left_key], i + 1)
     let found = match key {
@@ -144,7 +144,7 @@ pub fn Table::lookup(
 ///|
 fn lookup_key_value(
   value : @scene.CellValue,
-  row : Int,
+  row : Int32,
 ) -> String raise LookupError {
   match text_lookup_key(value, row) {
     Some(key) => key

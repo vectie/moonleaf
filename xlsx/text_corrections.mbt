@@ -13,7 +13,7 @@ pub(all) struct TextCellTarget {
   sheet : String
   address : String
   text : String
-  style_id : Int?
+  style_id : Int32?
 } derive(Debug, Eq)
 
 ///|
@@ -28,7 +28,7 @@ fn correction_text(text : String) -> Unit raise XlsxError {
     if text[i] == '_' && text[i + 1] == 'x' && text[i + 6] == '_' {
       let mut hex = true
       for j = i + 2; j < i + 6; j = j + 1 {
-        if !(text[j] is ('0'..='9' | 'a'..='f' | 'A'..='F')) {
+        if !(text[j] is ('0'..<='9' | 'a'..<='f' | 'A'..<='F')) {
           hex = false
         }
       }

@@ -1,7 +1,7 @@
 ///|
 pub(all) suberror CorrectionError {
   InvalidCorrection(String)
-  CorrectionConflict(edit~ : Int, row~ : Int, column~ : String)
+  CorrectionConflict(edit~ : Int32, row~ : Int32, column~ : String)
 } derive(Debug, Eq)
 
 ///|
@@ -207,7 +207,7 @@ pub fn Table::correct(
         "Expected unique nonempty headers and rectangular rows",
       )
   }
-  let key_indexes : Array[Int] = []
+  let key_indexes : Array[Int32] = []
   for name in recipe.key_columns {
     key_indexes.push(
       lookup_column(self, name) catch {
@@ -215,7 +215,7 @@ pub fn Table::correct(
       },
     )
   }
-  let index : Map[String, Int] = Map([])
+  let index : Map[String, Int32] = Map([])
   let mut units = 0
   for name in self.columns {
     units += name.length()
@@ -250,7 +250,7 @@ pub fn Table::correct(
     index[identity] = r
   }
   let targets : Map[String, Bool] = Map([])
-  let coordinates : Array[(Int, Int)] = []
+  let coordinates : Array[(Int32, Int32)] = []
   let reports : Array[Array[@scene.CellValue]] = []
   for i, edit in recipe.edits {
     let identity = Json::array(edit.key.map(Json::string)).stringify()

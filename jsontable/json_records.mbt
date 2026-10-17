@@ -24,7 +24,7 @@ pub(all) struct JsonRecordSpec {
 pub(all) suberror JsonRecordError {
   InvalidJsonRecordSpec(String)
   InvalidJsonRecords(String)
-  JsonRecordFieldError(row~ : Int, column~ : String, reason~ : String)
+  JsonRecordFieldError(row~ : Int32, column~ : String, reason~ : String)
 } derive(Debug, Eq)
 
 ///|
@@ -151,7 +151,7 @@ pub fn parse_json_record_spec(
 fn json_record_cell(
   record : Json,
   field : JsonRecordField,
-  row : Int,
+  row : Int32,
 ) -> @scene.CellValue raise JsonRecordError {
   let mut current = Some(record)
   for key in field.path {

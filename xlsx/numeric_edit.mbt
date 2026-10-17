@@ -39,8 +39,8 @@ fn numeric_cell_element(
 pub fn set_cell_number(
   archive : @opc.Package,
   sheet_name : String,
-  row : Int,
-  column : Int,
+  row : Int32,
+  column : Int32,
   value : Double,
 ) -> @opc.Package raise XlsxError {
   let value = formula_finite(value)

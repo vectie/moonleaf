@@ -19,7 +19,7 @@ fn name(text : Bytes) -> @pdfcore.PdfName {
 /// Recover only a fully terminated raw DEFLATE body behind a valid zlib header.
 /// The original checksum is explicitly unverified; no replacement checksum is
 /// manufactured. Text recovery never changes the normal PDF stream decoder.
-fn recover_text_flate(data : Bytes) -> (Bytes, Int, Int) raise PdfTextError {
+fn recover_text_flate(data : Bytes) -> (Bytes, Int32, Int32) raise PdfTextError {
   if data.length() < 3 {
     raise InvalidPdf("Incomplete zlib header")
   }
@@ -71,7 +71,7 @@ fn recover_document_text_streams(
   document : @pdflite.PdfDocument,
 ) -> Array[Json] raise PdfTextError {
   let warnings : Array[Json] = []
-  let recovered_members : Array[(Int, @syntax.PdfObject)] = []
+  let recovered_members : Array[(Int32, @syntax.PdfObject)] = []
   let mut total_recovered = 0
   document.iter_objects((object_number, object) => {
     guard object is PdfStreamObject(stream) else { return }

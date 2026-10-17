@@ -3,7 +3,7 @@ fn recipe(
   filters : String,
   sort : String,
   select : String,
-  limit? : Int = 10000,
+  limit~ : Int32 = 10000,
 ) -> @jsontable.QueryRecipe raise {
   @jsontable.parse_query_recipe(
     "{\"version\":1,\"filters\":" +

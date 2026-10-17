@@ -8,15 +8,15 @@ pub(all) struct Table {
 ///|
 pub(all) suberror CsvError {
   InvalidDelimiter
-  InvalidQuote(row~ : Int, column~ : Int)
-  InvalidCoordinates(row~ : Int, column~ : Int)
+  InvalidQuote(row~ : Int32, column~ : Int32)
+  InvalidCoordinates(row~ : Int32, column~ : Int32)
   UnterminatedQuote
   TooLarge
 }
 
 ///|
 /// Parse RFC 4180 quotes, escaped quotes and CRLF. TSV uses the same quoting.
-pub fn parse(text : String, delimiter? : Char = ',') -> Table raise CsvError {
+pub fn parse(text : String, delimiter~ : Char = ',') -> Table raise CsvError {
   if delimiter != ',' && delimiter != '\t' {
     raise InvalidDelimiter
   }
@@ -193,8 +193,8 @@ fn write_csv_span(output : StringBuilder, value : String, quote : Bool) -> Unit 
 /// Return an edited copy of a table, keeping blank intermediate cells.
 pub fn Table::set_cell_text(
   self : Table,
-  row : Int,
-  column : Int,
+  row : Int32,
+  column : Int32,
   value : String,
 ) -> Table raise CsvError {
   if row < 1 || row > 10_000 || column < 1 || column > 256 {
@@ -231,8 +231,8 @@ pub fn Table::set_cell_text(
 /// materializes intervening blank rows because CSV has no sparse row syntax.
 pub fn Table::insert_rows(
   self : Table,
-  at : Int,
-  count : Int,
+  at : Int32,
+  count : Int32,
 ) -> Table raise CsvError {
   if at < 1 ||
     at > 10_000 ||
@@ -274,9 +274,9 @@ pub fn Table::insert_rows(
 /// table is unchanged and a deletion beyond its last row is a no-op.
 pub fn Table::delete_rows(
   self : Table,
-  at : Int,
-  count : Int,
-) -> (Table, Int) raise CsvError {
+  at : Int32,
+  count : Int32,
+) -> (Table, Int32) raise CsvError {
   if at < 1 ||
     at > 10_000 ||
     count < 1 ||
@@ -306,8 +306,8 @@ pub fn Table::delete_rows(
 /// each existing row. The original table remains unchanged.
 pub fn Table::insert_columns(
   self : Table,
-  at : Int,
-  count : Int,
+  at : Int32,
+  count : Int32,
 ) -> Table raise CsvError {
   if at < 1 || at > 256 || count < 1 || count > 100 || at + count - 1 > 256 {
     raise InvalidCoordinates(row=1, column=at)
@@ -344,9 +344,9 @@ pub fn Table::insert_columns(
 /// ragged rows; deleting beyond every row is a no-op.
 pub fn Table::delete_columns(
   self : Table,
-  at : Int,
-  count : Int,
-) -> (Table, Int) raise CsvError {
+  at : Int32,
+  count : Int32,
+) -> (Table, Int32) raise CsvError {
   if at < 1 || at > 256 || count < 1 || count > 100 || at + count - 1 > 256 {
     raise InvalidCoordinates(row=1, column=at)
   }
@@ -378,7 +378,7 @@ pub fn Table::delete_columns(
 /// must be unique; either every edit succeeds or the source table is unchanged.
 pub fn Table::set_cells_text(
   self : Table,
-  edits : Array[(Int, Int, String)],
+  edits : Array[(Int32, Int32, String)],
 ) -> Table raise CsvError {
   if edits.is_empty() {
     return self
@@ -386,7 +386,7 @@ pub fn Table::set_cells_text(
   if edits.length() > 1_000 {
     raise TooLarge
   }
-  let seen : Map[Int, Bool] = Map([])
+  let seen : Map[Int32, Bool] = Map([])
   for (row, column, value) in edits {
     if row < 1 || row > 10_000 || column < 1 || column > 256 {
       raise InvalidCoordinates(row~, column~)
@@ -440,7 +440,7 @@ pub fn Table::set_cells_text(
 /// Project a table into MoonLeaf's neutral spreadsheet scene.
 pub fn Table::workbook(
   self : Table,
-  name? : String = "工作表1",
+  name~ : String = "工作表1",
 ) -> @scene.Workbook {
   let cells : Array[@scene.Cell] = []
   for row_index, row in self.rows {

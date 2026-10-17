@@ -35,8 +35,8 @@ fn review_unchanged_parts(
 ///|
 fn review_one_edit(
   bytes : FixedArray[Byte],
-  row : Int,
-  column : Int,
+  row : Int32,
+  column : Int32,
 ) -> Unit raise {
   let original = @moonleaf.open_session("review.xlsx", bytes)
   let before = review_cells(original)
@@ -211,7 +211,7 @@ test "review 128 ordered row and cell coordinate mixtures preserve every neighbo
     for column_mask in 0..<8 {
       let xml = StringBuilder()
       xml.write_string("<worksheet><sheetData>")
-      let positions : Array[(Int, Int)] = []
+      let positions : Array[(Int32, Int32)] = []
       let mut previous_row = 0
       for row_index in 0..<4 {
         let explicit_row = (row_mask & (1 << row_index)) != 0

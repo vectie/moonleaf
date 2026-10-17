@@ -1,7 +1,7 @@
 ///|
 /// Reads a bounded UTF-8 stream before calling the pure XML adapter. A fatal
 /// decoder rejects malformed bytes rather than silently inserting replacements.
-extern "js" fn read_utf8(path : String, limit : Int) -> String =
+extern "js" fn read_utf8(path : String, limit : Int32) -> String =
   #|(path, limit) => {
   #|  const fs = require('node:fs');
   #|  const fd = path === '-' ? 0 : fs.openSync(path, 'r');

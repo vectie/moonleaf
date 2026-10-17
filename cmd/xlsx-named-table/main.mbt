@@ -1,5 +1,5 @@
 ///|
-extern "js" fn read_bytes(path : String, limit : Int) -> FixedArray[Byte] =
+extern "js" fn read_bytes(path : String, limit : Int32) -> FixedArray[Byte] =
   #|(path, limit) => { const fs = require('node:fs'); const fd = fs.openSync(path, fs.constants.O_RDONLY | fs.constants.O_NONBLOCK); try { const stat = fs.fstatSync(fd); if (!stat.isFile() || stat.size > limit) throw Error('Expected a bounded regular file'); const bytes = fs.readFileSync(fd); if (bytes.length > limit) throw Error('Input exceeds byte limit'); return Array.from(bytes); } finally { fs.closeSync(fd); } }
 
 ///|

@@ -13,11 +13,11 @@ pub(all) suberror PptxTableError {
 pub(all) struct PptxTable {
   table : Table
   table_id : String
-  slide_number : Int
+  slide_number : Int32
   part : String
   shape_id : String
   hidden_slide : Bool
-  source_rows : Array[Int]
+  source_rows : Array[Int32]
   warnings : Array[String]
 } derive(Debug, Eq)
 

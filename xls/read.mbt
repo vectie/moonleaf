@@ -10,7 +10,7 @@ pub extend XlsError with Debug::{to_repr}
 pub extend XlsError with Eq::{equal, not_equal}
 
 ///|
-fn u16(b : FixedArray[Byte], p : Int) -> Int raise XlsError {
+fn u16(b : FixedArray[Byte], p : Int32) -> Int32 raise XlsError {
   guard p >= 0 && p + 2 <= b.length() else {
     raise Invalid("truncated XLS integer")
   }
@@ -18,15 +18,15 @@ fn u16(b : FixedArray[Byte], p : Int) -> Int raise XlsError {
 }
 
 ///|
-fn u32(b : FixedArray[Byte], p : Int) -> Int raise XlsError {
+fn u32(b : FixedArray[Byte], p : Int32) -> Int32 raise XlsError {
   u16(b, p) | (u16(b, p + 2) << 16)
 }
 
 ///|
 fn text(
   b : FixedArray[Byte],
-  p : Int,
-  count : Int,
+  p : Int32,
+  count : Int32,
   wide : Bool,
 ) -> String raise XlsError {
   let chars : Array[Char] = []
@@ -45,8 +45,8 @@ fn text(
 ///|
 fn slice(
   b : FixedArray[Byte],
-  p : Int,
-  n : Int,
+  p : Int32,
+  n : Int32,
 ) -> FixedArray[Byte] raise XlsError {
   guard p >= 0 && n >= 0 && p <= b.length() - n else {
     raise Invalid("truncated XLS segment")
@@ -57,13 +57,13 @@ fn slice(
 ///|
 fn chain(
   b : FixedArray[Byte],
-  fat : Array[Int],
-  start : Int,
-  sector_size : Int,
-  maximum : Int,
+  fat : Array[Int32],
+  start : Int32,
+  sector_size : Int32,
+  maximum : Int32,
 ) -> FixedArray[Byte] raise XlsError {
   let output : Array[Byte] = []
-  let seen : Map[Int, Bool] = Map([])
+  let seen : Map[Int32, Bool] = Map([])
   let mut sector = start
   while sector >= 0 {
     guard sector < fat.length() && !seen.contains(sector) else {
@@ -101,7 +101,7 @@ fn workbook_stream(b : FixedArray[Byte]) -> FixedArray[Byte] raise XlsError {
   guard u32(b, 68) == -2 && u32(b, 72) == 0 else {
     raise Invalid("extended DIFAT XLS not supported")
   }
-  let fat : Array[Int] = []
+  let fat : Array[Int32] = []
   let fat_count = u32(b, 44)
   guard fat_count >= 0 && fat_count <= 109 else {
     raise Invalid("unsupported OLE FAT length")
@@ -152,12 +152,12 @@ fn workbook_stream(b : FixedArray[Byte]) -> FixedArray[Byte] raise XlsError {
     root_size,
   )
   let mini_bytes = chain(b, fat, u32(b, 60), sector_size, 1024 * 1024)
-  let mini_fat : Array[Int] = []
+  let mini_fat : Array[Int32] = []
   for i in 0..<(mini_bytes.length() / 4) {
     mini_fat.push(u32(mini_bytes, i * 4))
   }
   let output : Array[Byte] = []
-  let seen : Map[Int, Bool] = Map([])
+  let seen : Map[Int32, Bool] = Map([])
   let mut sid = stream_start
   while sid >= 0 && output.length() < stream_size {
     guard sid < mini_fat.length() &&
@@ -177,12 +177,12 @@ fn workbook_stream(b : FixedArray[Byte]) -> FixedArray[Byte] raise XlsError {
 ///|
 priv struct SstReader {
   chunks : Array[FixedArray[Byte]]
-  mut chunk : Int
-  mut offset : Int
+  mut chunk : Int32
+  mut offset : Int32
 }
 
 ///|
-fn SstReader::byte(self : SstReader) -> Int raise XlsError {
+fn SstReader::byte(self : SstReader) -> Int32 raise XlsError {
   while self.chunk < self.chunks.length() &&
         self.offset >= self.chunks[self.chunk].length() {
     self.chunk += 1
@@ -197,7 +197,7 @@ fn SstReader::byte(self : SstReader) -> Int raise XlsError {
 }
 
 ///|
-fn SstReader::short(self : SstReader) -> Int raise XlsError {
+fn SstReader::short(self : SstReader) -> Int32 raise XlsError {
   self.byte() | (self.byte() << 8)
 }
 
@@ -240,14 +240,14 @@ fn strings(chunks : Array[FixedArray[Byte]]) -> Array[String] raise XlsError {
 }
 
 ///|
-fn number(b : FixedArray[Byte], p : Int) -> String raise XlsError {
+fn number(b : FixedArray[Byte], p : Int32) -> String raise XlsError {
   let bits = u32(b, p).reinterpret_as_uint().to_uint64() |
     (u32(b, p + 4).reinterpret_as_uint().to_uint64() << 32)
   bits.reinterpret_as_double().to_string()
 }
 
 ///|
-fn rk(value : Int) -> String {
+fn rk(value : Int32) -> String {
   let result = if (value & 2) != 0 {
     (value >> 2).to_double()
   } else {
@@ -262,7 +262,7 @@ fn rk(value : Int) -> String {
 /// charts/styles are omitted and called out in workbook warnings.
 pub fn read(bytes : FixedArray[Byte]) -> @scene.Workbook raise XlsError {
   let b = workbook_stream(bytes)
-  let descriptors : Array[(Int, String)] = []
+  let descriptors : Array[(Int32, String)] = []
   let chunks : Array[FixedArray[Byte]] = []
   let mut p = 0
   let mut sst_open = false

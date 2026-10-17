@@ -13,7 +13,7 @@ fn wrap_attribute(
 priv enum CellStyleEdit {
   Wrap(Bool)
   Horizontal(String)
-  NumberFormat(Int)
+  NumberFormat(Int32)
 }
 
 ///|
@@ -106,7 +106,7 @@ fn with_cell_style(xf : @xml.Element, edit : CellStyleEdit) -> @xml.Element {
 pub fn wrapped_cells(
   xlsx_package : @opc.Package,
   sheet_name : String,
-) -> Array[(Int, Int)] raise XlsxError {
+) -> Array[(Int32, Int32)] raise XlsxError {
   if !xlsx_package.has_part("xl/workbook.xml") {
     raise MissingWorkbook
   }
@@ -129,7 +129,7 @@ pub fn wrapped_cells(
   }
   let styles = cell_xfs.children_named("xf")
   let worksheet = parse_part(xlsx_package, sheet_part)
-  let result : Array[(Int, Int)] = []
+  let result : Array[(Int32, Int32)] = []
   match worksheet.first_child("sheetData") {
     Some(data) => {
       let mut previous_row = 0
@@ -201,12 +201,12 @@ fn wrap_styles_part(
 ///|
 fn styled_cell(
   cell : @xml.Element,
-  inherited_style : Int,
+  inherited_style : Int32,
   styles : Array[@xml.Element],
   additions : Array[@xml.Node],
-  mapping : Map[Int, Int],
+  mapping : Map[Int32, Int32],
   edit : CellStyleEdit,
-  changed : Ref[Int],
+  changed : Ref[Int32],
 ) -> @xml.Element raise XlsxError {
   let style_id = integer_attribute(cell, "s", 65535).unwrap_or(inherited_style)
   if style_id >= styles.length() {
@@ -237,14 +237,14 @@ fn styled_cell(
 
 ///|
 fn aligned_blank_cell(
-  row : Int,
-  column : Int,
-  inherited_style : Int,
+  row : Int32,
+  column : Int32,
+  inherited_style : Int32,
   styles : Array[@xml.Element],
   additions : Array[@xml.Node],
-  mapping : Map[Int, Int],
+  mapping : Map[Int32, Int32],
   edit : CellStyleEdit,
-  changed : Ref[Int],
+  changed : Ref[Int32],
 ) -> @xml.Node? raise XlsxError {
   if !style_creates_blank(edit) {
     return None
@@ -267,14 +267,14 @@ fn aligned_blank_cell(
 ///|
 fn aligned_row(
   row_element : @xml.Element,
-  row : Int,
-  start_column : Int,
-  end_column : Int,
+  row : Int32,
+  start_column : Int32,
+  end_column : Int32,
   styles : Array[@xml.Element],
   additions : Array[@xml.Node],
-  mapping : Map[Int, Int],
+  mapping : Map[Int32, Int32],
   edit : CellStyleEdit,
-  changed : Ref[Int],
+  changed : Ref[Int32],
 ) -> @xml.Element raise XlsxError {
   let inherited_style = integer_attribute(row_element, "s", 65535).unwrap_or(0)
   let children : Array[@xml.Node] = []
@@ -326,14 +326,14 @@ fn aligned_row(
 
 ///|
 fn aligned_new_row(
-  row : Int,
-  start_column : Int,
-  end_column : Int,
+  row : Int32,
+  start_column : Int32,
+  end_column : Int32,
   styles : Array[@xml.Element],
   additions : Array[@xml.Node],
-  mapping : Map[Int, Int],
+  mapping : Map[Int32, Int32],
   edit : CellStyleEdit,
-  changed : Ref[Int],
+  changed : Ref[Int32],
 ) -> @xml.Node? raise XlsxError {
   if !style_creates_blank(edit) {
     return None
@@ -356,12 +356,12 @@ fn aligned_new_row(
 fn set_cell_style_range(
   xlsx_package : @opc.Package,
   sheet_name : String,
-  start_row : Int,
-  start_column : Int,
-  end_row : Int,
-  end_column : Int,
+  start_row : Int32,
+  start_column : Int32,
+  end_row : Int32,
+  end_column : Int32,
   edit : CellStyleEdit,
-) -> (@opc.Package, Int) raise XlsxError {
+) -> (@opc.Package, Int32) raise XlsxError {
   if start_row < 1 ||
     start_column < 1 ||
     end_row < start_row ||
@@ -420,7 +420,7 @@ fn set_cell_style_range(
     raise InvalidWorkbook("workbook has no base cell style")
   }
   let additions : Array[@xml.Node] = []
-  let mapping : Map[Int, Int] = Map([])
+  let mapping : Map[Int32, Int32] = Map([])
   let changed = Ref(0)
   let sheet_children : Array[@xml.Node] = worksheet.children.map(child => {
     match child {
@@ -531,12 +531,12 @@ fn set_cell_style_range(
 pub fn set_wrap_text_range(
   xlsx_package : @opc.Package,
   sheet_name : String,
-  start_row : Int,
-  start_column : Int,
-  end_row : Int,
-  end_column : Int,
+  start_row : Int32,
+  start_column : Int32,
+  end_row : Int32,
+  end_column : Int32,
   enabled : Bool,
-) -> (@opc.Package, Int) raise XlsxError {
+) -> (@opc.Package, Int32) raise XlsxError {
   set_cell_style_range(
     xlsx_package,
     sheet_name,

@@ -13,7 +13,7 @@ keywords = [ "office", "ooxml", "docx", "xlsx", "pptx", "csv", "tsv", "pdf" ]
 description = "A pure MoonBit, cross-platform document viewer and lightweight editor core."
 
 import {
-  "hustcer/fzip@0.8.5",
+  "hustcer/fzip@0.8.8",
   "moonbitlang/pdflite@0.3.6",
   "moonbit-community/flate@0.8.5",
 }

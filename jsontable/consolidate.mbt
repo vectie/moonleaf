@@ -7,8 +7,8 @@ pub(all) enum Retention {
 ///|
 pub(all) suberror ConsolidateError {
   InvalidConsolidate(String)
-  InvalidConsolidateKey(row~ : Int, column~ : String)
-  UnsupportedConsolidateValue(row~ : Int, column~ : String)
+  InvalidConsolidateKey(row~ : Int32, column~ : String)
+  UnsupportedConsolidateValue(row~ : Int32, column~ : String)
 } derive(Debug, Eq)
 
 ///|
@@ -54,7 +54,7 @@ pub fn Table::consolidate(
       raise InvalidConsolidate("Report column collision: " + name)
     }
   }
-  let keys : Array[Int] = []
+  let keys : Array[Int32] = []
   for name in key_columns {
     let column = lookup_column(self, name) catch {
       _ => raise InvalidConsolidate("Unknown key column: " + name)
@@ -64,8 +64,8 @@ pub fn Table::consolidate(
     }
     keys.push(column)
   }
-  let selected : Map[String, Int] = Map([])
-  let counts : Map[String, Int] = Map([])
+  let selected : Map[String, Int32] = Map([])
+  let counts : Map[String, Int32] = Map([])
   let identities : Array[String] = []
   for i, row in self.rows {
     for c, value in row {

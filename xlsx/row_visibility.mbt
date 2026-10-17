@@ -31,7 +31,7 @@ fn visible_row_state(row : @xml.Element) -> Bool raise XlsxError {
 pub fn hidden_sheet_rows(
   archive : @opc.Package,
   sheet_name : String,
-) -> Array[Int] raise XlsxError {
+) -> Array[Int32] raise XlsxError {
   if !archive.has_part("xl/workbook.xml") {
     raise MissingWorkbook
   }
@@ -54,7 +54,7 @@ pub fn hidden_sheet_rows(
   if worksheet.local_name() != "worksheet" {
     raise InvalidWorkbook("row visibility requires an XLSX worksheet")
   }
-  let hidden : Array[Int] = []
+  let hidden : Array[Int32] = []
   let mut previous = 0
   match worksheet.first_child("sheetData") {
     Some(data) =>
@@ -81,10 +81,10 @@ pub fn hidden_sheet_rows(
 fn set_sheet_rows_hidden(
   archive : @opc.Package,
   sheet_name : String,
-  at : Int,
-  count : Int,
+  at : Int32,
+  count : Int32,
   hide : Bool,
-) -> (@opc.Package, Int) raise XlsxError {
+) -> (@opc.Package, Int32) raise XlsxError {
   if at < 1 ||
     at > max_row ||
     count < 1 ||
@@ -256,9 +256,9 @@ fn set_sheet_rows_hidden(
 pub fn hide_sheet_rows(
   archive : @opc.Package,
   sheet_name : String,
-  at : Int,
-  count : Int,
-) -> (@opc.Package, Int) raise XlsxError {
+  at : Int32,
+  count : Int32,
+) -> (@opc.Package, Int32) raise XlsxError {
   set_sheet_rows_hidden(archive, sheet_name, at, count, true)
 }
 
@@ -268,8 +268,8 @@ pub fn hide_sheet_rows(
 pub fn show_sheet_rows(
   archive : @opc.Package,
   sheet_name : String,
-  at : Int,
-  count : Int,
-) -> (@opc.Package, Int) raise XlsxError {
+  at : Int32,
+  count : Int32,
+) -> (@opc.Package, Int32) raise XlsxError {
   set_sheet_rows_hidden(archive, sheet_name, at, count, false)
 }

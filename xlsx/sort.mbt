@@ -1,7 +1,7 @@
 ///|
 fn sorting_row_attribute(
   attributes : Array[@xml.Attribute],
-  destination_row : Int,
+  destination_row : Int32,
 ) -> Array[@xml.Attribute] {
   let updated : Array[@xml.Attribute] = []
   let mut found = false
@@ -22,8 +22,8 @@ fn sorting_row_attribute(
 ///|
 fn sorting_rebase_row(
   source : @xml.Element,
-  source_row : Int,
-  destination_row : Int,
+  source_row : Int32,
+  destination_row : Int32,
 ) -> @xml.Element raise XlsxError {
   let children : Array[@xml.Node] = []
   let mut previous_column = 0
@@ -103,10 +103,10 @@ fn sorting_worksheet_is_safe(
 pub fn sort_sheet_rows(
   archive : @opc.Package,
   sheet_name : String,
-  column : Int,
+  column : Int32,
   descending : Bool,
   has_header : Bool,
-) -> (@opc.Package, Int) raise XlsxError {
+) -> (@opc.Package, Int32) raise XlsxError {
   if column < 1 || column > max_column {
     raise InvalidCoordinates(row=1, column~)
   }

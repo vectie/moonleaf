@@ -9,7 +9,7 @@ fn finite_sort_number(value : String) -> Double? {
 }
 
 ///|
-fn compare_sort_text(left : String, right : String, descending : Bool) -> Int {
+fn compare_sort_text(left : String, right : String, descending : Bool) -> Int32 {
   if left.is_empty() && right.is_empty() {
     return 0
   }
@@ -39,8 +39,8 @@ fn compare_sort_text(left : String, right : String, descending : Bool) -> Int {
 pub fn sort_row_indices(
   values : Array[String],
   descending : Bool,
-) -> Array[Int] {
-  let order : Array[Int] = []
+) -> Array[Int32] {
+  let order : Array[Int32] = []
   for index in 0..<values.length() {
     order.push(index)
   }

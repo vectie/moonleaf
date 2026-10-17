@@ -48,7 +48,7 @@ fn created_pptx_group() -> String {
 ///|
 fn created_pptx_run(
   text : String,
-  size : Int,
+  size : Int32,
   bold : Bool,
   color : String,
 ) -> String raise PptxError {
@@ -70,7 +70,7 @@ fn created_pptx_run(
 ///|
 fn created_pptx_paragraph(
   text : String,
-  size : Int,
+  size : Int32,
   bullet : Bool,
   bold : Bool,
   color : String,
@@ -85,14 +85,14 @@ fn created_pptx_paragraph(
 
 ///|
 fn created_pptx_shape(
-  id : Int,
+  id : Int32,
   name : String,
-  x : Int,
-  y : Int,
-  width : Int,
-  height : Int,
+  x : Int32,
+  y : Int32,
+  width : Int32,
+  height : Int32,
   paragraphs : String,
-  placeholder? : String = "",
+  placeholder~ : String = "",
 ) -> String {
   "<p:sp><p:nvSpPr><p:cNvPr id=\"\{id}\" name=\"\{name}\"/><p:cNvSpPr txBox=\"1\"/><p:nvPr>\{placeholder}</p:nvPr></p:nvSpPr><p:spPr><a:xfrm><a:off x=\"\{x}\" y=\"\{y}\"/><a:ext cx=\"\{width}\" cy=\"\{height}\"/></a:xfrm><a:prstGeom prst=\"rect\"><a:avLst/></a:prstGeom><a:noFill/><a:ln><a:noFill/></a:ln></p:spPr><p:txBody><a:bodyPr wrap=\"square\" lIns=\"0\" tIns=\"0\" rIns=\"0\" bIns=\"0\" anchor=\"t\"><a:normAutofit/></a:bodyPr><a:lstStyle/>\{paragraphs}</p:txBody></p:sp>"
 }
@@ -101,7 +101,7 @@ fn created_pptx_shape(
 fn created_pptx_slide(
   slide : CreatedSlide,
   deck_title : String,
-  ordinal : Int,
+  ordinal : Int32,
 ) -> String raise PptxError {
   let body = StringBuilder()
   let size = if slide.bullets.length() <= 5 {

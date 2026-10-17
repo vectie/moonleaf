@@ -14,8 +14,8 @@ pub(all) suberror DocxTableError {
 /// IDs are one-based direct-body table ordinals, bound to the source snapshot.
 pub(all) struct DocxTableCandidate {
   id : String
-  rows : Int
-  columns : Int
+  rows : Int32
+  columns : Int32
   first_row : Array[String]
   refusal : String?
 } derive(Debug, Eq)
@@ -24,7 +24,7 @@ pub(all) struct DocxTableCandidate {
 pub(all) struct DocxTable {
   table : Table
   table_id : String
-  source_rows : Array[Int]
+  source_rows : Array[Int32]
   warnings : Array[String]
 } derive(Debug, Eq)
 
@@ -161,7 +161,7 @@ fn docx_table_rows(
   let rows : Array[Array[String]] = []
   let mut width = 0
   let mut units = 0
-  let mut grid_width : Int? = None
+  let mut grid_width : Int32? = None
   for child in docx_content_children(table) {
     if child.name == "w:tblPr" {
       continue

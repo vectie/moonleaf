@@ -18,8 +18,8 @@ pub fn stack(
   tables : Array[Table],
   sources~ : Array[String],
   mode~ : StackMode,
-  source_column? : String = "_source",
-  row_column? : String = "_source_row",
+  source_column~ : String = "_source",
+  row_column~ : String = "_source_row",
 ) -> Table raise StackError {
   if tables.is_empty() ||
     tables.length() > 64 ||
@@ -72,7 +72,7 @@ pub fn stack(
   let rows : Array[Array[@scene.CellValue]] = []
   for i, table in tables {
     let positions = columns.map(name => {
-      let mut position : Int? = None
+      let mut position : Int32? = None
       for j, header in table.columns {
         if name == header {
           position = Some(j)

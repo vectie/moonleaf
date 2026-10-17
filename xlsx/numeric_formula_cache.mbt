@@ -5,7 +5,7 @@
 pub fn numeric_formula_cells(
   archive : @opc.Package,
   sheet_name : String,
-) -> Array[(Int, Int)] raise XlsxError {
+) -> Array[(Int32, Int32)] raise XlsxError {
   let workbook = parse_part(archive, "xl/workbook.xml")
   guard descriptor_named(workbook_sheets(workbook), sheet_name)
     is Some(descriptor) else {
@@ -15,7 +15,7 @@ pub fn numeric_formula_cells(
     archive,
     worksheet_part_name(workbook_relationships(archive), descriptor),
   )
-  let result : Array[(Int, Int)] = []
+  let result : Array[(Int32, Int32)] = []
   let mut previous_row = 0
   if root.first_child("sheetData") is Some(data) {
     for row in data.children_named("row") {

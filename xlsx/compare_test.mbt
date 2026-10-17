@@ -247,7 +247,7 @@ test "workbook comparison rejects duplicate names relationships and aliased work
 }
 
 ///|
-fn comparison_many_cells(count : Int) -> @opc.Package raise {
+fn comparison_many_cells(count : Int32) -> @opc.Package raise {
   let output = StringBuilder()
   output.write_string("<worksheet><sheetData>")
   for i in 0..<count {

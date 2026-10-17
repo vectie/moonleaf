@@ -14,7 +14,7 @@ pub fn PaginationProfile::default() -> PaginationProfile {
 }
 
 ///|
-fn positive_or(value : Int?, fallback : Int) -> Int {
+fn positive_or(value : Int32?, fallback : Int32) -> Int32 {
   match value {
     Some(number) if number > 0 => number
     _ => fallback
@@ -22,7 +22,7 @@ fn positive_or(value : Int?, fallback : Int) -> Int {
 }
 
 ///|
-fn signed_or(value : Int?, fallback : Int) -> Int {
+fn signed_or(value : Int32?, fallback : Int32) -> Int32 {
   match value {
     Some(number) if number >= 0 => number
     _ => fallback
@@ -30,16 +30,16 @@ fn signed_or(value : Int?, fallback : Int) -> Int {
 }
 
 ///|
-fn run_font_size(run : RunMetadata, profile : PaginationProfile) -> Int {
+fn run_font_size(run : RunMetadata, profile : PaginationProfile) -> Int32 {
   positive_or(run.font_size_half_points, profile.default_font_size_half_points)
 }
 
 ///|
 fn paragraph_line_count(
   paragraph : ParagraphInfo,
-  width_twips : Int,
+  width_twips : Int32,
   profile : PaginationProfile,
-) -> Int {
+) -> Int32 {
   let available = width_twips -
     paragraph.metadata.left_indent_twips.unwrap_or(0) -
     paragraph.metadata.right_indent_twips.unwrap_or(0)
@@ -81,9 +81,9 @@ fn paragraph_line_count(
 ///|
 fn paragraph_height(
   paragraph : ParagraphInfo,
-  width_twips : Int,
+  width_twips : Int32,
   profile : PaginationProfile,
-) -> Int {
+) -> Int32 {
   let font_line = paragraph.runs.fold(
     init=profile.default_font_size_half_points * 12,
     fn(current, run) { current.max(run_font_size(run, profile) * 12) },
@@ -98,7 +98,7 @@ fn paragraph_height(
 }
 
 ///|
-fn cell_height(cell : TableCellInfo, profile : PaginationProfile) -> Int {
+fn cell_height(cell : TableCellInfo, profile : PaginationProfile) -> Int32 {
   let width = (positive_or(cell.width_twips, 2400) -
   cell.margin_left_twips.unwrap_or(
     profile.table_cell_vertical_padding_twips / 2,
@@ -124,7 +124,7 @@ fn cell_height(cell : TableCellInfo, profile : PaginationProfile) -> Int {
 }
 
 ///|
-fn table_row_height(row : TableRowInfo, profile : PaginationProfile) -> Int {
+fn table_row_height(row : TableRowInfo, profile : PaginationProfile) -> Int32 {
   let content_height = row.cells.fold(init=profile.default_line_twips, fn(
     height,
     cell,
@@ -150,7 +150,7 @@ fn table_with_rows(table : TableInfo, rows : Array[TableRowInfo]) -> TableInfo {
 fn add_page(
   pages : Array[DocxPage],
   blocks : Array[DocxFlowBlock],
-  used : Int,
+  used : Int32,
 ) -> Unit {
   if !blocks.is_empty() || pages.is_empty() {
     pages.push({ blocks: blocks.copy(), used_height_twips: used, })
@@ -169,7 +169,7 @@ fn paragraph_has_visible_content(paragraph : ParagraphInfo) -> Bool {
 
 ///|
 /// table; it is a document sentinel, not an additional rendered page.
-fn pagination_block_count(blocks : Array[DocxFlowBlock]) -> Int {
+fn pagination_block_count(blocks : Array[DocxFlowBlock]) -> Int32 {
   let count = Ref(blocks.length())
   while count.val > 0 {
     match blocks[count.val - 1] {
@@ -185,7 +185,7 @@ fn pagination_block_count(blocks : Array[DocxFlowBlock]) -> Int {
 ///|
 /// Keep a short table caption and up to two following metadata paragraphs
 /// with the table when they would otherwise be orphaned at the page bottom.
-fn table_follows_soon(blocks : Array[DocxFlowBlock], index : Int) -> Bool {
+fn table_follows_soon(blocks : Array[DocxFlowBlock], index : Int32) -> Bool {
   let mut seen_paragraphs = 0
   for next = index + 1
       next < blocks.length() && seen_paragraphs < 3
@@ -204,7 +204,7 @@ fn table_follows_soon(blocks : Array[DocxFlowBlock], index : Int) -> Bool {
 /// Paginate rich DOCX flow with deterministic OOXML-derived metrics.
 pub fn paginate_document(
   document_package : @opc.Package,
-  profile? : PaginationProfile = PaginationProfile::default(),
+  profile~ : PaginationProfile = PaginationProfile::default(),
 ) -> PagedDocxDocument raise DocxError {
   let preview = preview_document(document_package)
   let section = preview.blocks.fold(init=None, fn(current, block) {
@@ -269,7 +269,7 @@ pub fn paginate_document(
   fn next_page(
     pages : Array[DocxPage],
     current : Array[DocxFlowBlock],
-    used : Ref[Int],
+    used : Ref[Int32],
   ) -> Unit {
     add_page(pages, current, used.val)
     used.val = 0

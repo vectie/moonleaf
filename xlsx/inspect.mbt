@@ -2,9 +2,9 @@
 /// Structured warning produced while inspecting display metadata.
 pub(all) enum InspectWarning {
   MissingStylesPart
-  StyleIdOutOfRange(Int)
-  UnsupportedNumberFormat(Int, String)
-  AmbiguousNumberFormat(Int, String)
+  StyleIdOutOfRange(Int32)
+  UnsupportedNumberFormat(Int32, String)
+  AmbiguousNumberFormat(Int32, String)
 } derive(Debug, Eq)
 
 ///|
@@ -28,28 +28,28 @@ pub(all) struct DateTimeMetadata {
   date1904 : Bool
   serial : Double
   serial_60 : Bool
-  year : Int?
-  month : Int?
-  day : Int?
-  hour : Int
-  minute : Int
-  second : Int
+  year : Int32?
+  month : Int32?
+  day : Int32?
+  hour : Int32
+  minute : Int32
+  second : Int32
 } derive(Debug, Eq)
 
 ///|
 /// Additive per-cell view retaining the XML value and cached formula value.
 pub(all) struct InspectedCell {
   sheet_name : String
-  row : Int
-  column : Int
+  row : Int32
+  column : Int32
   raw_value : String?
   /// Resolved textual content for shared-string and inline-string cells.
   /// `raw_value` remains the original `<v>` text (including shared-string indexes).
   resolved_text : String?
   formula : String?
   cached_value : String?
-  style_id : Int?
-  number_format_id : Int?
+  style_id : Int32?
+  number_format_id : Int32?
   number_format : String?
   display_kind : DisplayKind
   date_time : DateTimeMetadata?
@@ -71,7 +71,7 @@ let shared_strings_relationship_types : Array[String] = [
 ]
 
 ///|
-fn builtin_format(id : Int) -> String? {
+fn builtin_format(id : Int32) -> String? {
   match id {
     0 => Some("General")
     1 => Some("0")
@@ -119,7 +119,7 @@ fn custom_format_kind(code : String) -> (DisplayKind, Bool, Bool) {
 }
 
 ///|
-fn format_kind(id : Int, code : String) -> (DisplayKind, Bool, Bool) {
+fn format_kind(id : Int32, code : String) -> (DisplayKind, Bool, Bool) {
   if id == 0 {
     (General, false, false)
   } else if (id >= 1 && id <= 13) ||
@@ -141,7 +141,7 @@ fn format_kind(id : Int, code : String) -> (DisplayKind, Bool, Bool) {
 }
 
 ///|
-fn civil_from_days(days : Int) -> (Int, Int, Int) {
+fn civil_from_days(days : Int32) -> (Int32, Int32, Int32) {
   let z = days + 719468
   let era = if z >= 0 { z / 146097 } else { (z - 146096) / 146097 }
   let doe = z - era * 146097
@@ -271,8 +271,8 @@ pub fn inspect(
       p.attribute("date1904") == Some("true")
     None => false
   }
-  let custom : Map[Int, String] = Map([])
-  let xfs : Array[Int] = []
+  let custom : Map[Int32, String] = Map([])
+  let xfs : Array[Int32] = []
   let styles_part = resolved_metadata_part(
     xlsx_package, relationships, styles_relationship_types,
   )

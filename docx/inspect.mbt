@@ -1,5 +1,5 @@
 ///|
-fn nonnegative_int_attr(element : @xml.Element?, name : String) -> Int? {
+fn nonnegative_int_attr(element : @xml.Element?, name : String) -> Int32? {
   match element {
     None => None
     Some(element) => {
@@ -14,7 +14,7 @@ fn nonnegative_int_attr(element : @xml.Element?, name : String) -> Int? {
 }
 
 ///|
-fn signed_indent_attr(element : @xml.Element?, name : String) -> Int? {
+fn signed_indent_attr(element : @xml.Element?, name : String) -> Int32? {
   match element {
     None => None
     Some(element) => {
@@ -31,12 +31,12 @@ fn signed_indent_attr(element : @xml.Element?, name : String) -> Int? {
 }
 
 ///|
-fn int_attr(element : @xml.Element?, name : String) -> Int? {
+fn int_attr(element : @xml.Element?, name : String) -> Int32? {
   nonnegative_int_attr(element, name)
 }
 
 ///|
-fn signed_int_attr(element : @xml.Element?, name : String) -> Int? {
+fn signed_int_attr(element : @xml.Element?, name : String) -> Int32? {
   signed_indent_attr(element, name)
 }
 
@@ -438,7 +438,7 @@ pub fn preview_document(
 }
 
 ///|
-fn first_rendered_content(element : @xml.Element) -> Int {
+fn first_rendered_content(element : @xml.Element) -> Int32 {
   if element.local_name() == "lastRenderedPageBreak" ||
     (element.local_name() == "br" && element.attribute("type") == Some("page")) {
     return 1

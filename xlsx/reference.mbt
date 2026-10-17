@@ -1,11 +1,11 @@
 ///|
-let max_row : Int = 1048576
+let max_row : Int32 = 1048576
 
 ///|
-let max_column : Int = 16384
+let max_column : Int32 = 16384
 
 ///|
-fn parse_decimal(source : String, limit : Int) -> Int? {
+fn parse_decimal(source : String, limit : Int32) -> Int32? {
   if source.length() == 0 {
     return None
   }
@@ -25,7 +25,7 @@ fn parse_decimal(source : String, limit : Int) -> Int? {
 }
 
 ///|
-fn parse_cell_reference(reference : String) -> (Int, Int)? {
+fn parse_cell_reference(reference : String) -> (Int32, Int32)? {
   let split = Ref(0)
   while split.val < reference.length() &&
         reference[split.val] >= 'A' &&
@@ -80,12 +80,12 @@ fn parse_range_reference(reference : String) -> @scene.CellRange? {
 }
 
 ///|
-fn column_name(column : Int) -> String {
+fn column_name(column : Int32) -> String {
   let result : Array[Char] = []
   let value = Ref(column)
   while value.val > 0 {
     let digit = (value.val - 1) % 26
-    result.push(Int::to_char('A'.to_int() + digit).unwrap())
+    result.push(Int32::to_char('A'.to_int() + digit).unwrap())
     value.val = (value.val - 1) / 26
   }
   let output = StringBuilder()
@@ -96,6 +96,6 @@ fn column_name(column : Int) -> String {
 }
 
 ///|
-fn cell_reference(row : Int, column : Int) -> String {
+fn cell_reference(row : Int32, column : Int32) -> String {
   "\{column_name(column)}\{row}"
 }

@@ -22,7 +22,7 @@ fn docx_row(cells : Array[String]) -> String {
 ///|
 fn docx_import(
   body : String,
-  header? : @jsontable.DocxHeader = FirstTableRow,
+  header~ : @jsontable.DocxHeader = FirstTableRow,
 ) -> @jsontable.DocxTable raise {
   @jsontable.extract_docx(
     docx_table_fixture(body),

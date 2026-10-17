@@ -2,7 +2,7 @@
 pub(all) suberror TypedDelimitedError {
   InvalidDelimitedSchema(String)
   InvalidTypedDelimited(String)
-  DelimitedConversion(row~ : Int, column~ : String, reason~ : String)
+  DelimitedConversion(row~ : Int32, column~ : String, reason~ : String)
 } derive(Debug, Eq)
 
 ///|
@@ -161,7 +161,7 @@ pub fn parse_delimited_schema(
 fn convert_delimited_cell(
   original : String,
   field : DelimitedField,
-  row : Int,
+  row : Int32,
 ) -> @scene.CellValue raise TypedDelimitedError {
   let text = if field.trim {
     original.trim(chars=" \t\r\n").to_owned()
@@ -222,7 +222,7 @@ fn convert_delimited_cell(
 pub fn parse_typed_delimited(
   text : String,
   schema : DelimitedSchema,
-  delimiter? : Char = ',',
+  delimiter~ : Char = ',',
 ) -> Table raise TypedDelimitedError {
   let source = parse_delimited(text, delimiter~) catch {
     error => raise InvalidTypedDelimited("\{Repr(error)}")

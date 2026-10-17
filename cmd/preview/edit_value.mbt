@@ -1,5 +1,5 @@
 ///|
-fn formula_count(archive : @opc.Package) -> Int {
+fn formula_count(archive : @opc.Package) -> Int32 {
   let workbook = @xlsx.read(archive) catch {
     error => abort("MoonLeaf workbook reopen failed: \{Repr(error)}")
   }

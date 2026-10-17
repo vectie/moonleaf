@@ -1,5 +1,8 @@
 ///|
-fn named_fixture(header? : Int = 1, totals? : Int = 1) -> @opc.Package raise {
+fn named_fixture(
+  header~ : Int32 = 1,
+  totals~ : Int32 = 1,
+) -> @opc.Package raise {
   let source = @opc.open(@xlsx.create([], sheet_name="Orders"))
   source
   .replace_text(
@@ -23,7 +26,7 @@ fn named_fixture(header? : Int = 1, totals? : Int = 1) -> @opc.Package raise {
 ///|
 fn named_refuses(
   source : @opc.Package,
-  name? : String = "OrdersTable",
+  name~ : String = "OrdersTable",
 ) -> Unit raise {
   try @jsontable.extract_xlsx_named_table(source, table_name=name) catch {
     _ => ()

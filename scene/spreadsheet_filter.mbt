@@ -17,8 +17,8 @@ pub fn filter_row_indices(
   mode : RowFilter,
   query : String,
   has_header : Bool,
-) -> Array[Int] {
-  let result : Array[Int] = []
+) -> Array[Int32] {
+  let result : Array[Int32] = []
   let needle = query.to_lower()
   for index, value in values {
     if index == 0 && has_header {

@@ -35,7 +35,7 @@ fn validate_target_text(text : String) -> Unit raise PptxError {
 }
 
 ///|
-fn element_count(element : @xml.Element) -> Int {
+fn element_count(element : @xml.Element) -> Int32 {
   let mut count = 1
   for child in element.child_elements() {
     count += element_count(child)
@@ -46,10 +46,10 @@ fn element_count(element : @xml.Element) -> Int {
 ///|
 fn target_ordinal(
   element : @xml.Element,
-  path : Array[Int],
-  depth : Int,
-  ordinal : Int,
-) -> Int {
+  path : Array[Int32],
+  depth : Int32,
+  ordinal : Int32,
+) -> Int32 {
   if depth == path.length() {
     return ordinal
   }
@@ -66,7 +66,7 @@ fn target_ordinal(
 }
 
 ///|
-fn has_xml_prefix(source : String, offset : Int, prefix : String) -> Bool {
+fn has_xml_prefix(source : String, offset : Int32, prefix : String) -> Bool {
   offset + prefix.length() <= source.length() &&
   source.unsafe_substring(start=offset, end=offset + prefix.length()) == prefix
 }
@@ -74,9 +74,9 @@ fn has_xml_prefix(source : String, offset : Int, prefix : String) -> Bool {
 ///|
 fn skip_markup(
   source : String,
-  start : Int,
+  start : Int32,
   marker : String,
-) -> Int raise PptxError {
+) -> Int32 raise PptxError {
   for offset = start
       offset + marker.length() <= source.length()
       offset = offset + 1 {
@@ -93,8 +93,8 @@ fn skip_markup(
 // quoted attributes. Splicing leaves every other source character untouched.
 fn target_source_span(
   source : String,
-  wanted : Int,
-) -> (Int, Int) raise PptxError {
+  wanted : Int32,
+) -> (Int32, Int32) raise PptxError {
   let mut offset = 0
   let mut ordinal = 0
   let mut selected = -1
@@ -177,8 +177,8 @@ fn replacement_element(element : @xml.Element, replacement : String) -> String {
 ///|
 fn element_at_path(
   element : @xml.Element,
-  path : Array[Int],
-  depth : Int,
+  path : Array[Int32],
+  depth : Int32,
 ) -> @xml.Element {
   if depth == path.length() {
     return element

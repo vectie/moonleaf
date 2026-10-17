@@ -10,8 +10,8 @@ pub(all) struct JsonLineSpec {
 ///|
 pub(all) struct JsonLineTable {
   table : Table
-  parent_count : Int
-  empty_parent_rows : Array[Int]
+  parent_count : Int32
+  empty_parent_rows : Array[Int32]
 } derive(Debug, Eq)
 
 ///|
@@ -19,8 +19,8 @@ pub(all) suberror JsonLineError {
   InvalidJsonLineSpec(String)
   InvalidJsonLines(String)
   JsonLineFieldError(
-    parent_row~ : Int,
-    item_row~ : Int?,
+    parent_row~ : Int32,
+    item_row~ : Int32?,
     column~ : String,
     reason~ : String
   )
@@ -101,8 +101,8 @@ pub fn parse_json_line_spec(text : String) -> JsonLineSpec raise JsonLineError {
 fn json_line_cell(
   record : Json,
   field : JsonRecordField,
-  parent : Int,
-  item : Int?,
+  parent : Int32,
+  item : Int32?,
 ) -> @scene.CellValue raise JsonLineError {
   json_record_cell(record, field, parent) catch {
     JsonRecordFieldError(column~, reason~, ..) =>
@@ -155,7 +155,7 @@ pub fn parse_json_lines(
     total + name.length()
   })
   let rows : Array[Array[@scene.CellValue]] = []
-  let empty_parent_rows : Array[Int] = []
+  let empty_parent_rows : Array[Int32] = []
   for p, parent in parents {
     guard parent is Object(_) else {
       raise InvalidJsonLines("Parent \{p + 1} is not an object")

@@ -2,8 +2,8 @@
 /// Supported cell content at one coordinate. A formula's value is its stored
 /// cache, never a computed result. None differs from an explicit empty string.
 pub(all) struct ComparisonCell {
-  row : Int
-  column : Int
+  row : Int32
+  column : Int32
   value_type : String
   value : String?
   formula : String?
@@ -21,8 +21,8 @@ pub(all) struct CellDifference {
 ///|
 pub(all) struct SheetDifference {
   name : String
-  before_position : Int?
-  after_position : Int?
+  before_position : Int32?
+  after_position : Int32?
   before_state : String?
   after_state : String?
   before_merges : Array[String]
@@ -36,7 +36,7 @@ pub(all) struct WorkbookComparison {
   before_sheets : Array[String]
   after_sheets : Array[String]
   sheets : Array[SheetDifference]
-  changed_cells : Int
+  changed_cells : Int32
   before_date1904 : Bool
   after_date1904 : Bool
   date_system_changed : Bool

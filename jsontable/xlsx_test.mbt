@@ -10,7 +10,7 @@ fn xlsx_selection_fixture(xml : String) -> @opc.Package raise {
 fn extract_range(
   archive : @opc.Package,
   range : String,
-  header? : @jsontable.XlsxHeader = FirstRow,
+  header~ : @jsontable.XlsxHeader = FirstRow,
 ) -> @jsontable.XlsxTable raise {
   @jsontable.extract_xlsx(archive, sheet_name="Sheet1", range~, header~)
 }

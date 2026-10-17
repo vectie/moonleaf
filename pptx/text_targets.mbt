@@ -3,7 +3,7 @@
 /// The ID is a structural path; slide position and shape ID aid human selection.
 pub(all) struct TextTarget {
   id : String
-  slide_number : Int
+  slide_number : Int32
   part : String
   shape_id : String
   hidden_slide : Bool
@@ -23,7 +23,7 @@ pub extend TextTarget with ToJson::{to_json}
 priv struct TextSlot {
   target : TextTarget
   root : @xml.Element
-  path : Array[Int]
+  path : Array[Int32]
 }
 
 ///|
@@ -52,7 +52,7 @@ fn validate_target_namespaces(element : @xml.Element) -> Unit raise PptxError {
 fn collect_text_slots(
   element : @xml.Element,
   root : @xml.Element,
-  path : Array[Int],
+  path : Array[Int32],
   context : TextTarget,
   output : Array[TextSlot],
 ) -> Unit raise PptxError {

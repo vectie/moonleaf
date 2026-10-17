@@ -2,16 +2,16 @@
 priv struct NumberingInstance {
   num_id : String
   abstract_id : String
-  start_overrides : Array[(Int, Int)]
+  start_overrides : Array[(Int32, Int32)]
 }
 
 ///|
 priv struct NumberingFormat {
   abstract_id : String
-  level : Int
+  level : Int32
   format : String
   label_template : String
-  start : Int
+  start : Int32
 }
 
 ///|
@@ -21,7 +21,7 @@ priv struct Numbering {
 }
 
 ///|
-fn parse_int_or(value : String?, fallback : Int) -> Int {
+fn parse_int_or(value : String?, fallback : Int32) -> Int32 {
   match value {
     None => fallback
     Some(value) =>
@@ -116,15 +116,19 @@ fn load_numbering(document_package : @opc.Package) -> Numbering raise DocxError 
 fn Numbering::is_ordered(
   self : Numbering,
   num_id : String,
-  level : Int,
+  level : Int32,
 ) -> Bool {
   self.info(num_id, level).format.to_lower() != "bullet"
 }
 
 ///|
-fn Numbering::info(self : Numbering, num_id : String, level : Int) -> ListInfo {
+fn Numbering::info(
+  self : Numbering,
+  num_id : String,
+  level : Int32,
+) -> ListInfo {
   let mut abstract_id : String? = None
-  let mut start_override : Int? = None
+  let mut start_override : Int32? = None
   for instance in self.instances {
     if instance.num_id == num_id {
       abstract_id = Some(instance.abstract_id)

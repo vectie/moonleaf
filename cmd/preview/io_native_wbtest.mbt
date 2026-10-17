@@ -1,9 +1,9 @@
 ///|
-extern "c" fn test_getpid() -> Int = "getpid"
+extern "c" fn test_getpid() -> Int32 = "getpid"
 
 ///|
 #borrow(path)
-extern "c" fn test_unlink(path : Bytes) -> Int = "unlink"
+extern "c" fn test_unlink(path : Bytes) -> Int32 = "unlink"
 
 ///|
 test "native adapter reads binary files and reserves outputs exclusively" {

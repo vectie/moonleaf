@@ -34,8 +34,8 @@ fn column_edit_is_safe(
 ///|
 fn column_edit_cell(
   cell : @xml.Element,
-  row : Int,
-  column : Int,
+  row : Int32,
+  column : Int32,
 ) -> @xml.Element {
   {
     name: cell.name,
@@ -51,11 +51,11 @@ fn column_edit_cell(
 ///|
 fn column_edit_row(
   row_element : @xml.Element,
-  row : Int,
-  at : Int,
-  count : Int,
+  row : Int32,
+  at : Int32,
+  count : Int32,
   edit : ColumnEdit,
-) -> (@xml.Element, Int) raise XlsxError {
+) -> (@xml.Element, Int32) raise XlsxError {
   let children : Array[@xml.Node] = []
   let mut previous_column = 0
   let mut inserted = false
@@ -113,10 +113,10 @@ fn column_edit_row(
 ///|
 fn column_edit_sheet_data(
   data : @xml.Element,
-  at : Int,
-  count : Int,
+  at : Int32,
+  count : Int32,
   edit : ColumnEdit,
-) -> (@xml.Element, Int) raise XlsxError {
+) -> (@xml.Element, Int32) raise XlsxError {
   let rows : Array[@xml.Node] = []
   let mut previous_row = 0
   let mut last_column = 0
@@ -153,10 +153,10 @@ fn column_edit_sheet_data(
 fn edit_sheet_columns(
   archive : @opc.Package,
   sheet_name : String,
-  at : Int,
-  count : Int,
+  at : Int32,
+  count : Int32,
   edit : ColumnEdit,
-) -> (@opc.Package, Int) raise XlsxError {
+) -> (@opc.Package, Int32) raise XlsxError {
   if at < 1 ||
     at > max_column ||
     count < 1 ||
@@ -242,9 +242,9 @@ fn edit_sheet_columns(
 pub fn insert_sheet_columns(
   archive : @opc.Package,
   sheet_name : String,
-  at : Int,
-  count : Int,
-) -> (@opc.Package, Int) raise XlsxError {
+  at : Int32,
+  count : Int32,
+) -> (@opc.Package, Int32) raise XlsxError {
   edit_sheet_columns(archive, sheet_name, at, count, Insert)
 }
 
@@ -253,8 +253,8 @@ pub fn insert_sheet_columns(
 pub fn delete_sheet_columns(
   archive : @opc.Package,
   sheet_name : String,
-  at : Int,
-  count : Int,
-) -> (@opc.Package, Int) raise XlsxError {
+  at : Int32,
+  count : Int32,
+) -> (@opc.Package, Int32) raise XlsxError {
   edit_sheet_columns(archive, sheet_name, at, count, Delete)
 }

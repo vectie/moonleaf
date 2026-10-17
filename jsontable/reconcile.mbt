@@ -1,9 +1,9 @@
 ///|
 pub(all) suberror ReconcileError {
   InvalidReconcile(String)
-  InvalidReconcileKey(side~ : String, row~ : Int, column~ : String)
-  DuplicateReconcileKey(side~ : String, first_row~ : Int, row~ : Int)
-  UnsupportedReconcileValue(side~ : String, row~ : Int, column~ : String)
+  InvalidReconcileKey(side~ : String, row~ : Int32, column~ : String)
+  DuplicateReconcileKey(side~ : String, first_row~ : Int32, row~ : Int32)
+  UnsupportedReconcileValue(side~ : String, row~ : Int32, column~ : String)
 } derive(Debug, Eq)
 
 ///|
@@ -27,7 +27,7 @@ fn reconcile_shape(table : Table, side : String) -> Unit raise ReconcileError {
 }
 
 ///|
-fn reconcile_column(table : Table, name : String) -> Int raise ReconcileError {
+fn reconcile_column(table : Table, name : String) -> Int32 raise ReconcileError {
   lookup_column(table, name) catch {
     _ => raise InvalidReconcile("Unknown column: " + name)
   }
@@ -36,10 +36,10 @@ fn reconcile_column(table : Table, name : String) -> Int raise ReconcileError {
 ///|
 fn reconcile_index(
   table : Table,
-  keys : Array[Int],
+  keys : Array[Int32],
   side : String,
-) -> (Map[String, Int], Array[String]) raise ReconcileError {
-  let index : Map[String, Int] = Map([])
+) -> (Map[String, Int32], Array[String]) raise ReconcileError {
+  let index : Map[String, Int32] = Map([])
   let identities : Array[String] = []
   for i, row in table.rows {
     for c, value in row {
@@ -98,7 +98,7 @@ pub fn Table::reconcile(
   self : Table,
   after : Table,
   key_columns~ : Array[String],
-  include_unchanged? : Bool = true,
+  include_unchanged~ : Bool = true,
 ) -> Table raise ReconcileError {
   reconcile_shape(self, "before")
   reconcile_shape(after, "after")

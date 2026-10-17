@@ -92,8 +92,8 @@ test "PPTX identical replacement preserves original XML bytes" {
 ///|
 fn scene_cell_is_text(
   scene : @scene.Document,
-  row : Int,
-  column : Int,
+  row : Int32,
+  column : Int32,
   expected : String,
 ) -> Bool {
   match scene {
