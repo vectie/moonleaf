@@ -18,7 +18,7 @@ pub fn correct_text_cells(@opc.Package, Array[TextCellCorrection]) -> @opc.Packa
 
 pub fn create(Array[Array[@scene.CellValue]], sheet_name? : String) -> FixedArray[Byte] raise XlsxError
 
-pub fn create_workbook(Array[(String, Array[Array[@scene.CellValue]])]) -> FixedArray[Byte] raise XlsxError
+pub fn create_workbook(Array[(String, Array[Array[@scene.CellValue]])], query_binding? : Json) -> FixedArray[Byte] raise XlsxError
 
 pub fn delete_sheet_columns(@opc.Package, String, Int, Int) -> (@opc.Package, Int) raise XlsxError
 
@@ -49,6 +49,8 @@ pub fn number_format_places_cells(@opc.Package, String) -> Array[(Int, Int, Int)
 pub fn numeric_formula_cells(@opc.Package, String) -> Array[(Int, Int)] raise XlsxError
 
 pub fn read(@opc.Package) -> @scene.Workbook raise XlsxError
+
+pub fn read_query_binding(@opc.Package) -> Json? raise XlsxError
 
 pub fn read_range(@opc.Package, sheet_name~ : String, range~ : String) -> RangeValues raise XlsxError
 

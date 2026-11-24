@@ -143,7 +143,10 @@ fn open_package_with_policy(
 }
 
 ///|
-fn save_package(archive : Package) -> FixedArray[Byte] raise PackageError {
+fn save_package(
+  archive : Package,
+  compression_level : Int32,
+) -> FixedArray[Byte] raise PackageError {
   if !archive.has_part("[Content_Types].xml") {
     raise InvalidPackage("missing [Content_Types].xml")
   }
@@ -154,5 +157,8 @@ fn save_package(archive : Package) -> FixedArray[Byte] raise PackageError {
     }
     entries.push((normalize_part_name(part.name), part.content))
   }
-  @fzip.zip_sync(entries)
+  @fzip.zip_sync(entries, opts={
+    ..@fzip.ZipEntryOptions::default(),
+    level: compression_level,
+  })
 }

@@ -153,7 +153,13 @@ pub fn create(
     ),
     create_part("xl/worksheets/sheet1.xml", sheet.to_string()),
   ]
-  @opc.save({ parts, }) catch {
+  // Evidence tables contain large repeated source URLs and basis descriptions.
+  // Store larger generated sheets directly in ZIP: the content and CRC remain
+  // identical while interactive export does not wait on DEFLATE match searches.
+  @opc.save(
+    { parts, },
+    compression_level=if total_text > 262144 { 0 } else { 6 },
+  ) catch {
     error => raise PackageFailure(part="xlsx", message="\{Repr(error)}")
   }
 }
@@ -164,6 +170,7 @@ pub fn create(
 /// numeric. The total cell/text budgets apply across the entire workbook.
 pub fn create_workbook(
   sheets : Array[(String, Array[Array[@scene.CellValue]])],
+  query_binding? : Json,
 ) -> FixedArray[Byte] raise XlsxError {
   guard sheets.length() >= 1 && sheets.length() <= 20 else {
     raise InvalidWorkbook("XLSX workbook needs 1..20 sheets")
@@ -219,8 +226,19 @@ pub fn create_workbook(
           created_package_text(archive, "xl/styles.xml"),
         ),
       )
+      let root_relationships = created_package_text(archive, "_rels/.rels")
       parts.push(
-        create_part("_rels/.rels", created_package_text(archive, "_rels/.rels")),
+        create_part(
+          "_rels/.rels",
+          if query_binding is Some(_) {
+            root_relationships.replace(
+              old="</Relationships>",
+              new="<Relationship Id=\"rIdQueryBinding\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/custom-properties\" Target=\"docProps/custom.xml\"/></Relationships>",
+            )
+          } else {
+            root_relationships
+          },
+        ),
       )
     }
     content_types <+
@@ -229,6 +247,11 @@ pub fn create_workbook(
       "<sheet name=\"\{created_xml_attribute(name)}\" sheetId=\"\{number}\" r:id=\"rId\{number}\"/>"
     relationships <+
       "<Relationship Id=\"rId\{number}\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet\{number}.xml\"/>"
+  }
+  if query_binding is Some(binding) {
+    parts.push(create_part("docProps/custom.xml", query_binding_xml(binding)))
+    content_types <+
+      "<Override PartName=\"/docProps/custom.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.custom-properties+xml\"/>"
   }
   content_types <+ "</Types>"
   workbook <+ "</sheets></workbook>"
@@ -239,7 +262,10 @@ pub fn create_workbook(
   parts.push(
     create_part("xl/_rels/workbook.xml.rels", relationships.to_string()),
   )
-  @opc.save({ parts, }) catch {
+  @opc.save(
+    { parts, },
+    compression_level=if total_text > 262144 { 0 } else { 6 },
+  ) catch {
     error => raise PackageFailure(part="xlsx", message="\{Repr(error)}")
   }
 }

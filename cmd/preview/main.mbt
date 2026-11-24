@@ -1993,7 +1993,11 @@ fn create_workbook_file(args : Array[String]) -> Unit {
     }
     (name, json_cell_rows(rows))
   })
-  let created = @xlsx.create_workbook(sheets) catch {
+  let query_binding = match payload {
+    { "query_binding": binding, .. } if binding != Json::null() => Some(binding)
+    _ => None
+  }
+  let created = @xlsx.create_workbook(sheets, query_binding?) catch {
     _ => abort("MoonLeaf workbook creation failed")
   }
   let bytes = recalculate_created_formulas(
@@ -2012,6 +2016,25 @@ fn create_workbook_file(args : Array[String]) -> Unit {
     abort("MoonLeaf workbook sheet verification failed")
   }
   write_file(args[3], bytes)
+}
+
+///|
+fn read_query_binding(args : Array[String]) -> Unit {
+  guard args.length() == 4 else {
+    abort("usage: moonleaf-preview read-query-binding SOURCE")
+  }
+  let archive = @opc.open(read_file(args[3])) catch {
+    _ => abort("MoonLeaf query binding source is not a readable XLSX")
+  }
+  let binding = @xlsx.read_query_binding(archive) catch {
+    _ => abort("MoonLeaf query binding is invalid")
+  }
+  println(
+    (match binding {
+      Some(value) => value
+      None => Json::null()
+    }).stringify(),
+  )
 }
 
 ///|
@@ -2343,17 +2366,38 @@ fn preview_docx(args : Array[String]) -> Unit {
 
 ///|
 fn extract_pdf(args : Array[String]) -> Unit {
-  if args.length() != 5 && args.length() != 6 {
-    abort("usage: moonleaf-preview extract-pdf SOURCE OUTPUT [MAX_BYTES]")
+  if args.length() != 5 && args.length() != 6 && args.length() != 8 {
+    abort(
+      "usage: moonleaf-preview extract-pdf SOURCE OUTPUT [MAX_BYTES [PAGE_START PAGE_LIMIT]]",
+    )
   }
-  let max_bytes = if args.length() == 6 {
+  let max_bytes = if args.length() >= 6 {
     @string.parse_int(args[5][:]) catch {
       _ => abort("invalid PDF MAX_BYTES")
     }
   } else {
     8_000_000
   }
-  let extracted = @pdf_text.extract_with_details(read_file(args[3]), max_bytes~) catch {
+  let page_start = if args.length() == 8 {
+    @string.parse_int(args[6][:]) catch {
+      _ => abort("invalid PDF PAGE_START")
+    }
+  } else {
+    1
+  }
+  let page_limit = if args.length() == 8 {
+    @string.parse_int(args[7][:]) catch {
+      _ => abort("invalid PDF PAGE_LIMIT")
+    }
+  } else {
+    100
+  }
+  let extracted = @pdf_text.extract_with_details(
+    read_file(args[3]),
+    max_bytes~,
+    page_start~,
+    page_limit~,
+  ) catch {
     error => abort("MoonLeaf PDF extraction failed: \{Repr(error)}")
   }
   write_file(args[4], @utf8.encode(extracted.text).to_fixedarray())
@@ -2362,6 +2406,13 @@ fn extract_pdf(args : Array[String]) -> Unit {
     "extraction_warnings": extracted.extraction_warnings,
     "checksum_verification": extracted.checksum_verification,
     "truncated_pages": extracted.truncated_pages,
+    "page_count": extracted.page_count,
+    "page_start": extracted.page_start,
+    "page_end": extracted.page_end,
+    "next_page": match extracted.next_page {
+      Some(page) => Json(page)
+      None => Json::null()
+    },
   }
   println(receipt.stringify())
 }
@@ -2460,6 +2511,8 @@ fn main {
     create_file(args)
   } else if args.length() >= 3 && args[2] == "create-workbook" {
     create_workbook_file(args)
+  } else if args.length() >= 3 && args[2] == "read-query-binding" {
+    read_query_binding(args)
   } else if args.length() >= 3 && args[2] == "create-pptx" {
     create_pptx_file(args)
   } else if args.length() >= 3 && args[2] == "edit" {

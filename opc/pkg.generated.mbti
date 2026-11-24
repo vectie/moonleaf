@@ -16,7 +16,7 @@ pub fn relationships_part_name(String) -> String
 
 pub fn resolve_target(String, String) -> String raise PackageError
 
-pub fn save(Package) -> FixedArray[Byte] raise PackageError
+pub fn save(Package, compression_level? : Int) -> FixedArray[Byte] raise PackageError
 
 // Errors
 pub(all) suberror PackageError {

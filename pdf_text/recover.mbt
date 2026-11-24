@@ -5,6 +5,10 @@ pub(all) struct PdfTextResult {
   extraction_warnings : Array[Json]
   checksum_verification : String
   truncated_pages : Bool
+  page_count : Int32
+  page_start : Int32
+  page_end : Int32
+  next_page : Int32?
 } derive(ToJson)
 
 ///|
@@ -69,6 +73,7 @@ fn recover_text_flate(data : Bytes) -> (Bytes, Int32, Int32) raise PdfTextError 
 ///|
 fn recover_document_text_streams(
   document : @pdflite.PdfDocument,
+  restore_object_streams~ : Bool = false,
 ) -> Array[Json] raise PdfTextError {
   let warnings : Array[Json] = []
   let recovered_members : Array[(Int32, @syntax.PdfObject)] = []
@@ -95,44 +100,50 @@ fn recover_document_text_streams(
       !(value is PdfNull) {
       return
     }
-    let failed = try {
-      ignore(@pdflite.pdf_decode_stream(object))
-      false
-    } catch {
-      InvalidFlateData => true
-      _ => false
+    let strict_decoded = Some(@pdflite.pdf_decode_stream(object).stream_bytes()) catch {
+      InvalidFlateData => None
+      _ => return
     }
-    if !failed {
+    let is_object_stream = dictionary.lookup_immediate(name(b"/Type")) ==
+      Some(PdfNameObject(name(b"/ObjStm")))
+    if strict_decoded is Some(_) &&
+      !(restore_object_streams && is_object_stream) {
       return
     }
-    let data = object.stream_bytes() catch {
-      _ => raise InvalidPdf("Cannot read source text stream")
+    let decoded = match strict_decoded {
+      Some(decoded) => decoded
+      None => {
+        let data = object.stream_bytes() catch {
+          _ => raise InvalidPdf("Cannot read source text stream")
+        }
+        let (decoded, consumed, trailer) = recover_text_flate(data)
+        stream.dictionary = dictionary
+          .remove_dict_entry(name(b"/Filter"))
+          .remove_dict_entry(name(b"/DecodeParms"))
+          .replace_dict_entry(name(b"/Length"), PdfInteger(decoded.length())) catch {
+            _ =>
+              raise InvalidPdf("Cannot preserve recovered source text stream")
+          }
+        stream.data = StreamGot(decoded)
+        warnings.push({
+          "code": "source_zlib_checksum_unverified",
+          "object_number": object_number,
+          "message": "Source zlib stream failed strict verification. Complete bounded raw DEFLATE body recovered for text extraction only; checksum not verified or fabricated.",
+          "compressed_bytes": data.length(),
+          "deflate_bytes_consumed": consumed,
+          "trailer_bytes": trailer,
+        })
+        decoded
+      }
     }
-    let (decoded, consumed, trailer) = recover_text_flate(data)
     total_recovered += decoded.length()
     if total_recovered > 32 * 1024 * 1024 {
       raise TooLarge
     }
-    stream.dictionary = dictionary
-      .remove_dict_entry(name(b"/Filter"))
-      .remove_dict_entry(name(b"/DecodeParms"))
-      .replace_dict_entry(name(b"/Length"), PdfInteger(decoded.length())) catch {
-        _ => raise InvalidPdf("Cannot preserve recovered source text stream")
-      }
-    stream.data = StreamGot(decoded)
-    warnings.push({
-      "code": "source_zlib_checksum_unverified",
-      "object_number": object_number,
-      "message": "Source zlib stream failed strict verification. Complete bounded raw DEFLATE body recovered for text extraction only; checksum not verified or fabricated.",
-      "compressed_bytes": data.length(),
-      "deflate_bytes_consumed": consumed,
-      "trailer_bytes": trailer,
-    })
     // Reconstructed documents can have skipped compressed font/resource
     // dictionaries when the original object-stream checksum failed. Restore
     // only genuinely absent members using the existing object-stream parser.
-    if dictionary.lookup_immediate(name(b"/Type")) is Some(PdfNameObject(kind)) &&
-      kind == name(b"/ObjStm") {
+    if is_object_stream {
       let first = match dictionary.lookup_immediate(name(b"/First")) {
         Some(PdfInteger(v)) => v
         _ => raise InvalidPdf("Object stream lacks First offset")
@@ -176,7 +187,7 @@ fn recover_document_text_streams(
   if !recovered_members.is_empty() {
     warnings.push({
       "code": "source_object_stream_members_recovered",
-      "message": "Missing compressed resource dictionaries restored from complete recovered original object-stream bodies; no font mappings inferred.",
+      "message": "Missing compressed resource dictionaries restored from complete original object-stream bodies; no font mappings inferred.",
       "member_count": recovered_members.length(),
     })
   }

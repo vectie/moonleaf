@@ -122,6 +122,14 @@ pub fn open_with_policy(
 }
 
 ///|
-pub fn save(archive : Package) -> FixedArray[Byte] raise PackageError {
-  save_package(archive)
+/// Save an OPC package; compression_level 0 stores entries with ZIP checksums.
+/// Generated bulk workbooks can choose storage to bound interactive export time.
+pub fn save(
+  archive : Package,
+  compression_level~ : Int32 = 6,
+) -> FixedArray[Byte] raise PackageError {
+  if compression_level < 0 || compression_level > 9 {
+    raise InvalidPackage("ZIP compression_level must be 0..9")
+  }
+  save_package(archive, compression_level)
 }
