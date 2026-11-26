@@ -19,6 +19,8 @@ pub fn create(@json.Json) -> FixedArray[Byte] raise PptxError
 
 pub fn edit_copy(FixedArray[Byte], @json.Json) -> (FixedArray[Byte], @json.Json) raise PptxError
 
+pub fn page_contain_rect(Int32, Int32, Int32, Int32, Int32, Int32) -> (Int32, Int32, Int32, Int32)
+
 pub fn parse_page_yaml(String) -> @json.Json
 
 pub fn plain_text(@opc.Package) -> String raise PptxError

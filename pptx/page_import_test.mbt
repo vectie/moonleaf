@@ -24,7 +24,15 @@ test "parse_page_yaml handles multiline quoted strings and clean_latex_math" {
     { "content": { "text": String(t), .. }, .. } => @pptx.clean_latex_math(t)
     _ => ""
   }
-  assert_eq(text, "P=DQ-α D-βD²/Q-γ\n∂P/∂D=Q-α-2βD/Q")
+  assert_eq(
+    text, "P = DQ − αD − βD²/Q − γ\n∂P/∂D = Q − α − 2βD/Q",
+  )
+}
+
+///|
+test "page_contain_rect preserves natural aspect ratio centered in box" {
+  let (x, y, w, h) = @pptx.page_contain_rect(100, 200, 400, 400, 800, 400)
+  assert_eq((x, y, w, h), (100, 300, 400, 200))
 }
 
 ///|

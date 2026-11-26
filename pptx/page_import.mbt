@@ -331,11 +331,14 @@ pub fn clean_latex_math(text : String) -> String {
   .replace_all(old="\\frac{\\partial P}{\\partial D}", new="∂P/∂D")
   .replace_all(old="\\frac{\\beta D^2}{Q}", new="βD²/Q")
   .replace_all(old="\\frac{2\\beta D}{Q}", new="2βD/Q")
+  .replace_all(old="\\alpha D", new="αD")
   .replace_all(old="\\alpha", new="α")
   .replace_all(old="\\beta", new="β")
   .replace_all(old="\\gamma", new="γ")
   .replace_all(old="D^2", new="D²")
   .replace_all(old="D Q", new="DQ")
+  .replace_all(old="=", new=" = ")
+  .replace_all(old="-", new=" − ")
 }
 
 ///|
@@ -449,9 +452,88 @@ fn page_basename(path : String) -> String {
 }
 
 ///|
+fn page_u16_be(bytes : FixedArray[Byte], offset : Int32) -> Int32 {
+  (bytes[offset].to_int() << 8) | bytes[offset + 1].to_int()
+}
+
+///|
+fn page_u32_be(bytes : FixedArray[Byte], offset : Int32) -> Int32 {
+  (bytes[offset].to_int() << 24) |
+  (bytes[offset + 1].to_int() << 16) |
+  (bytes[offset + 2].to_int() << 8) |
+  bytes[offset + 3].to_int()
+}
+
+///|
+fn page_image_dimensions(bytes : FixedArray[Byte]) -> (Int32, Int32)? {
+  let len = bytes.length()
+  if len >= 24 &&
+    bytes[0] == b'\x89' &&
+    bytes[1] == b'P' &&
+    bytes[2] == b'N' &&
+    bytes[3] == b'G' {
+    let iw = page_u32_be(bytes, 16)
+    let ih = page_u32_be(bytes, 20)
+    if iw > 0 && ih > 0 {
+      return Some((iw, ih))
+    }
+  }
+  if len >= 4 && bytes[0] == b'\xFF' && bytes[1] == b'\xD8' {
+    let mut i = 2
+    while i + 8 < len {
+      if bytes[i] != b'\xFF' {
+        i += 1
+        continue
+      }
+      let marker = bytes[i + 1].to_int()
+      if marker == 0xD9 || marker == 0xDA {
+        break
+      }
+      if marker == 0xC0 || marker == 0xC1 || marker == 0xC2 || marker == 0xC3 {
+        let ih = page_u16_be(bytes, i + 5)
+        let iw = page_u16_be(bytes, i + 7)
+        if iw > 0 && ih > 0 {
+          return Some((iw, ih))
+        }
+        break
+      }
+      let seg_len = page_u16_be(bytes, i + 2)
+      if seg_len < 2 {
+        break
+      }
+      i += 2 + seg_len
+    }
+  }
+  None
+}
+
+///|
+pub fn page_contain_rect(
+  x : Int32,
+  y : Int32,
+  w : Int32,
+  h : Int32,
+  iw : Int32,
+  ih : Int32,
+) -> (Int32, Int32, Int32, Int32) {
+  if iw <= 0 || ih <= 0 || w <= 0 || h <= 0 {
+    return (x, y, w, h)
+  }
+  let sx = w.to_double() / iw.to_double()
+  let sy = h.to_double() / ih.to_double()
+  let scale = if sx < sy { sx } else { sy }
+  let nw = (iw.to_double() * scale).round().to_int()
+  let nh = (ih.to_double() * scale).round().to_int()
+  let nx = x + (w - nw) / 2
+  let ny = y + (h - nh) / 2
+  (nx, ny, nw, nh)
+}
+
+///|
 fn page_build_element(
   el : Json,
   sp_id : Int32,
+  media : Map[String, FixedArray[Byte]],
   next_rid : () -> String,
 ) -> (String, (String, String, String, String)?) {
   let etype = pptx_json_string(el, "elementType").unwrap_or("")
@@ -601,17 +683,33 @@ fn page_build_element(
               raw
             }
           }
-          let cell_text = if c_idx < cells.length() {
+          let (cell_text, cell_sz, cell_bold, cell_align) = if c_idx <
+            cells.length() {
             match cells[c_idx] {
-              { "text": String(t), .. } => t
-              String(s) => s
-              Number(n, ..) => n.to_string()
-              _ => ""
+              { "text": String(t), .. } as cell_obj => {
+                let sz = page_json_double(cell_obj, "fontSize", 14.0)
+                let b = page_json_bool(cell_obj, "bold", is_hdr)
+                let al = match pptx_json_field(cell_obj, "align") {
+                  Array(arr) if !arr.is_empty() =>
+                    match arr[0] {
+                      String("center") => "ctr"
+                      String("right") => "r"
+                      _ => "l"
+                    }
+                  _ => "l"
+                }
+                (t, sz, b, al)
+              }
+              String(s) => (s, 14.0, is_hdr, "l")
+              Number(n, ..) => (n.to_string(), 14.0, is_hdr, "l")
+              _ => ("", 14.0, is_hdr, "l")
             }
           } else {
-            ""
+            ("", 14.0, is_hdr, "l")
           }
-          let paras = page_text_runs(cell_text, 9.5, fg, is_hdr, "l")
+          let paras = page_text_runs(
+            cell_text, cell_sz, fg, cell_bold, cell_align,
+          )
           let cid = sp_id * 100 + cell_seq
           cell_seq += 1
           cells_buf.write_string(
@@ -632,8 +730,16 @@ fn page_build_element(
       let base = page_basename(rel_src)
       let media_name = "media/page_" + base
       let rid = next_rid()
+      let (px, py, pw, ph) = match media.get(rel_src) {
+        Some(img_bytes) =>
+          match page_image_dimensions(img_bytes) {
+            Some((iw, ih)) => page_contain_rect(x, y, w, h, iw, ih)
+            None => (x, y, w, h)
+          }
+        None => (x, y, w, h)
+      }
       (
-        "<p:pic><p:nvPicPr><p:cNvPr id=\"\{sp_id}\" name=\"Image \{sp_id}\"/><p:cNvPicPr/><p:nvPr/></p:nvPicPr><p:blipFill><a:blip r:embed=\"\{rid}\"/><a:stretch><a:fillRect/></a:stretch></p:blipFill><p:spPr><a:xfrm><a:off x=\"\{x}\" y=\"\{y}\"/><a:ext cx=\"\{w}\" cy=\"\{h}\"/></a:xfrm><a:prstGeom prst=\"rect\"><a:avLst/></a:prstGeom></p:spPr></p:pic>",
+        "<p:pic><p:nvPicPr><p:cNvPr id=\"\{sp_id}\" name=\"Image \{sp_id}\"/><p:cNvPicPr/><p:nvPr/></p:nvPicPr><p:blipFill><a:blip r:embed=\"\{rid}\"/><a:stretch><a:fillRect/></a:stretch></p:blipFill><p:spPr><a:xfrm><a:off x=\"\{px}\" y=\"\{py}\"/><a:ext cx=\"\{pw}\" cy=\"\{ph}\"/></a:xfrm><a:prstGeom prst=\"rect\"><a:avLst/></a:prstGeom></p:spPr></p:pic>",
         Some((rid, "../" + media_name, rel_src, "ppt/" + media_name)),
       )
     }
@@ -806,7 +912,12 @@ pub fn build_presentation_from_pages(
         "rId" + rid_counter.to_string()
       }
       for ei, el in elements {
-        let (xml_piece, rel_opt) = page_build_element(el, 100 + ei, next_rid)
+        let (xml_piece, rel_opt) = page_build_element(
+          el,
+          100 + ei,
+          media,
+          next_rid,
+        )
         if !xml_piece.is_empty() {
           shapes_buf.write_string(xml_piece)
         }
