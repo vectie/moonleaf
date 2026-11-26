@@ -570,6 +570,8 @@ fn page_build_element(
       if by >= 500.0 {
         return ("", None)
       }
+      let lw = if bw <= 2.0 { 0 } else { w }
+      let lh = if bh <= 2.0 { 0 } else { h }
       let stroke = pptx_json_field(el, "stroke")
       let sc = page_color_value(
         pptx_json_string(stroke, "color").unwrap_or(""),
@@ -577,7 +579,7 @@ fn page_build_element(
       )
       let sw = (page_json_double(stroke, "width", 1.0) * 12700.0).to_int()
       (
-        "<p:sp><p:nvSpPr><p:cNvPr id=\"\{sp_id}\" name=\"Line \{sp_id}\"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x=\"\{x}\" y=\"\{y}\"/><a:ext cx=\"\{w}\" cy=\"\{h}\"/></a:xfrm><a:prstGeom prst=\"line\"><a:avLst/></a:prstGeom><a:ln w=\"\{sw}\"><a:solidFill><a:srgbClr val=\"\{sc}\"/></a:solidFill></a:ln></p:spPr></p:sp>",
+        "<p:sp><p:nvSpPr><p:cNvPr id=\"\{sp_id}\" name=\"Line \{sp_id}\"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x=\"\{x}\" y=\"\{y}\"/><a:ext cx=\"\{lw}\" cy=\"\{lh}\"/></a:xfrm><a:prstGeom prst=\"line\"><a:avLst/></a:prstGeom><a:ln w=\"\{sw}\"><a:solidFill><a:srgbClr val=\"\{sc}\"/></a:solidFill></a:ln></p:spPr></p:sp>",
         None,
       )
     }
