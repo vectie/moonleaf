@@ -207,7 +207,23 @@ fn preview_layout_decor(
           let y = pptx_parse_int_or(off.attribute("y").unwrap_or("0"), 0)
           let w = pptx_parse_int_or(ext.attribute("cx").unwrap_or("0"), 0)
           let h = pptx_parse_int_or(ext.attribute("cy").unwrap_or("0"), 0)
-          let paint = preview_paint(Some(sp_pr), palette, "")
+          let mut paint = preview_paint(Some(sp_pr), palette, "")
+          if paint == "none" && sp_pr.first_child("noFill") is None {
+            match child.first_child("style") {
+              Some(style) =>
+                match style.first_child("fillRef") {
+                  Some(fill_ref) =>
+                    if fill_ref.attribute("idx").unwrap_or("0") != "0" {
+                      let color = preview_color(fill_ref, palette, "")
+                      if color != "" {
+                        paint = "#" + color
+                      }
+                    }
+                  None => ()
+                }
+              None => ()
+            }
+          }
           let line = sp_pr.first_child("ln")
           let stroke = preview_paint(line, palette, "")
           if w > 0 && h > 0 && (paint != "none" || stroke != "none") {
