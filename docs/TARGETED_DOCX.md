@@ -124,3 +124,16 @@ with bold text, a table and a header. That is a library-produced fixture, not
 Microsoft Word/LibreOffice visual qualification. Neither this workflow nor these
 tests establish Office layout fidelity, print readiness, customer acceptance or
 MoonDesk UI integration.
+
+
+## Batch edit operations (`apply_edit_ops`, `document_outline`, `list_comments`)
+
+`docx/edit_ops.mbt` adds atomic batch editing for agents and editors:
+
+- `@docx.document_outline(pkg)` returns `{ paragraphs, tables, headings: [{ paragraph_index, level, text }] }` using `word/styles.xml` and `outlineLvl`.
+- `@docx.list_comments(pkg)` returns `[{ id, author, text, paragraph_index }]` from `word/comments.xml` anchored in `word/document.xml`.
+- `@docx.apply_edit_ops(pkg, { ops: [...], author?, date? })` runs 1..64 sequential operations atomically:
+  - Paragraph ops: `replace`, `delete`, `format`, `insert_after`, `insert_before`
+  - Range ops (UTF-16 offsets with run splitting): `format_range`, `replace_range`, `comment`
+  - Section ops (by heading text or `paragraph_index`): `insert_in_section`, `replace_section`, `delete_section`, `insert_section_after`
+  - Extended styles: `bold`, `italic`, `underline`, `underline_style` (`single|double|dotted|dash|wave|none`), `strike`, `highlight`, `shade`, `paragraph_shade`, `color`, `font`, `font_size`, `align`.

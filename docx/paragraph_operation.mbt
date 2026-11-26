@@ -61,6 +61,8 @@ fn operation_property(
     let mut position = children.length()
     if local_name == "pStyle" {
       position = 0
+    } else if parent.local_name() == "rPr" {
+      position = operation_rpr_position(children, local_name)
     } else {
       for index, child in children {
         if child is Element(element) &&
@@ -88,6 +90,100 @@ fn operation_property(
     children.insert(position, property)
   }
   operation_element(parent.name, parent.attributes, children)
+}
+
+///|
+let operation_rpr_order : Array[String] = [
+  "rStyle", "rFonts", "b", "bCs", "i", "iCs", "caps", "smallCaps", "strike", "dstrike",
+  "outline", "shadow", "emboss", "imprint", "noProof", "snapToGrid", "vanish", "webHidden",
+  "color", "spacing", "w", "kern", "position", "sz", "szCs", "highlight", "u", "effect",
+  "bdr", "shd", "fitText", "vertAlign", "rtl", "cs", "em", "lang", "eastAsianLayout",
+  "specVanish", "oMath", "rPrChange",
+]
+
+///|
+let operation_ppr_shd_successors : Array[String] = [
+  "tabs", "suppressAutoHyphens", "kinsoku", "wordWrap", "overflowPunct", "topLinePunct",
+  "autoSpaceDE", "autoSpaceDN", "bidi", "adjustRightInd", "snapToGrid", "spacing",
+  "ind", "contextualSpacing", "mirrorIndents", "suppressOverlap", "jc", "textDirection",
+  "textAlignment", "textboxTightWrap", "outlineLvl", "divId", "cnfStyle", "rPr",
+  "sectPr", "pPrChange",
+]
+
+///|
+fn operation_rpr_rank(name : String) -> Int32 {
+  for index, candidate in operation_rpr_order {
+    if candidate == name {
+      return index
+    }
+  }
+  1000
+}
+
+///|
+/// Insert a run property in OOXML schema order so Word never needs repair.
+fn operation_rpr_position(
+  children : Array[@xml.Node],
+  local_name : String,
+) -> Int32 {
+  let rank = operation_rpr_rank(local_name)
+  for index, child in children {
+    if child is Element(existing) &&
+      operation_rpr_rank(existing.local_name()) > rank {
+      return index
+    }
+  }
+  children.length()
+}
+
+///|
+fn operation_is_hex6(value : String) -> Bool {
+  value.length() == 6 &&
+  value.all(c => {
+    (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')
+  })
+}
+
+///|
+/// Replace (or add) a `shd` fill element. Run properties use the rPr order;
+/// paragraph properties are placed before their schema successors.
+fn operation_shading(
+  properties : @xml.Element,
+  fill : String,
+  paragraph : Bool,
+) -> @xml.Element {
+  let prefix = operation_prefix(properties)
+  let shd : @xml.Node = Element(
+    operation_element(
+      prefix + "shd",
+      [
+        { name: prefix + "val", value: "clear", },
+        { name: prefix + "color", value: "auto", },
+        { name: prefix + "fill", value: fill.to_upper(), },
+      ],
+      [],
+    ),
+  )
+  let children : Array[@xml.Node] = properties.children.filter(child => {
+    match child {
+      Element(existing) => existing.local_name() != "shd"
+      _ => true
+    }
+  })
+  let mut position = children.length()
+  if paragraph {
+    for index, child in children {
+      if child is Element(existing) &&
+        operation_ppr_shd_successors.contains(existing.local_name()) {
+        position = index
+        break
+      }
+    }
+  } else {
+    position = operation_rpr_position(children, "shd")
+  }
+  children.insert(position, shd)
+  operation_element(properties.name, properties.attributes, children)
 }
 
 ///|
@@ -215,6 +311,58 @@ fn operation_styles(
           )
         }
         properties = operation_property(properties, "color", color.to_upper())
+        modified = true
+      } else if !paragraph && key == "strike" {
+        guard value is (True | False) else {
+          raise InvalidReplacement("strike must be boolean")
+        }
+        properties = operation_property(
+          properties,
+          "strike",
+          if value is True {
+            "1"
+          } else {
+            "0"
+          },
+        )
+        modified = true
+      } else if !paragraph && key == "highlight" {
+        guard value is String(name) &&
+          [
+            "yellow", "green", "cyan", "magenta", "blue", "red", "darkBlue", "darkCyan",
+            "darkGreen", "darkMagenta", "darkRed", "darkYellow", "darkGray", "lightGray",
+            "black", "none",
+          ].contains(name) else {
+          raise InvalidReplacement(
+            "highlight must be a Word highlight color name",
+          )
+        }
+        properties = operation_property(properties, "highlight", name)
+        modified = true
+      } else if !paragraph && key == "underline_style" {
+        guard value is String(name) &&
+          ["single", "double", "dotted", "dash", "wave", "none"].contains(name) else {
+          raise InvalidReplacement(
+            "underline_style must be single, double, dotted, dash, wave or none",
+          )
+        }
+        properties = operation_property(properties, "u", name)
+        modified = true
+      } else if !paragraph && key == "shade" {
+        guard value is String(fill) && operation_is_hex6(fill) else {
+          raise InvalidReplacement(
+            "shade must be a six-digit RGB hexadecimal value",
+          )
+        }
+        properties = operation_shading(properties, fill, false)
+        modified = true
+      } else if paragraph && key == "paragraph_shade" {
+        guard value is String(fill) && operation_is_hex6(fill) else {
+          raise InvalidReplacement(
+            "paragraph_shade must be a six-digit RGB hexadecimal value",
+          )
+        }
+        properties = operation_shading(properties, fill, true)
         modified = true
       }
     }
@@ -578,6 +726,7 @@ pub fn edit_body_paragraph(
     for key, _ in values {
       if ![
           "bold", "italic", "underline", "font_size_pt", "color", "alignment", "heading",
+          "strike", "highlight", "underline_style", "shade", "paragraph_shade",
         ].contains(key) {
         raise InvalidReplacement("unsupported paragraph style property: " + key)
       }
