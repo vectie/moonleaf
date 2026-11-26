@@ -938,10 +938,15 @@ pub fn build_presentation_from_pages(
           None => ()
         }
       }
-      slide_xml = slide_xml.replace_all(
-        old="</p:spTree>",
-        new=shapes_buf.to_string() + "</p:spTree>",
-      )
+      slide_xml = slide_xml
+        .replace_all(
+          old="<a:off x=\"216000\" y=\"392984\"/><a:ext cx=\"7541652\" cy=\"416571\"/></a:xfrm></p:spPr>",
+          new="<a:off x=\"216000\" y=\"392984\"/><a:ext cx=\"7541652\" cy=\"416571\"/></a:xfrm><a:prstGeom prst=\"rect\"><a:avLst/></a:prstGeom><a:noFill/><a:ln><a:noFill/></a:ln></p:spPr>",
+        )
+        .replace_all(
+          old="</p:spTree>",
+          new=shapes_buf.to_string() + "</p:spTree>",
+        )
     }
     let note_text = if idx < notes.length() { notes[idx] } else { "" }
     if !note_text.trim().to_string().is_empty() {
