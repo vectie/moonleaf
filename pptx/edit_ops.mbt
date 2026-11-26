@@ -713,22 +713,8 @@ fn pptx_replace_shape_text(
 }
 
 ///|
-fn pptx_notes_xml(text : String) -> String {
-  let paragraphs = text
-    .split("\n")
-    .map(line => {
-      "<a:p><a:r><a:t>" +
-      @xml.escape_text(line.to_owned()) +
-      "</a:t></a:r></a:p>"
-    })
-    .join("")
-  "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
-  "<p:notes xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" xmlns:p=\"http://schemas.openxmlformats.org/presentationml/2006/main\">" +
-  "<p:cSld><p:spTree><p:nvGrpSpPr><p:cNvPr id=\"1\" name=\"\"/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr/>" +
-  "<p:sp><p:nvSpPr><p:cNvPr id=\"2\" name=\"Notes Placeholder\"/><p:cNvSpPr><a:spLocks noGrp=\"1\"/></p:cNvSpPr><p:nvPr><p:ph type=\"body\" idx=\"1\"/></p:nvPr></p:nvSpPr><p:spPr/>" +
-  "<p:txBody><a:bodyPr/><a:lstStyle/>" +
-  paragraphs +
-  "</p:txBody></p:sp></p:spTree></p:cSld></p:notes>"
+fn pptx_notes_xml(text : String) -> String raise PptxError {
+  created_pptx_notes(text)
 }
 
 ///|
@@ -800,9 +786,18 @@ fn pptx_set_notes(
         Some(slash) => slide_part[slash + 1:].to_owned()
         None => slide_part
       }
+      let notes_master_rel = if next.has_part(
+          "ppt/notesMasters/notesMaster1.xml",
+        ) {
+        "<Relationship Id=\"rId2\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesMaster\" Target=\"../notesMasters/notesMaster1.xml\"/>"
+      } else {
+        ""
+      }
       let notes_rels = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide\" Target=\"../slides/" +
         slide_file +
-        "\"/></Relationships>"
+        "\"/>" +
+        notes_master_rel +
+        "</Relationships>"
       next = next.replace_text(pptx_rels_path(notes_part), notes_rels)
       let rels_xml = if next.has_part(slide_rels_path) {
         next.text(slide_rels_path) catch {
