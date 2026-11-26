@@ -748,15 +748,11 @@ fn pptx_set_notes(
   ignore(created_pptx_text(text))
   let slide_part = slide_parts[slide_idx]
   let slide_rels_path = pptx_rels_path(slide_part)
-  let mut existing_notes : String? = None
-  if container.has_part(slide_rels_path) {
+  let existing_notes = if container.has_part(slide_rels_path) {
     let rels = container.relationships(slide_part) catch { _ => [] }
-    for rel in rels {
-      if rel.relationship_type.has_suffix("/notesSlide") {
-        existing_notes = Some(rel.target)
-        break
-      }
-    }
+    preview_related_part(slide_part, rels, "/notesSlide")
+  } else {
+    None
   }
   match existing_notes {
     Some(notes_part) if container.has_part(notes_part) => {

@@ -1,4 +1,5 @@
 ///|
+#derive(Eq)
 priv struct PreviewStyle {
   size : Double
   color : String
@@ -6,7 +7,7 @@ priv struct PreviewStyle {
   bold : Bool
   italic : Bool
   underline : Bool
-} derive(Eq)
+}
 
 ///|
 priv struct PreviewGlyph {
@@ -361,7 +362,7 @@ fn preview_text_lines(
 
 ///|
 fn preview_style_attributes(style : PreviewStyle) -> String {
-  "font-size=\"\{style.size}\" fill=\"#\{style.color}\" font-family=\"\{@xml.escape_attribute(style.family)},Microsoft YaHei,Arial,sans-serif\" font-weight=\"\{if style.bold {"700"}else{"400"}}\" font-style=\"\{if style.italic{"italic"}else{"normal"}}\" text-decoration=\"\{if style.underline{"underline"}else{"none"}}\""
+  "font-size=\"\{preview_pt(style.size)}\" fill=\"#\{style.color}\" font-family=\"\{@xml.escape_attribute(style.family)},Microsoft YaHei,Arial,sans-serif\" font-weight=\"\{if style.bold {"700"}else{"400"}}\" font-style=\"\{if style.italic{"italic"}else{"normal"}}\" text-decoration=\"\{if style.underline{"underline"}else{"none"}}\""
 }
 
 ///|
@@ -390,10 +391,20 @@ fn preview_text_svg(
     Some(p) => numeric_attribute(p, "bIns", part, default=45720).to_double()
     None => 45720.0
   }
-  let available = (bounds.width.to_double() - left - right).max(1.0)
+  let effective_width = if bounds.width > 0 {
+    bounds.width.to_double()
+  } else {
+    10_000_000.0
+  }
+  let effective_height = if bounds.height > 0 {
+    bounds.height.to_double()
+  } else {
+    5_000_000.0
+  }
+  let available = (effective_width - left - right).max(1.0)
   let lines = preview_text_lines(body, available, palette, part)
   let total = lines.fold(init=0.0, (sum, line) => sum + line.height)
-  let height = bounds.height.to_double() - top - bottom
+  let height = effective_height - top - bottom
   let anchor = match properties {
     Some(p) => p.attribute("anchor").unwrap_or("t")
     None => "t"
@@ -415,7 +426,7 @@ fn preview_text_svg(
   }
   let out = StringBuilder()
   out.write_string(
-    "<defs><clipPath id=\"\{clip_id}\"><rect x=\"\{bounds.x}\" y=\"\{bounds.y}\" width=\"\{bounds.width.max(0)}\" height=\"\{bounds.height.max(0)}\"/></clipPath></defs><g clip-path=\"url(#\{clip_id})\">",
+    "<defs><clipPath id=\"\{clip_id}\"><rect x=\"\{preview_pt(bounds.x.to_double())}\" y=\"\{preview_pt(bounds.y.to_double())}\" width=\"\{preview_pt(effective_width)}\" height=\"\{preview_pt(effective_height)}\"/></clipPath></defs><g clip-path=\"url(#\{clip_id})\">",
   )
   let mut y = bounds.y.to_double() + top + offset
   for line in lines {
@@ -434,12 +445,12 @@ fn preview_text_svg(
         line.bullet_x
       }
       out.write_string(
-        "<text x=\"\{bounds.x.to_double()+left+bullet_x}\" y=\"\{baseline}\" \{preview_style_attributes(line.bullet_style)}>\{@xml.escape_text(line.bullet)}</text>",
+        "<text x=\"\{preview_pt(bounds.x.to_double()+left+bullet_x)}\" y=\"\{preview_pt(baseline)}\" \{preview_style_attributes(line.bullet_style)}>\{@xml.escape_text(line.bullet)}</text>",
       )
     }
     for glyph in line.glyphs {
       out.write_string(
-        "<text x=\"\{bounds.x.to_double()+left+line.margin+align+glyph.x}\" y=\"\{baseline}\" xml:space=\"preserve\" \{preview_style_attributes(glyph.style)}>\{@xml.escape_text(glyph.text)}</text>",
+        "<text x=\"\{preview_pt(bounds.x.to_double()+left+line.margin+align+glyph.x)}\" y=\"\{preview_pt(baseline)}\" xml:space=\"preserve\" \{preview_style_attributes(glyph.style)}>\{@xml.escape_text(glyph.text)}</text>",
       )
     }
     y += line.height
