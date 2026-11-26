@@ -174,7 +174,15 @@ fn preview_layout_decor(
               )
               let encoded = @base64.encode(Bytes::from_array(image.content)[:])
               out.write_string(
-                "<image x=\"\{preview_pt(x.to_double())}\" y=\"\{preview_pt(y.to_double())}\" width=\"\{preview_pt(w.to_double())}\" height=\"\{preview_pt(h.to_double())}\" preserveAspectRatio=\"xMidYMid meet\" href=\"data:\{mime};base64,\{encoded}\"/>",
+                preview_image_svg(
+                  preview_pt(x.to_double()),
+                  preview_pt(y.to_double()),
+                  preview_pt(w.to_double()),
+                  preview_pt(h.to_double()),
+                  mime,
+                  encoded,
+                  Some(child),
+                ),
               )
             }
           }
@@ -222,6 +230,43 @@ fn preview_layout_decor(
     }
   }
   out.to_string()
+}
+
+///|
+fn preview_image_svg(
+  x : Double,
+  y : Double,
+  w : Double,
+  h : Double,
+  mime : String,
+  encoded : String,
+  element : @xml.Element?,
+) -> String {
+  let src_rect = match element {
+    Some(el) => first_descendant(el, "srcRect")
+    None => None
+  }
+  match src_rect {
+    Some(sr) => {
+      let l = pptx_parse_int_or(sr.attribute("l").unwrap_or("0"), 0)
+        .max(0)
+        .to_double()
+      let t = pptx_parse_int_or(sr.attribute("t").unwrap_or("0"), 0)
+        .max(0)
+        .to_double()
+      let r = pptx_parse_int_or(sr.attribute("r").unwrap_or("0"), 0)
+        .max(0)
+        .to_double()
+      let b = pptx_parse_int_or(sr.attribute("b").unwrap_or("0"), 0)
+        .max(0)
+        .to_double()
+      let vw = (100000.0 - l - r).max(1.0)
+      let vh = (100000.0 - t - b).max(1.0)
+      "<svg x=\"\{x}\" y=\"\{y}\" width=\"\{w}\" height=\"\{h}\" viewBox=\"\{l} \{t} \{vw} \{vh}\" preserveAspectRatio=\"none\"><image x=\"0\" y=\"0\" width=\"100000\" height=\"100000\" preserveAspectRatio=\"none\" href=\"data:\{mime};base64,\{encoded}\"/></svg>"
+    }
+    None =>
+      "<image x=\"\{x}\" y=\"\{y}\" width=\"\{w}\" height=\"\{h}\" preserveAspectRatio=\"xMidYMid meet\" href=\"data:\{mime};base64,\{encoded}\"/>"
+  }
 }
 
 ///|
@@ -432,7 +477,15 @@ fn preview_svg(
                   Bytes::from_array(image.content)[:],
                 )
                 out.write_string(
-                  "<image x=\"\{preview_pt(bounds.x.to_double())}\" y=\"\{preview_pt(bounds.y.to_double())}\" width=\"\{preview_pt(bounds.width.max(0).to_double())}\" height=\"\{preview_pt(bounds.height.max(0).to_double())}\" preserveAspectRatio=\"xMidYMid meet\" href=\"data:\{mime};base64,\{encoded}\"/>",
+                  preview_image_svg(
+                    preview_pt(bounds.x.to_double()),
+                    preview_pt(bounds.y.to_double()),
+                    preview_pt(bounds.width.max(0).to_double()),
+                    preview_pt(bounds.height.max(0).to_double()),
+                    mime,
+                    encoded,
+                    source,
+                  ),
                 )
                 match source {
                   Some(source) =>
