@@ -11,9 +11,15 @@ import {
 // Values
 pub fn apply_edit_ops(@opc.Package, @json.Json) -> (@opc.Package, @json.Json) raise PptxError
 
+pub fn build_presentation_from_pages(FixedArray[Byte], Array[String], Array[String], Map[String, FixedArray[Byte]]) -> FixedArray[Byte] raise PptxError
+
+pub fn clean_latex_math(String) -> String
+
 pub fn create(@json.Json) -> FixedArray[Byte] raise PptxError
 
 pub fn edit_copy(FixedArray[Byte], @json.Json) -> (FixedArray[Byte], @json.Json) raise PptxError
+
+pub fn parse_page_yaml(String) -> @json.Json
 
 pub fn plain_text(@opc.Package) -> String raise PptxError
 
