@@ -2,18 +2,20 @@
 /// A JSON object collection projected onto the union of its top-level keys.
 /// Column order follows first appearance. Missing fields are blank; null is
 /// literal "null". Nested arrays and objects remain compact JSON text.
+#derive(Debug, Eq)
 pub(all) struct Table {
   columns : Array[String]
   rows : Array[Array[@scene.CellValue]]
-} derive(Debug, Eq)
+}
 
 ///|
+#derive(Debug, Eq)
 pub(all) suberror TableError {
   InvalidJson(String)
   ExpectedArray
   ExpectedObject(Int32)
   Export(String)
-} derive(Debug, Eq)
+}
 
 ///|
 fn cell_value(value : Json) -> @scene.CellValue {

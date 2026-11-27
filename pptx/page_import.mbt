@@ -4,14 +4,14 @@
 
 ///|
 fn page_color_value(val : String, default_hex : String) -> String {
-  let s = val.trim().to_string()
+  let s = val.trim().to_owned()
   if s.is_empty() {
     return default_hex
   }
   let stripped = if (s.has_prefix("'") && s.has_suffix("'")) ||
     (s.has_prefix("\"") && s.has_suffix("\"")) {
     if s.length() >= 2 {
-      s[1:s.length() - 1].to_string()
+      s[1:s.length() - 1].to_owned()
     } else {
       s
     }
@@ -29,7 +29,7 @@ fn page_color_value(val : String, default_hex : String) -> String {
     "$blue" => "2F5597"
     _ => {
       let hex = if stripped.has_prefix("#") {
-        stripped[1:].to_string()
+        stripped[1:].to_owned()
       } else {
         stripped
       }
@@ -131,8 +131,8 @@ fn page_parse_scalar(raw : String) -> Json {
 fn page_split_kv(line : String) -> (String, String)? {
   match line.find(":") {
     Some(idx) => {
-      let k = line[:idx].to_string().trim().to_string()
-      let v = line[idx + 1:].to_string().trim().to_string()
+      let k = line[:idx].to_owned().trim().to_owned()
+      let v = line[idx + 1:].to_owned().trim().to_owned()
       Some((k, v))
     }
     None => None
@@ -157,8 +157,8 @@ fn page_consume_multiline(
   first : String,
   quote : Char,
 ) -> (String, Int32) {
-  let buf = StringBuilder::new()
-  buf.write_string(first[1:].to_string())
+  let buf = StringBuilder()
+  buf.write_string(first[1:].to_owned())
   let mut idx = start_idx + 1
   let q_str = quote.to_string()
   while idx < lines.length() {
@@ -167,7 +167,7 @@ fn page_consume_multiline(
     buf.write_char('\n')
     if cur.has_suffix(q_str) {
       if cur.length() >= 1 {
-        buf.write_string(cur[:cur.length() - 1].to_string())
+        buf.write_string(cur[:cur.length() - 1].to_owned())
       }
       break
     }
@@ -194,7 +194,7 @@ fn page_parse_block(
       let item_str = if lines[idx].1 == "-" {
         ""
       } else {
-        lines[idx].1[2:].to_string().trim().to_string()
+        lines[idx].1[2:].to_owned().trim().to_owned()
       }
       if item_str.is_empty() {
         let (child, next_idx) = page_parse_block(lines, idx + 1)
@@ -203,7 +203,7 @@ fn page_parse_block(
       } else if item_str.contains(":") &&
         !item_str.has_prefix("'") &&
         !item_str.has_prefix("\"") {
-        let obj : Map[String, Json] = {}
+        let obj : Map[String, Json] = Map([])
         match page_split_kv(item_str) {
           Some((k, v)) => {
             if v.is_empty() {
@@ -259,7 +259,7 @@ fn page_parse_block(
     }
     (Json::array(arr), idx)
   } else {
-    let obj : Map[String, Json] = {}
+    let obj : Map[String, Json] = Map([])
     let mut idx = start_idx
     while idx < lines.length() &&
           lines[idx].0 == first_indent &&
@@ -295,8 +295,8 @@ fn page_parse_block(
 pub fn parse_page_yaml(text : String) -> Json {
   let lines : Array[(Int32, String)] = []
   for raw_view in text.split("\n") {
-    let raw = raw_view.to_string().trim_end(chars="\r").to_string()
-    let trimmed = raw.trim().to_string()
+    let raw = raw_view.to_owned().trim_end(chars="\r").to_owned()
+    let trimmed = raw.trim().to_owned()
     if trimmed.is_empty() || trimmed.has_prefix("#") {
       continue
     }
@@ -416,9 +416,9 @@ fn page_text_runs(
   } else {
     "<a:pPr algn=\"\{align_xml}\"/>"
   }
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   for line_view in cleaned.split("\n") {
-    let line = line_view.to_string()
+    let line = line_view.to_owned()
     buf.write_string(
       "<a:p>\{ppr}<a:r>\{rpr}<a:t>\{@xml.escape_text(line)}</a:t></a:r></a:p>",
     )
@@ -446,7 +446,7 @@ fn page_json_bool(v : Json, key : String, default_val : Bool) -> Bool {
 ///|
 fn page_basename(path : String) -> String {
   match pptx_rfind(path, "/") {
-    Some(idx) => path[idx + 1:].to_string()
+    Some(idx) => path[idx + 1:].to_owned()
     None => path
   }
 }
@@ -586,7 +586,7 @@ fn page_build_element(
     "text" => {
       let c = pptx_json_field(el, "content")
       let text = pptx_json_string(c, "text").unwrap_or("")
-      if text.trim().to_string().is_empty() {
+      if text.trim().to_owned().is_empty() {
         return ("", None)
       }
       if (by < 24.0 && bx > 650.0) || by >= 505.0 {
@@ -728,7 +728,7 @@ fn page_build_element(
       if src.is_empty() {
         return ("", None)
       }
-      let rel_src = if src.has_prefix("/") { src[1:].to_string() } else { src }
+      let rel_src = if src.has_prefix("/") { src[1:].to_owned() } else { src }
       let base = page_basename(rel_src)
       let media_name = "media/page_" + base
       let rid = next_rid()
@@ -758,7 +758,7 @@ fn page_replace_tag_block(
 ) -> String {
   match source.find(open_tag) {
     Some(start) =>
-      match source[start:].to_string().find(close_tag) {
+      match source[start:].to_owned().find(close_tag) {
         Some(rel_end) =>
           pptx_splice(
             source,
@@ -774,24 +774,24 @@ fn page_replace_tag_block(
 
 ///|
 fn page_strip_slide_overrides(ct_xml : String) -> String {
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   let mut pos = 0
   while pos < ct_xml.length() {
-    match ct_xml[pos:].to_string().find("<Override ") {
+    match ct_xml[pos:].to_owned().find("<Override ") {
       None => {
-        buf.write_string(ct_xml[pos:].to_string())
+        buf.write_string(ct_xml[pos:].to_owned())
         break
       }
       Some(rel_start) => {
         let start = pos + rel_start
-        buf.write_string(ct_xml[pos:start].to_string())
-        match ct_xml[start:].to_string().find("/>") {
+        buf.write_string(ct_xml[pos:start].to_owned())
+        match ct_xml[start:].to_owned().find("/>") {
           None => {
-            buf.write_string(ct_xml[start:].to_string())
+            buf.write_string(ct_xml[start:].to_owned())
             break
           }
           Some(rel_end) => {
-            let tag = ct_xml[start:start + rel_end + 2].to_string()
+            let tag = ct_xml[start:start + rel_end + 2].to_owned()
             if !tag.contains("/ppt/slides/") &&
               !tag.contains("/ppt/notesSlides/") {
               buf.write_string(tag)
@@ -807,24 +807,24 @@ fn page_strip_slide_overrides(ct_xml : String) -> String {
 
 ///|
 fn page_strip_slide_rels(rels_xml : String) -> String {
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   let mut pos = 0
   while pos < rels_xml.length() {
-    match rels_xml[pos:].to_string().find("<Relationship ") {
+    match rels_xml[pos:].to_owned().find("<Relationship ") {
       None => {
-        buf.write_string(rels_xml[pos:].to_string())
+        buf.write_string(rels_xml[pos:].to_owned())
         break
       }
       Some(rel_start) => {
         let start = pos + rel_start
-        buf.write_string(rels_xml[pos:start].to_string())
-        match rels_xml[start:].to_string().find("/>") {
+        buf.write_string(rels_xml[pos:start].to_owned())
+        match rels_xml[start:].to_owned().find("/>") {
           None => {
-            buf.write_string(rels_xml[start:].to_string())
+            buf.write_string(rels_xml[start:].to_owned())
             break
           }
           Some(rel_end) => {
-            let tag = rels_xml[start:start + rel_end + 2].to_string()
+            let tag = rels_xml[start:start + rel_end + 2].to_owned()
             if !tag.contains("relationships/slide\"") {
               buf.write_string(tag)
             }
@@ -867,9 +867,9 @@ pub fn build_presentation_from_pages(
     _ => raise InvalidPresentation(message="failed to open template pptx")
   }
   let mut pkg = tpl
-  let pres_rels_extra = StringBuilder::new()
-  let sld_id_list = StringBuilder::new()
-  let ct_overrides = StringBuilder::new()
+  let pres_rels_extra = StringBuilder()
+  let sld_id_list = StringBuilder()
+  let ct_overrides = StringBuilder()
   for idx, page_yaml in pages {
     let pnum = idx + 1
     let tpl_part = page_template_slide_for_index(pnum)
@@ -907,7 +907,7 @@ pub fn build_presentation_from_pages(
         Array(arr) => arr
         _ => []
       }
-      let shapes_buf = StringBuilder::new()
+      let shapes_buf = StringBuilder()
       let mut rid_counter = 10
       let next_rid = fn() -> String {
         rid_counter += 1
@@ -953,7 +953,7 @@ pub fn build_presentation_from_pages(
         )
     }
     let note_text = if idx < notes.length() { notes[idx] } else { "" }
-    if !note_text.trim().to_string().is_empty() {
+    if !note_text.trim().to_owned().is_empty() {
       let notes_part = "ppt/notesSlides/notesSlide\{pnum}.xml"
       let notes_rels_part = pptx_rels_path(notes_part)
       pkg = pkg.replace_text(notes_part, pptx_notes_xml(note_text))

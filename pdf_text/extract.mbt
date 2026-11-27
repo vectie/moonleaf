@@ -1,10 +1,11 @@
 ///|
+#derive(Debug, Eq)
 pub(all) suberror PdfTextError {
   TooLarge
   InvalidPdf(String)
   Encrypted
   Empty
-} derive(Debug, Eq)
+}
 
 ///|
 pub extend PdfTextError with @debug.Debug::{to_repr}

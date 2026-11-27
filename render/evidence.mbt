@@ -14,6 +14,7 @@ pub fn contract_version() -> String {
 /// Evidence returned by a MoonLeaf DOCX-to-PDF/page render. The renderer owns
 /// pagination and glyph placement; a host may verify this bounded receipt
 /// without learning document text.
+#derive(Debug, Eq, ToJson, FromJson)
 pub(all) struct Evidence {
   contract_version : String
   engine : String
@@ -24,7 +25,7 @@ pub(all) struct Evidence {
   layout_profile_sha256 : String
   page_count : Int32
   rendered_unix_ms : Int64
-} derive(Debug, Eq, ToJson, FromJson)
+}
 
 ///|
 pub fn Evidence::valid(self : Evidence) -> Bool {

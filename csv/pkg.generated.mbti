@@ -17,8 +17,8 @@ pub fn safe_text(String) -> String
 // Errors
 pub(all) suberror CsvError {
   InvalidDelimiter
-  InvalidQuote(row~ : Int, column~ : Int)
-  InvalidCoordinates(row~ : Int, column~ : Int)
+  InvalidQuote(row~ : Int32, column~ : Int32)
+  InvalidCoordinates(row~ : Int32, column~ : Int32)
   UnterminatedQuote
   TooLarge
 }
@@ -28,14 +28,14 @@ pub(all) struct Table {
   rows : Array[Array[String]]
   delimiter : Char
 }
-pub fn Table::delete_columns(Self, Int, Int) -> (Self, Int) raise CsvError
-pub fn Table::delete_rows(Self, Int, Int) -> (Self, Int) raise CsvError
-pub fn Table::insert_columns(Self, Int, Int) -> Self raise CsvError
-pub fn Table::insert_rows(Self, Int, Int) -> Self raise CsvError
+pub fn Table::delete_columns(Self, Int32, Int32) -> (Self, Int32) raise CsvError
+pub fn Table::delete_rows(Self, Int32, Int32) -> (Self, Int32) raise CsvError
+pub fn Table::insert_columns(Self, Int32, Int32) -> Self raise CsvError
+pub fn Table::insert_rows(Self, Int32, Int32) -> Self raise CsvError
 pub fn Table::serialize(Self) -> String
 pub fn Table::serialize_quoted(Self) -> String
-pub fn Table::set_cell_text(Self, Int, Int, String) -> Self raise CsvError
-pub fn Table::set_cells_text(Self, Array[(Int, Int, String)]) -> Self raise CsvError
+pub fn Table::set_cell_text(Self, Int32, Int32, String) -> Self raise CsvError
+pub fn Table::set_cells_text(Self, Array[(Int32, Int32, String)]) -> Self raise CsvError
 pub fn Table::workbook(Self, name? : String) -> @scene.Workbook
 
 // Type aliases

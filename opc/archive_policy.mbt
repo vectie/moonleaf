@@ -4,6 +4,7 @@
 /// These limits are enforced before extraction from central-directory
 /// metadata and checked again against the extracted entries. The dependency's
 /// own hard limits remain an additional ceiling.
+#derive(Debug, Eq)
 pub(all) struct ArchivePolicy {
   max_compressed_input_bytes : Int32
   max_entries : Int32
@@ -13,7 +14,7 @@ pub(all) struct ArchivePolicy {
   max_compression_ratio : Int32
   max_path_depth : Int32
   max_path_length : Int32
-} derive(Debug, Eq)
+}
 
 ///|
 /// Conservative defaults for untrusted, in-memory OOXML opens.

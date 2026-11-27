@@ -1,31 +1,35 @@
 ///|
 /// Explicit handling for JSON null, which the Table scalar model cannot retain.
+#derive(Debug, Eq)
 pub(all) enum JsonRecordNulls {
   RejectNull
   EmptyNull
   LiteralNull
-} derive(Debug, Eq)
+}
 
 ///|
+#derive(Debug, Eq)
 pub(all) struct JsonRecordField {
   name : String
   path : Array[String]
   required : Bool
   nulls : JsonRecordNulls
-} derive(Debug, Eq)
+}
 
 ///|
+#derive(Debug, Eq)
 pub(all) struct JsonRecordSpec {
   records_path : Array[String]
   fields : Array[JsonRecordField]
-} derive(Debug, Eq)
+}
 
 ///|
+#derive(Debug, Eq)
 pub(all) suberror JsonRecordError {
   InvalidJsonRecordSpec(String)
   InvalidJsonRecords(String)
   JsonRecordFieldError(row~ : Int32, column~ : String, reason~ : String)
-} derive(Debug, Eq)
+}
 
 ///|
 fn json_record_path_valid(

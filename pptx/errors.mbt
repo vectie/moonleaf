@@ -1,5 +1,6 @@
 ///|
 /// Errors produced while reading or conservatively editing PresentationML.
+#derive(Debug, Eq)
 pub(all) suberror PptxError {
   MissingPresentation
   InvalidPackagePart(part~ : String)
@@ -7,7 +8,7 @@ pub(all) suberror PptxError {
   MissingSlide(relationship_id~ : String)
   InvalidSlide(part~ : String, message~ : String)
   InvalidNumber(part~ : String, value~ : String)
-} derive(Debug, Eq)
+}
 
 ///|
 pub fn PptxError::to_string(self : PptxError) -> String {

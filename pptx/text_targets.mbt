@@ -1,6 +1,7 @@
 ///|
 /// One ordinary slide text run, identified only within the exact source snapshot.
 /// The ID is a structural path; slide position and shape ID aid human selection.
+#derive(Eq, Debug, ToJson)
 pub(all) struct TextTarget {
   id : String
   slide_number : Int32
@@ -8,7 +9,7 @@ pub(all) struct TextTarget {
   shape_id : String
   hidden_slide : Bool
   text : String
-} derive(Eq, Debug, ToJson)
+}
 
 ///|
 pub extend TextTarget with Eq::{equal, not_equal}

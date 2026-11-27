@@ -1,35 +1,39 @@
 ///|
 /// A field selects direct children relative to each record, then their leaf text
 /// or one attribute. Names are local names or {namespace-uri}local names.
+#derive(Debug, Eq)
 pub(all) struct XmlField {
   name : String
   path : Array[String]
   attribute : String?
   repeated : XmlRepeated
-} derive(Debug, Eq)
+}
 
 ///|
 /// Repeated matches are an error unless a join separator is explicitly supplied.
+#derive(Debug, Eq)
 pub(all) enum XmlRepeated {
   RejectRepeated
   JoinRepeated(String)
-} derive(Debug, Eq)
+}
 
 ///|
 /// The record path starts at the document root. No XPath, wildcards or coercion.
+#derive(Debug, Eq)
 pub(all) struct XmlRecordSpec {
   record_path : Array[String]
   fields : Array[XmlField]
-} derive(Debug, Eq)
+}
 
 ///|
+#derive(Debug, Eq)
 pub(all) suberror XmlRecordError {
   InvalidXmlSpec(String)
   InvalidRecordXml(String)
   XmlRecordLimit(String)
   RepeatedXmlField(row~ : Int32, column~ : String)
   NonLeafXmlField(row~ : Int32, column~ : String)
-} derive(Debug, Eq)
+}
 
 ///|
 priv struct RecordElement {

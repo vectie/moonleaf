@@ -1,8 +1,9 @@
 ///|
+#derive(Debug, Eq)
 pub(all) suberror FixedWidthError {
   InvalidFixedWidthSchema(String)
   InvalidFixedWidth(line~ : Int32, reason~ : String)
-} derive(Debug, Eq)
+}
 
 ///|
 priv struct FixedWidthField {
@@ -20,11 +21,12 @@ pub struct FixedWidthSchema {
 }
 
 ///|
+#derive(Debug, Eq)
 pub(all) struct FixedWidthTable {
   table : Table
   source_lines : Array[Int32]
   skipped_lines : Array[Int32]
-} derive(Debug, Eq)
+}
 
 ///|
 fn fw_fields(

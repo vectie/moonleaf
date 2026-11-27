@@ -1,7 +1,8 @@
 ///|
+#derive(Debug, Eq)
 pub(all) suberror XlsError {
   Invalid(String)
-} derive(Debug, Eq)
+}
 
 ///|
 pub extend XlsError with Debug::{to_repr}

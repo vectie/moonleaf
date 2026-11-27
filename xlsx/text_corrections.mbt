@@ -1,20 +1,22 @@
 ///|
 /// An exact text correction in a source snapshot. Coordinates are canonical A1.
+#derive(Debug, Eq)
 pub(all) struct TextCellCorrection {
   sheet : String
   address : String
   expected : String
   replacement : String
-} derive(Debug, Eq)
+}
 
 ///|
 /// One supported ordinary text cell, with its existing cell style identifier.
+#derive(Debug, Eq)
 pub(all) struct TextCellTarget {
   sheet : String
   address : String
   text : String
   style_id : Int32?
-} derive(Debug, Eq)
+}
 
 ///|
 fn correction_text(text : String) -> Unit raise XlsxError {

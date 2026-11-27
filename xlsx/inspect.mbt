@@ -1,14 +1,16 @@
 ///|
 /// Structured warning produced while inspecting display metadata.
+#derive(Debug, Eq)
 pub(all) enum InspectWarning {
   MissingStylesPart
   StyleIdOutOfRange(Int32)
   UnsupportedNumberFormat(Int32, String)
   AmbiguousNumberFormat(Int32, String)
-} derive(Debug, Eq)
+}
 
 ///|
 /// Coarse display intent inferred from an XLSX number format.
+#derive(Debug, Eq)
 pub(all) enum DisplayKind {
   General
   Number
@@ -16,7 +18,7 @@ pub(all) enum DisplayKind {
   Time
   DateTime
   Unsupported
-} derive(Debug, Eq)
+}
 
 ///| Deterministic conversion of an Excel numeric serial.
 
@@ -24,6 +26,7 @@ pub(all) enum DisplayKind {
 
 ///|
 /// Gregorian year/month/day.
+#derive(Debug, Eq)
 pub(all) struct DateTimeMetadata {
   date1904 : Bool
   serial : Double
@@ -34,10 +37,11 @@ pub(all) struct DateTimeMetadata {
   hour : Int32
   minute : Int32
   second : Int32
-} derive(Debug, Eq)
+}
 
 ///|
 /// Additive per-cell view retaining the XML value and cached formula value.
+#derive(Debug, Eq)
 pub(all) struct InspectedCell {
   sheet_name : String
   row : Int32
@@ -54,7 +58,7 @@ pub(all) struct InspectedCell {
   display_kind : DisplayKind
   date_time : DateTimeMetadata?
   warnings : Array[InspectWarning]
-} derive(Debug, Eq)
+}
 
 ///|
 /// Exact workbook relationship types accepted for display metadata. Keeping

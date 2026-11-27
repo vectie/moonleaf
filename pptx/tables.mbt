@@ -1,6 +1,7 @@
 ///|
 /// An ordinary slide table in presentation and shape-tree order. A refusal
 /// leaves rows empty. References must be bound to the exact source digest.
+#derive(Debug, Eq, ToJson)
 pub(all) struct SlideTable {
   id : String
   slide_number : Int32
@@ -9,7 +10,7 @@ pub(all) struct SlideTable {
   hidden_slide : Bool
   rows : Array[Array[String]]
   refusal : String?
-} derive(Debug, Eq, ToJson)
+}
 
 ///|
 let table_p_namespace : String = "http://schemas.openxmlformats.org/presentationml/2006/main"

@@ -1,8 +1,9 @@
 ///|
+#derive(Debug)
 pub(all) struct PdfDocument {
   bytes : Bytes
   page_count : Int32
-} derive(Debug)
+}
 
 ///|
 priv struct Glyph {
@@ -334,13 +335,13 @@ fn pdf_bytes(
     "<< /Type /Pages /Count \{pages.length()} /Kids [\{kids}] >>",
   )
   let out = @buffer.Buffer()
-  out.write_bytes(b"%PDF-1.7\n%MoonLeaf\n")
+  out.write_bytesview(b"%PDF-1.7\n%MoonLeaf\n")
   let offsets : Array[Int32] = []
   for i, object in objects {
     offsets.push(out.length())
     out.write_string_utf8("\{i + 1} 0 obj\n")
-    out.write_bytes(object)
-    out.write_bytes(b"\nendobj\n")
+    out.write_bytesview(object)
+    out.write_bytesview(b"\nendobj\n")
   }
   let xref = out.length()
   out.write_string_utf8(

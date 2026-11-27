@@ -1,12 +1,13 @@
 ///|
 /// A bounded value-only selection. Rows include every position in the rectangle.
 /// Formatting, date interpretation and formula caches are never imported.
+#derive(Debug, Eq)
 pub(all) struct RangeValues {
   sheet_name : String
   range : @scene.CellRange
   rows : Array[Array[@scene.CellValue]]
   styled_cells : Int32
-} derive(Debug, Eq)
+}
 
 ///|
 fn ranges_overlap(a : @scene.CellRange, b : @scene.CellRange) -> Bool {

@@ -1,5 +1,6 @@
 ///|
 /// Errors reported while reading or conservatively editing an XLSX package.
+#derive(Debug, Eq)
 pub(all) suberror XlsxError {
   MissingWorkbook
   PackageFailure(part~ : String, message~ : String)
@@ -10,4 +11,4 @@ pub(all) suberror XlsxError {
   InvalidSharedStringIndex(Int32)
   SheetNotFound(String)
   InvalidCoordinates(row~ : Int32, column~ : Int32)
-} derive(Debug, Eq)
+}

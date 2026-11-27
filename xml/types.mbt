@@ -1,7 +1,8 @@
 ///|
+#derive(Debug, Eq)
 pub(all) suberror XmlError {
   InvalidXml(offset~ : Int32, message~ : String)
-} derive(Debug, Eq)
+}
 
 ///|
 pub fn XmlError::to_string(self : XmlError) -> String {
@@ -12,33 +13,37 @@ pub fn XmlError::to_string(self : XmlError) -> String {
 }
 
 ///|
+#derive(Debug, Eq)
 pub(all) struct Attribute {
   name : String
   value : String
-} derive(Debug, Eq)
+}
 
 ///|
+#derive(Debug, Eq)
 pub(all) enum Node {
   Element(Element)
   Text(String)
-} derive(Debug, Eq)
+}
 
 ///|
+#derive(Debug, Eq)
 pub(all) struct Element {
   name : String
   attributes : Array[Attribute]
   children : Array[Node]
-} derive(Debug, Eq)
+}
 
 ///|
 /// Parser resource ceilings. Values must be non-negative.
+#derive(Debug, Eq)
 pub(all) struct ParseOptions {
   max_input_utf16 : Int32
   max_depth : Int32
   max_nodes : Int32
   max_attributes_per_element : Int32
   max_total_decoded_text : Int32
-} derive(Debug, Eq)
+}
 
 ///|
 /// Conservative defaults suitable for untrusted package parts.

@@ -1,10 +1,11 @@
 ///|
+#derive(Debug, Eq)
 pub(all) suberror ReconcileError {
   InvalidReconcile(String)
   InvalidReconcileKey(side~ : String, row~ : Int32, column~ : String)
   DuplicateReconcileKey(side~ : String, first_row~ : Int32, row~ : Int32)
   UnsupportedReconcileValue(side~ : String, row~ : Int32, column~ : String)
-} derive(Debug, Eq)
+}
 
 ///|
 fn reconcile_shape(table : Table, side : String) -> Unit raise ReconcileError {

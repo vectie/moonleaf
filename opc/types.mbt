@@ -1,9 +1,10 @@
 ///|
+#derive(Debug, Eq)
 pub(all) suberror PackageError {
   InvalidPackage(String)
   MissingPart(String)
   InvalidTextPart(String)
-} derive(Debug, Eq)
+}
 
 ///|
 pub fn PackageError::to_string(self : PackageError) -> String {
@@ -15,23 +16,26 @@ pub fn PackageError::to_string(self : PackageError) -> String {
 }
 
 ///|
+#derive(Debug, Eq)
 pub(all) struct Part {
   name : String
   content : FixedArray[Byte]
-} derive(Debug, Eq)
+}
 
 ///|
+#derive(Debug, Eq)
 pub(all) struct Relationship {
   id : String
   relationship_type : String
   target : String
   external : Bool
-} derive(Debug, Eq)
+}
 
 ///|
+#derive(Debug, Eq)
 pub(all) struct Package {
   parts : Array[Part]
-} derive(Debug, Eq)
+}
 
 ///|
 pub fn Package::part(self : Package, name : String) -> Part? {

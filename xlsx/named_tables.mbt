@@ -2,6 +2,7 @@
 /// An Excel Table definition, resolved through its owning worksheet relationship.
 /// `reference` includes header/totals; `import_reference` excludes totals.
 /// A headerless totals-only table has no import rectangle.
+#derive(Debug, Eq)
 pub(all) struct NamedTable {
   name : String
   sheet_name : String
@@ -13,7 +14,7 @@ pub(all) struct NamedTable {
   totals_rows : Int32
   data_rows : Int32
   calculated_columns : Bool
-} derive(Debug, Eq)
+}
 
 ///|
 fn table_count(

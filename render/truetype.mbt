@@ -1,16 +1,18 @@
 ///|
+#derive(Debug, Eq)
 pub(all) suberror PdfError {
   Unsupported(String)
   InvalidFont(String)
   LayoutOverflow(String)
-} derive(Debug, Eq)
+}
 
 ///|
 /// A deployment must separately establish its license to embed these bytes.
+#derive(Debug)
 pub(all) struct PdfFontInput {
   family : String
   bytes : Bytes
-} derive(Debug)
+}
 
 ///|
 priv struct Face {

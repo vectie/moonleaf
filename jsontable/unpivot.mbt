@@ -1,9 +1,10 @@
 ///|
+#derive(Debug, Eq)
 pub(all) suberror UnpivotError {
   InvalidUnpivot(String)
   UnknownUnpivotColumn(String)
   UnsupportedUnpivotValue(row~ : Int32, column~ : String)
-} derive(Debug, Eq)
+}
 
 ///|
 fn unpivot_column(table : Table, name : String) -> Int32 raise UnpivotError {

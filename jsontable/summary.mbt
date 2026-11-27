@@ -1,25 +1,28 @@
 ///|
 /// Numeric measures explicitly parse CSV text; group columns remain exact values.
+#derive(Debug, Eq)
 pub(all) enum SummaryOperation {
   CountRows
   Sum(String)
   Mean(String)
-} derive(Debug, Eq)
+}
 
 ///|
+#derive(Debug, Eq)
 pub(all) struct SummaryMeasure {
   name : String
   operation : SummaryOperation
-} derive(Debug, Eq)
+}
 
 ///|
+#derive(Debug, Eq)
 pub(all) suberror SummaryError {
   InvalidSummary(String)
   UnknownSummaryColumn(String)
   InvalidSummaryNumber(row~ : Int32, column~ : String)
   SummaryOverflow(row~ : Int32, column~ : String)
   UnsupportedGroupValue(row~ : Int32, column~ : String)
-} derive(Debug, Eq)
+}
 
 ///|
 priv struct SummaryAccumulator {

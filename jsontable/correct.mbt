@@ -1,8 +1,9 @@
 ///|
+#derive(Debug, Eq)
 pub(all) suberror CorrectionError {
   InvalidCorrection(String)
   CorrectionConflict(edit~ : Int32, row~ : Int32, column~ : String)
-} derive(Debug, Eq)
+}
 
 ///|
 priv struct CellCorrection {
@@ -20,10 +21,11 @@ pub struct CorrectionRecipe {
 }
 
 ///|
+#derive(Debug, Eq)
 pub(all) struct CorrectionResult {
   table : Table
   report : Table
-} derive(Debug, Eq)
+}
 
 ///|
 fn correction_object(

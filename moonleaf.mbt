@@ -2,11 +2,12 @@
 pub using @opc {type ArchivePolicy}
 
 ///|
+#derive(Debug, Eq)
 pub(all) suberror MoonLeafError {
   UnsupportedExtension(String)
   Package(String)
   Document(String)
-} derive(Debug, Eq)
+}
 
 ///|
 pub fn open(

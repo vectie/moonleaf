@@ -82,7 +82,7 @@ test "missing required null policies and blocked intermediate paths" {
         is JsonRecordFieldError(
           row=1,
           column="v",
-          reason="Required field is missing"
+          reason="Required field is missing",
         )
     } noraise {
       _ => false

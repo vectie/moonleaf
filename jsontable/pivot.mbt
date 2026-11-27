@@ -1,20 +1,22 @@
 ///|
 /// Resolve repeated identifier/key cells explicitly. Even identical or empty
 /// values are duplicates. First/Last refer to input data row order.
+#derive(Debug, Eq)
 pub(all) enum PivotDuplicates {
   Reject
   First
   Last
-} derive(Debug, Eq)
+}
 
 ///|
+#derive(Debug, Eq)
 pub(all) suberror PivotError {
   InvalidPivot(String)
   UnknownPivotColumn(String)
   InvalidPivotKey(row~ : Int32, column~ : String)
   UnsupportedPivotValue(row~ : Int32, column~ : String)
   DuplicatePivotCell(first_row~ : Int32, row~ : Int32, key~ : String)
-} derive(Debug, Eq)
+}
 
 ///|
 priv struct PivotGroup {

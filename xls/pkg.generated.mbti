@@ -10,9 +10,10 @@ import {
 pub fn read(FixedArray[Byte]) -> @scene.Workbook raise XlsError
 
 // Errors
+#derive(Eq, @debug.Debug)
 pub(all) suberror XlsError {
   Invalid(String)
-} derive(Eq, @debug.Debug)
+}
 pub fn XlsError::equal(Self, Self) -> Bool
 pub fn XlsError::not_equal(Self, Self) -> Bool
 pub fn XlsError::to_repr(Self) -> @debug.Repr

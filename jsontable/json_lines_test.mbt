@@ -108,7 +108,7 @@ test "selected field refusals report precise parent item and column before retry
           parent_row=2,
           item_row=Some(2),
           column="sku",
-          reason="Required field is missing"
+          reason="Required field is missing",
         )
     } noraise {
       _ => false
@@ -284,7 +284,7 @@ test "parent text amplification refuses before serialization" {
       value =>
         value
         is InvalidJsonLines(
-          "Expanded scalar text exceeds 4000000 UTF-16 units including headers"
+          "Expanded scalar text exceeds 4000000 UTF-16 units including headers",
         )
     } noraise {
       _ => false

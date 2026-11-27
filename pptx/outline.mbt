@@ -1,13 +1,15 @@
 ///|
 /// One text shape or table, in XML shape-tree order. IDs are source-local.
+#derive(Debug, Eq, ToJson)
 pub(all) struct OutlineBlock {
   kind : String
   shape_id : String
   paragraphs : Array[String]
   rows : Array[Array[String]]
-} derive(Debug, Eq, ToJson)
+}
 
 ///|
+#derive(Debug, Eq, ToJson)
 pub(all) struct SlideOutline {
   number : Int32
   part : String
@@ -17,14 +19,15 @@ pub(all) struct SlideOutline {
   blocks : Array[OutlineBlock]
   notes_part : String?
   notes : Array[OutlineBlock]
-} derive(Debug, Eq, ToJson)
+}
 
 ///|
 /// Read-only content extraction; not a visual or complete-source representation.
+#derive(Debug, Eq, ToJson)
 pub(all) struct PresentationOutline {
   slides : Array[SlideOutline]
   warnings : Array[String]
-} derive(Debug, Eq, ToJson)
+}
 
 ///|
 fn outline_paragraphs(body : @xml.Element) -> Array[String] {

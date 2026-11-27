@@ -1,22 +1,25 @@
 ///|
+#derive(Debug, Eq)
 pub(all) enum XlsxHeader {
   FirstRow
   Columns(Array[String])
-} derive(Debug, Eq)
+}
 
 ///|
+#derive(Debug, Eq)
 pub(all) suberror XlsxTableError {
   InvalidXlsxSelection(String)
-} derive(Debug, Eq)
+}
 
 ///|
+#derive(Debug, Eq)
 pub(all) struct XlsxTable {
   table : Table
   sheet_name : String
   range : @scene.CellRange
   source_rows : Array[Int32]
   warnings : Array[String]
-} derive(Debug, Eq)
+}
 
 ///|
 /// Import an explicit worksheet rectangle into the typed Table pipeline.

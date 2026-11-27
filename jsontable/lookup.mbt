@@ -1,20 +1,22 @@
 ///|
+#derive(Debug, Eq)
 pub(all) suberror LookupError {
   InvalidTable(String)
   UnknownColumn(String)
   DuplicateKey(Int32, Int32)
   InvalidKey(Int32)
   InvalidDelimited(String)
-} derive(Debug, Eq)
+}
 
 ///|
 /// The prepared table and one-based data row identities in both inputs.
 /// Missing lookup rows are None. Header rows are not counted.
+#derive(Debug, Eq)
 pub(all) struct LookupResult {
   table : Table
   source_rows : Array[Int32]
   lookup_rows : Array[Int32?]
-} derive(Debug, Eq)
+}
 
 ///|
 /// Read a header-bearing CSV/TSV without guessing number/date types.

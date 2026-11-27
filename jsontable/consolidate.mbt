@@ -1,21 +1,24 @@
 ///|
+#derive(Debug, Eq)
 pub(all) enum Retention {
   KeepFirst
   KeepLast
-} derive(Debug, Eq)
+}
 
 ///|
+#derive(Debug, Eq)
 pub(all) suberror ConsolidateError {
   InvalidConsolidate(String)
   InvalidConsolidateKey(row~ : Int32, column~ : String)
   UnsupportedConsolidateValue(row~ : Int32, column~ : String)
-} derive(Debug, Eq)
+}
 
 ///|
+#derive(Debug, Eq)
 pub(all) struct Consolidation {
   kept : Table
   report : Table
-} derive(Debug, Eq)
+}
 
 ///|
 /// Select complete rows by explicit, nonempty exact-text composite keys.

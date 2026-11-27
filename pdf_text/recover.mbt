@@ -1,5 +1,6 @@
 ///|
 /// Extraction metadata keeps source checksum failures visible to callers.
+#derive(ToJson)
 pub(all) struct PdfTextResult {
   text : String
   extraction_warnings : Array[Json]
@@ -9,7 +10,7 @@ pub(all) struct PdfTextResult {
   page_start : Int32
   page_end : Int32
   next_page : Int32?
-} derive(ToJson)
+}
 
 ///|
 pub extend PdfTextResult with ToJson::{to_json}

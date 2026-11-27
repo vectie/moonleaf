@@ -1,10 +1,11 @@
 ///|
 /// A supported main-body text element. IDs are structural positions, meaningful
 /// only for the exact source revision from which they were listed.
+#derive(Eq, Debug)
 pub(all) struct TextTarget {
   id : String
   text : String
-} derive(Eq, Debug)
+}
 
 ///|
 pub extend TextTarget with Eq::{equal, not_equal}

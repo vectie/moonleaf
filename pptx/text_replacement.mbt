@@ -13,7 +13,7 @@ fn replace_a_text_nodes(
   find : String,
   replacement : String,
 ) -> (String, Bool) raise PptxError {
-  let output = StringBuilder(size_hint=source.length())
+  let output = StringBuilder(capacity=source.length())
   let escaped = @xml.escape_text(replacement)
   let mut offset = 0
   let mut changed = false

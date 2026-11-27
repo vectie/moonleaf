@@ -1,6 +1,7 @@
 ///|
 /// Supported cell content at one coordinate. A formula's value is its stored
 /// cache, never a computed result. None differs from an explicit empty string.
+#derive(Debug, Eq)
 pub(all) struct ComparisonCell {
   row : Int32
   column : Int32
@@ -8,17 +9,19 @@ pub(all) struct ComparisonCell {
   value : String?
   formula : String?
   formula_attributes : Map[String, String]
-} derive(Debug, Eq)
+}
 
 ///|
+#derive(Debug, Eq)
 pub(all) struct CellDifference {
   address : String
   before : ComparisonCell?
   after : ComparisonCell?
   changes : Array[String]
-} derive(Debug, Eq)
+}
 
 ///|
+#derive(Debug, Eq)
 pub(all) struct SheetDifference {
   name : String
   before_position : Int32?
@@ -29,9 +32,10 @@ pub(all) struct SheetDifference {
   after_merges : Array[String]
   changes : Array[String]
   cells : Array[CellDifference]
-} derive(Debug, Eq)
+}
 
 ///|
+#derive(Debug, Eq)
 pub(all) struct WorkbookComparison {
   before_sheets : Array[String]
   after_sheets : Array[String]
@@ -41,7 +45,7 @@ pub(all) struct WorkbookComparison {
   after_date1904 : Bool
   date_system_changed : Bool
   warnings : Array[String]
-} derive(Debug, Eq)
+}
 
 ///|
 fn compare_cells(

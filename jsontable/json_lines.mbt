@@ -1,20 +1,23 @@
 ///|
 /// One explicitly selected child-object array per parent record.
+#derive(Debug, Eq)
 pub(all) struct JsonLineSpec {
   records_path : Array[String]
   items_path : Array[String]
   parent_fields : Array[JsonRecordField]
   item_fields : Array[JsonRecordField]
-} derive(Debug, Eq)
+}
 
 ///|
+#derive(Debug, Eq)
 pub(all) struct JsonLineTable {
   table : Table
   parent_count : Int32
   empty_parent_rows : Array[Int32]
-} derive(Debug, Eq)
+}
 
 ///|
+#derive(Debug, Eq)
 pub(all) suberror JsonLineError {
   InvalidJsonLineSpec(String)
   InvalidJsonLines(String)
@@ -22,9 +25,9 @@ pub(all) suberror JsonLineError {
     parent_row~ : Int32,
     item_row~ : Int32?,
     column~ : String,
-    reason~ : String
+    reason~ : String,
   )
-} derive(Debug, Eq)
+}
 
 ///|
 fn validate_json_line_spec(spec : JsonLineSpec) -> Unit raise JsonLineError {

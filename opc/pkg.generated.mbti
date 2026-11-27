@@ -16,39 +16,42 @@ pub fn relationships_part_name(String) -> String
 
 pub fn resolve_target(String, String) -> String raise PackageError
 
-pub fn save(Package, compression_level? : Int) -> FixedArray[Byte] raise PackageError
+pub fn save(Package, compression_level? : Int32) -> FixedArray[Byte] raise PackageError
 
 // Errors
+#derive(Eq, @debug.Debug)
 pub(all) suberror PackageError {
   InvalidPackage(String)
   MissingPart(String)
   InvalidTextPart(String)
-} derive(Eq, @debug.Debug)
+}
 pub fn PackageError::equal(Self, Self) -> Bool
 pub fn PackageError::not_equal(Self, Self) -> Bool
 pub fn PackageError::to_repr(Self) -> @debug.Repr
 pub fn PackageError::to_string(Self) -> String
 
 // Types and methods
+#derive(Eq, @debug.Debug)
 pub(all) struct ArchivePolicy {
-  max_compressed_input_bytes : Int
-  max_entries : Int
-  max_entry_compressed_bytes : Int
-  max_entry_uncompressed_bytes : Int
-  max_total_uncompressed_bytes : Int
-  max_compression_ratio : Int
-  max_path_depth : Int
-  max_path_length : Int
-} derive(Eq, @debug.Debug)
+  max_compressed_input_bytes : Int32
+  max_entries : Int32
+  max_entry_compressed_bytes : Int32
+  max_entry_uncompressed_bytes : Int32
+  max_total_uncompressed_bytes : Int32
+  max_compression_ratio : Int32
+  max_path_depth : Int32
+  max_path_length : Int32
+}
 pub fn ArchivePolicy::default() -> Self
 pub fn ArchivePolicy::equal(Self, Self) -> Bool
 pub fn ArchivePolicy::not_equal(Self, Self) -> Bool
 pub fn ArchivePolicy::to_repr(Self) -> @debug.Repr
 pub fn ArchivePolicy::validate(Self) -> Unit raise PackageError
 
+#derive(Eq, @debug.Debug)
 pub(all) struct Package {
   parts : Array[Part]
-} derive(Eq, @debug.Debug)
+}
 pub fn Package::equal(Self, Self) -> Bool
 pub fn Package::has_part(Self, String) -> Bool
 pub fn Package::not_equal(Self, Self) -> Bool
@@ -59,20 +62,22 @@ pub fn Package::replace_text(Self, String, String) -> Self
 pub fn Package::text(Self, String) -> String raise PackageError
 pub fn Package::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct Part {
   name : String
   content : FixedArray[Byte]
-} derive(Eq, @debug.Debug)
+}
 pub fn Part::equal(Self, Self) -> Bool
 pub fn Part::not_equal(Self, Self) -> Bool
 pub fn Part::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct Relationship {
   id : String
   relationship_type : String
   target : String
   external : Bool
-} derive(Eq, @debug.Debug)
+}
 pub fn Relationship::equal(Self, Self) -> Bool
 pub fn Relationship::not_equal(Self, Self) -> Bool
 pub fn Relationship::to_repr(Self) -> @debug.Repr

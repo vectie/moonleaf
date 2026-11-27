@@ -1,9 +1,10 @@
 ///|
+#derive(Debug, Eq)
 pub(all) suberror TypedDelimitedError {
   InvalidDelimitedSchema(String)
   InvalidTypedDelimited(String)
   DelimitedConversion(row~ : Int32, column~ : String, reason~ : String)
-} derive(Debug, Eq)
+}
 
 ///|
 priv enum DelimitedKind {

@@ -1,15 +1,18 @@
 ///|
+#derive(Debug, Eq)
 pub(all) enum PptxHeader {
   FirstSlideTableRow
   SlideTableColumns(Array[String])
-} derive(Debug, Eq)
+}
 
 ///|
+#derive(Debug, Eq)
 pub(all) suberror PptxTableError {
   InvalidPptxSelection(String)
-} derive(Debug, Eq)
+}
 
 ///|
+#derive(Debug, Eq)
 pub(all) struct PptxTable {
   table : Table
   table_id : String
@@ -19,7 +22,7 @@ pub(all) struct PptxTable {
   hidden_slide : Bool
   source_rows : Array[Int32]
   warnings : Array[String]
-} derive(Debug, Eq)
+}
 
 ///|
 /// Import one unmerged presentation table as exact literal text. No numeric,

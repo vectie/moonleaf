@@ -1,26 +1,30 @@
 ///|
+#derive(Debug, Eq)
 pub(all) enum DocumentFormat {
   Docx
   Xlsx
   Pptx
-} derive(Debug, Eq)
+}
 
 ///|
+#derive(Debug, Eq)
 pub(all) struct DocumentCapabilities {
   render_scene : Bool
   save_as_copy : Bool
   replace_text : Bool
   set_cell_text : Bool
-} derive(Debug, Eq)
+}
 
 ///|
+#derive(Debug, Eq)
 pub(all) struct DocumentDiagnostic {
   code : String
   message : String
   part : String?
-} derive(Debug, Eq)
+}
 
 ///|
+#derive(Debug, Eq)
 pub(all) suberror DocumentSessionError {
   UnsupportedFormat(String)
   Package(String)
@@ -32,7 +36,7 @@ pub(all) suberror DocumentSessionError {
   FormulaCell(sheet~ : String, row~ : Int32, column~ : Int32)
   MergedCellNotAnchor(sheet~ : String, row~ : Int32, column~ : Int32)
   SaveVerification(String)
-} derive(Debug, Eq)
+}
 
 ///|
 pub struct DocumentSession {

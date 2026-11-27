@@ -1,32 +1,36 @@
 ///|
+#derive(Debug, Eq)
 pub(all) enum DocxHeader {
   FirstTableRow
   TableColumns(Array[String])
-} derive(Debug, Eq)
+}
 
 ///|
+#derive(Debug, Eq)
 pub(all) suberror DocxTableError {
   InvalidDocxSelection(String)
-} derive(Debug, Eq)
+}
 
 ///|
 /// A direct main-body table. A refusal means this table cannot be imported.
 /// IDs are one-based direct-body table ordinals, bound to the source snapshot.
+#derive(Debug, Eq)
 pub(all) struct DocxTableCandidate {
   id : String
   rows : Int32
   columns : Int32
   first_row : Array[String]
   refusal : String?
-} derive(Debug, Eq)
+}
 
 ///|
+#derive(Debug, Eq)
 pub(all) struct DocxTable {
   table : Table
   table_id : String
   source_rows : Array[Int32]
   warnings : Array[String]
-} derive(Debug, Eq)
+}
 
 ///|
 fn docx_table_structure(element : @xml.Element) -> Unit raise DocxTableError {

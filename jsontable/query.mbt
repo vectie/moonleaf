@@ -1,7 +1,8 @@
 ///|
+#derive(Debug, Eq)
 pub(all) suberror QueryError {
   InvalidQuery(String)
-} derive(Debug, Eq)
+}
 
 ///|
 priv struct QueryFilter {
@@ -29,11 +30,12 @@ pub struct QueryRecipe {
 }
 
 ///|
+#derive(Debug, Eq)
 pub(all) struct QueryResult {
   table : Table
   source_rows : Array[Int32]
   matched_rows : Int32
-} derive(Debug, Eq)
+}
 
 ///|
 fn query_fields(

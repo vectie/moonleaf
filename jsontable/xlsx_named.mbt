@@ -1,10 +1,11 @@
 ///|
+#derive(Debug, Eq)
 pub(all) struct NamedXlsxTable {
   table : Table
   definition : @xlsx.NamedTable
   source_rows : Array[Int32]
   warnings : Array[String]
-} derive(Debug, Eq)
+}
 
 ///|
 /// Import an Excel Table by exact displayName. Header cells must agree with

@@ -1,13 +1,15 @@
 ///|
+#derive(Debug, Eq)
 pub(all) enum StackMode {
   StrictHeaders
   UnionHeaders
-} derive(Debug, Eq)
+}
 
 ///|
+#derive(Debug, Eq)
 pub(all) suberror StackError {
   InvalidStack(String)
-} derive(Debug, Eq)
+}
 
 ///|
 /// Append scalar datasets by exact header names, preserving source and row order.

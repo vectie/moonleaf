@@ -14,6 +14,7 @@ pub fn layout_audit_contract_version() -> String {
 
 ///|
 /// valid `@render.Evidence` receipt from MoonLeaf's pagination renderer.
+#derive(Eq)
 pub(all) struct LayoutAudit {
   contract_version : String
   equivalent : Bool
@@ -34,9 +35,10 @@ pub(all) struct LayoutAudit {
   candidate_explicit_page_break_count : Int32
   inserted_text_slot_paragraphs : Int32
   diagnostics : Array[String]
-} derive(Eq)
+}
 
 ///|
+#derive(Eq)
 priv struct RunStyle {
   bold : Bool
   italic : Bool
@@ -49,7 +51,7 @@ priv struct RunStyle {
   highlight : String?
   strike : Bool
   hyperlink : String?
-} derive(Eq)
+}
 
 ///|
 fn run_style(run : RunMetadata) -> RunStyle {

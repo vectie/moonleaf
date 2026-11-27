@@ -17,28 +17,31 @@ pub fn parse_with_options(String, ParseOptions) -> Element raise XmlError
 pub fn serialize(Element) -> String
 
 // Errors
+#derive(Eq, @debug.Debug)
 pub(all) suberror XmlError {
-  InvalidXml(offset~ : Int, message~ : String)
-} derive(Eq, @debug.Debug)
+  InvalidXml(offset~ : Int32, message~ : String)
+}
 pub fn XmlError::equal(Self, Self) -> Bool
 pub fn XmlError::not_equal(Self, Self) -> Bool
 pub fn XmlError::to_repr(Self) -> @debug.Repr
 pub fn XmlError::to_string(Self) -> String
 
 // Types and methods
+#derive(Eq, @debug.Debug)
 pub(all) struct Attribute {
   name : String
   value : String
-} derive(Eq, @debug.Debug)
+}
 pub fn Attribute::equal(Self, Self) -> Bool
 pub fn Attribute::not_equal(Self, Self) -> Bool
 pub fn Attribute::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct Element {
   name : String
   attributes : Array[Attribute]
   children : Array[Node]
-} derive(Eq, @debug.Debug)
+}
 pub fn Element::attribute(Self, String) -> String?
 pub fn Element::child_elements(Self) -> Array[Self]
 pub fn Element::children_named(Self, String) -> Array[Self]
@@ -49,21 +52,23 @@ pub fn Element::not_equal(Self, Self) -> Bool
 pub fn Element::text_content(Self) -> String
 pub fn Element::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) enum Node {
   Element(Element)
   Text(String)
-} derive(Eq, @debug.Debug)
+}
 pub fn Node::equal(Self, Self) -> Bool
 pub fn Node::not_equal(Self, Self) -> Bool
 pub fn Node::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct ParseOptions {
-  max_input_utf16 : Int
-  max_depth : Int
-  max_nodes : Int
-  max_attributes_per_element : Int
-  max_total_decoded_text : Int
-} derive(Eq, @debug.Debug)
+  max_input_utf16 : Int32
+  max_depth : Int32
+  max_nodes : Int32
+  max_attributes_per_element : Int32
+  max_total_decoded_text : Int32
+}
 pub fn ParseOptions::equal(Self, Self) -> Bool
 pub fn ParseOptions::not_equal(Self, Self) -> Bool
 pub fn ParseOptions::safe_defaults() -> Self

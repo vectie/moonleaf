@@ -1,18 +1,20 @@
 ///|
+#derive(Debug, Eq)
 pub(all) suberror MarkdownTableError {
   InvalidMarkdownTable(line~ : Int32, reason~ : String)
-} derive(Debug, Eq)
+}
 
 ///|
 /// Literal pipe-table data and one-based physical source lines. The identifier
 /// is local to this exact document and is not a stable business key.
+#derive(Debug, Eq)
 pub(all) struct MarkdownTable {
   id : String
   header_line : Int32
   separator_line : Int32
   source_lines : Array[Int32]
   table : Table
-} derive(Debug, Eq)
+}
 
 ///|
 fn markdown_indented(line : String) -> Bool {
